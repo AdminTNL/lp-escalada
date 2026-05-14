@@ -6,390 +6,826 @@
   <title>FAQ Escalada Sebrae 2026</title>
   <meta
     name="description"
-    content="Carregando a versao remota da FAQ Escalada Sebrae 2026."
+    content="Perguntas frequentes do Escalada Sebrae 2026 carregadas dinamicamente do bucket."
   />
+  <link rel="icon" href="/wp-content/uploads/2025/05/cropped-Escalada-SEBRAE-7-192x192.png" sizes="192x192" />
+  <link rel="stylesheet" href="/wp-content/uploads/elementor/google-fonts/css/spacegrotesk.css" />
+  <link rel="stylesheet" href="/wp-content/uploads/elementor/google-fonts/css/intertight.css" />
   <style>
     :root {
       color-scheme: light;
-      --faq-accent: #00d95d;
-      --faq-bg-start: #08101d;
-      --faq-bg-end: #121a2d;
-      --faq-panel: rgba(10, 16, 29, 0.8);
-      --faq-text: #ffffff;
-      --faq-muted: rgba(255, 255, 255, 0.74);
-      --faq-danger: #ff7a7a;
-      --faq-border: rgba(255, 255, 255, 0.12);
+      --bg: #020611;
+      --bg-soft: #091224;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.76);
+      --card: #ffffff;
+      --card-text: #101828;
+      --green: #00d95d;
+      --pink: #ff00ff;
+      --cyan: #00f9ff;
+      --blue: #122f9b;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --max: 1200px;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html,
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      min-height: 100%;
       margin: 0;
-    }
-
-    body.faq-loading,
-    body.faq-error {
-      font-family: "Space Grotesk", "Segoe UI", Arial, sans-serif;
+      font-family: "Inter Tight", "Segoe UI", Arial, sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(0, 217, 93, 0.18), transparent 28%),
-        linear-gradient(135deg, var(--faq-bg-start) 0%, var(--faq-bg-end) 100%);
-      color: var(--faq-text);
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      text-align: center;
+        radial-gradient(circle at top left, rgba(0, 217, 93, 0.2), transparent 22%),
+        linear-gradient(180deg, #060b16 0%, var(--bg) 42%, #091224 100%);
+      color: var(--text);
     }
 
-    .faq-status-card {
-      width: min(100%, 720px);
-      padding: 32px 28px;
-      border: 1px solid var(--faq-border);
-      border-radius: 24px;
-      background: var(--faq-panel);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
+    a {
+      color: inherit;
     }
 
-    .faq-loader-text {
-      position: relative;
-      display: inline-block;
-      margin: 0;
-      padding-left: 22px;
-      color: var(--faq-text);
-      font-size: clamp(26px, 4vw, 42px);
+    .shell {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      border-bottom: 5px solid var(--green);
+    }
+
+    .topbar__inner {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand img {
+      display: block;
+      width: auto;
+      height: 48px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #212121;
+      text-decoration: none;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 14px;
       font-weight: 700;
+      text-transform: uppercase;
       letter-spacing: 0.04em;
+      transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .nav a:hover {
+      transform: translateY(-1px);
+      border-color: var(--green);
+      color: #000000;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 88px 0 52px;
+      background:
+        linear-gradient(135deg, rgba(18, 47, 155, 0.82), rgba(0, 217, 93, 0.44)),
+        url("/wp-content/uploads/2025/06/background-rosa-e1749108482198.png") center top / cover no-repeat;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        url("/wp-content/uploads/2025/06/close-up-young-attractive-charismatic-woman-isolated-scaled-e1749193550727.png")
+        right bottom / min(42vw, 560px) no-repeat;
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    .hero__inner,
+    .content,
+    .footer__inner {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero__copy {
+      max-width: 760px;
+    }
+
+    .eyebrow,
+    .section-tag {
+      display: inline;
+      padding: 0.02em 0.12em;
+      box-shadow: 0.2em 0 0 currentColor, -0.2em 0 0 currentColor;
+      color: #000000;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
       text-transform: uppercase;
     }
 
-    .faq-loader-text::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--faq-accent);
-      box-shadow: 0 0 0 8px rgba(0, 217, 93, 0.14);
-      transform: translateY(-50%);
-      animation: faq-pulse 1.4s ease-in-out infinite;
+    .eyebrow.green,
+    .section-tag.green {
+      background: var(--green);
+      color: #000000;
     }
 
-    .faq-status-copy {
-      margin: 14px auto 0;
-      max-width: 46ch;
-      color: var(--faq-muted);
-      font-size: 15px;
-      line-height: 1.6;
+    .section-tag.pink {
+      background: var(--pink);
+      color: #000000;
     }
 
-    body.faq-error .faq-status-card {
-      text-align: left;
+    .section-tag.cyan {
+      background: var(--cyan);
+      color: #000000;
     }
 
-    body.faq-error .faq-loader-text {
-      color: var(--faq-danger);
-      text-transform: none;
-      letter-spacing: normal;
-      font-size: clamp(24px, 3.4vw, 34px);
+    .section-tag.black {
+      background: #000000;
+      color: #ffffff;
     }
 
-    body.faq-error .faq-loader-text::before {
-      background: var(--faq-danger);
-      box-shadow: 0 0 0 8px rgba(255, 122, 122, 0.14);
+    .hero h1 {
+      margin: 18px 0 14px;
+      max-width: 11ch;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(40px, 7vw, 68px);
+      line-height: 0.98;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
     }
 
-    .faq-error-log {
-      margin: 18px 0 0;
-      padding-left: 18px;
-      color: var(--faq-muted);
-      font-size: 14px;
-      line-height: 1.6;
+    .hero p {
+      margin: 0;
+      max-width: 54ch;
+      color: var(--text);
+      font-size: 20px;
+      line-height: 1.5;
     }
 
-    .faq-retry-button {
-      margin-top: 22px;
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .quick-links a {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       min-height: 48px;
       padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      text-decoration: none;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .quick-links a:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .content {
+      padding: 48px 0 64px;
+    }
+
+    .intro {
+      max-width: 920px;
+      margin-bottom: 30px;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .faq-section {
+      margin-top: 34px;
+    }
+
+    .faq-section h2 {
+      margin: 0 0 14px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .faq-note {
+      margin: 0 0 20px;
+      max-width: 72ch;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .accordion {
+      display: grid;
+      gap: 14px;
+    }
+
+    .accordion details {
+      border-radius: var(--radius-md);
+      background: var(--card);
+      color: var(--card-text);
+      border: 1px solid rgba(16, 24, 40, 0.08);
+      box-shadow: 0 10px 30px rgba(4, 9, 18, 0.18);
+      overflow: hidden;
+    }
+
+    .accordion summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 24px 22px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .accordion summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .accordion summary::after {
+      content: "+";
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(16, 24, 40, 0.06);
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 400;
+    }
+
+    .accordion details[open] summary::after {
+      content: "−";
+    }
+
+    .answer {
+      padding: 0 24px 24px;
+      color: var(--card-text);
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .answer p,
+    .answer ul,
+    .answer ol {
+      margin: 0 0 1em;
+    }
+
+    .answer p:last-child,
+    .answer ul:last-child,
+    .answer ol:last-child {
+      margin-bottom: 0;
+    }
+
+    .answer ul,
+    .answer ol {
+      padding-left: 1.2em;
+    }
+
+    .answer strong {
+      font-weight: 700;
+    }
+
+    .answer a {
+      color: #0f5cff;
+      word-break: break-word;
+    }
+
+    .bottom-note {
+      margin-top: 40px;
+      padding: 22px 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .cta {
+      margin-top: 48px;
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      padding: 48px 32px;
+      background:
+        linear-gradient(135deg, rgba(18, 47, 155, 0.88), rgba(0, 217, 93, 0.48)),
+        url("/wp-content/uploads/2025/06/background-rosa-e1749108482198.png") center center / cover no-repeat;
+      box-shadow: var(--shadow);
+    }
+
+    .cta::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        url("/wp-content/uploads/2025/06/close-up-young-attractive-charismatic-woman-isolated-scaled-e1749193550727.png")
+        right bottom / min(32vw, 420px) no-repeat;
+      pointer-events: none;
+      opacity: 0.96;
+    }
+
+    .cta__copy {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+    }
+
+    .cta h3 {
+      margin: 0 0 14px;
+      max-width: 12ch;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .cta h4 {
+      margin: 0;
+      max-width: 16ch;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.15;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .footer {
+      margin-top: 48px;
+      background: linear-gradient(250deg, #ff00ff 0%, #122f9b 36%);
+    }
+
+    .footer__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 104px;
+      padding: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .footer__badge img {
+      display: block;
+      width: 90px;
+      height: auto;
+    }
+
+    .footer__meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 18px;
+      flex-wrap: wrap;
+      color: rgba(255, 255, 255, 0.94);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .footer__meta a {
+      color: inherit;
+      text-decoration: none;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    .status-card {
+      width: min(calc(100% - 32px), 720px);
+      margin: 120px auto;
+      padding: 32px 28px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+
+    .status-card h2 {
+      margin: 0 0 14px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(26px, 4vw, 38px);
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .status-card p,
+    .status-card li {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .status-card button {
+      min-height: 48px;
+      margin-top: 12px;
+      padding: 0 18px;
       border: 0;
       border-radius: 999px;
-      background: var(--faq-accent);
-      color: #08101d;
-      font: inherit;
+      background: var(--green);
+      color: #000000;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 14px;
       font-weight: 700;
+      text-transform: uppercase;
       cursor: pointer;
     }
 
-    @keyframes faq-pulse {
-      0%,
-      100% {
-        transform: translateY(-50%) scale(1);
-        opacity: 1;
+    @media (max-width: 900px) {
+      .hero::after,
+      .cta::after {
+        opacity: 0.28;
+        background-size: 320px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .topbar__inner,
+      .hero__inner,
+      .content,
+      .footer__inner {
+        width: min(calc(100% - 24px), var(--max));
       }
 
-      50% {
-        transform: translateY(-50%) scale(0.8);
-        opacity: 0.72;
+      .topbar__inner {
+        padding: 10px 0;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .brand img {
+        height: 42px;
+      }
+
+      .nav {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .hero {
+        padding: 60px 0 34px;
+      }
+
+      .hero::after,
+      .cta::after {
+        display: none;
+      }
+
+      .hero p,
+      .intro p,
+      .faq-note,
+      .answer {
+        font-size: 16px;
+      }
+
+      .accordion summary {
+        padding: 20px 18px;
+        font-size: 18px;
+      }
+
+      .answer {
+        padding: 0 18px 18px;
+      }
+
+      .cta {
+        padding: 32px 22px;
+      }
+
+      .footer__inner {
+        align-items: flex-start;
+      }
+
+      .footer__meta {
+        justify-content: flex-start;
       }
     }
   </style>
 </head>
-<body class="faq-loading">
-  <main id="faq-status" class="faq-status-card" aria-live="polite">
-    <p class="faq-loader-text">Carregando FAQ</p>
-    <p class="faq-status-copy">
-      Buscando o conteudo remoto do bucket e aplicando os mesmos assets visuais da landing.
-    </p>
-  </main>
+<body>
+  <div id="app">
+    <div class="status-card">
+      <h2>Carregando FAQ</h2>
+      <p>Buscando o conteúdo mais recente direto do bucket configurado do Supabase.</p>
+    </div>
+  </div>
 
   <script>
     (() => {
-      const REMOTE_ORIGIN = "https://database.tnledu.shop";
-      const REMOTE_PATH = "/storage/v1/object/public/scripts-escalada/scripts/index-lp.html";
-      const FAQ_ROUTE = "/faq/";
-      const REMOTE_HEAD_MARKER = "data-faq-remote-head";
-      const REMOTE_SCRIPT_MARKER = "data-faq-remote-script";
+      const REMOTE_URL =
+        "https://database.tnledu.shop/storage/v1/object/public/scripts-escalada/scripts/index-lp.html";
 
-      function normalizeAssetPath(value) {
-        if (!value) {
-          return value;
-        }
-
-        return value
-          .replace(/^\.\/wp-content\//i, "/wp-content/")
-          .replace(/^\.\/wp-includes\//i, "/wp-includes/")
-          .replace(/^\.\/faq-exata\.html$/i, FAQ_ROUTE);
-      }
-
-      function normalizeCssText(value) {
-        if (!value) {
-          return value;
-        }
-
-        return value
-          .replace(/(["'(])\.\/wp-content\//gi, "$1/wp-content/")
-          .replace(/(["'(])\.\/wp-includes\//gi, "$1/wp-includes/")
-          .replace(/(["'(])\.\/faq-exata\.html/gi, `$1${FAQ_ROUTE}`);
-      }
-
-      function normalizeHtmlMarkup(value) {
-        if (!value) {
-          return value;
-        }
-
-        return normalizeCssText(value)
-          .replace(/href=(['"])\.\/faq-exata\.html\1/gi, `href="${FAQ_ROUTE}"`)
+      function normalizeAssetPaths(html) {
+        return (html || "")
           .replace(/(href|src|srcset)=(['"])\.\/wp-content\//gi, "$1=$2/wp-content/")
-          .replace(/(href|src|srcset)=(['"])\.\/wp-includes\//gi, "$1=$2/wp-includes/");
+          .replace(/(href|src|srcset)=(['"])\.\/wp-includes\//gi, "$1=$2/wp-includes/")
+          .replace(/(href|src)=(['"])\.\/faq-exata\.html\2/gi, '$1=$2/$2');
       }
 
-      function setDescription(remoteDocument) {
-        const remoteDescription = remoteDocument.querySelector('meta[name="description"]');
-        if (!remoteDescription) {
-          return;
+      function detectAccent(element) {
+        if (!element) {
+          return "green";
         }
 
-        let localDescription = document.querySelector('meta[name="description"]');
-        if (!localDescription) {
-          localDescription = document.createElement("meta");
-          localDescription.setAttribute("name", "description");
-          document.head.appendChild(localDescription);
+        if (element.querySelector(".marcatexto-rosa")) {
+          return "pink";
         }
 
-        localDescription.setAttribute("content", remoteDescription.getAttribute("content") || "");
+        if (element.querySelector(".marcatexto-azul")) {
+          return "cyan";
+        }
+
+        if (element.querySelector(".marcatexto-preto")) {
+          return "black";
+        }
+
+        return "green";
       }
 
-      function clearRemoteHeadNodes() {
-        document
-          .querySelectorAll(`[${REMOTE_HEAD_MARKER}]`)
-          .forEach((node) => node.remove());
-      }
+      function extractSections(remoteDocument) {
+        const mainInner = remoteDocument.querySelector(".faq-main-section .e-con-inner");
+        if (!mainInner) {
+          throw new Error("Bloco principal do FAQ não foi encontrado no HTML remoto.");
+        }
 
-      function clearRemoteScripts() {
-        document
-          .querySelectorAll(`script[${REMOTE_SCRIPT_MARKER}]`)
-          .forEach((node) => node.remove());
-      }
+        const introHtml = mainInner.querySelector(".faq-section-copy")?.innerHTML || "";
+        const bottomNoteHtml = mainInner.querySelector(".faq-bottom-note")?.innerHTML || "";
+        const nodes = Array.from(mainInner.children);
+        const sections = [];
 
-      function syncHead(remoteDocument) {
-        clearRemoteHeadNodes();
+        let pendingId = "regulamento";
+        let pendingTitle = "Programa Escalada Sebrae";
+        let pendingAccent = "green";
+        let pendingNote = "";
 
-        document.title = remoteDocument.title || document.title;
-        setDescription(remoteDocument);
-
-        const headNodes = remoteDocument.querySelectorAll(
-          'head link[rel="icon"], head link[rel="stylesheet"], head style'
-        );
-
-        headNodes.forEach((node) => {
-          const clone = node.cloneNode(true);
-          clone.setAttribute(REMOTE_HEAD_MARKER, "");
-
-          if (clone.tagName === "LINK") {
-            clone.href = normalizeAssetPath(clone.getAttribute("href"));
+        for (const node of nodes) {
+          if (node.id === "regulamento" || node.id === "jovens" || node.id === "inove") {
+            pendingId = node.id;
+            continue;
           }
 
-          if (clone.tagName === "STYLE") {
-            clone.textContent = normalizeCssText(clone.textContent);
+          if (node.classList && node.classList.contains("faq-subhead")) {
+            pendingTitle = node.textContent.trim();
+            pendingAccent = detectAccent(node);
+            continue;
           }
 
-          document.head.appendChild(clone);
-        });
-      }
+          if (node.classList && node.classList.contains("faq-doc-note")) {
+            pendingNote = node.innerHTML.trim();
+            continue;
+          }
 
-      function extractRemoteRoot(remoteDocument) {
-        const pageRoot = remoteDocument.querySelector('[data-elementor-type="wp-page"]');
-        const wrapper = document.createElement("div");
+          if (
+            node.classList &&
+            node.classList.contains("elementor-widget-n-accordion")
+          ) {
+            const items = Array.from(node.querySelectorAll("details")).map((detail) => {
+              const question =
+                detail
+                  .querySelector(".e-n-accordion-item-title-text")
+                  ?.textContent.trim() || "";
+              const answerHtml =
+                detail.querySelector(".faq-answer-copy .elementor-widget-container")?.innerHTML ||
+                detail.querySelector('[role="region"]')?.innerHTML ||
+                "";
 
-        if (pageRoot) {
-          wrapper.innerHTML = normalizeHtmlMarkup(pageRoot.outerHTML);
-          return wrapper.firstElementChild;
+              return {
+                question,
+                answerHtml: normalizeAssetPaths(answerHtml)
+              };
+            });
+
+            sections.push({
+              id: pendingId,
+              title: pendingTitle,
+              accent: pendingAccent,
+              noteHtml: pendingNote,
+              items
+            });
+          }
         }
 
-        const fragmentHost = document.createElement("div");
-        const bodyMarkup = Array.from(remoteDocument.body.childNodes)
-          .filter((node) => node.nodeName !== "SCRIPT")
-          .map((node) => node.outerHTML || node.textContent || "")
+        return {
+          introHtml: normalizeAssetPaths(introHtml),
+          bottomNoteHtml: normalizeAssetPaths(bottomNoteHtml),
+          sections
+        };
+      }
+
+      function extractCta(remoteDocument) {
+        return {
+          title:
+            remoteDocument.querySelector(".faq-hero-shell h3")?.textContent.trim() ||
+            "Continue sua jornada no Escalada.",
+          subtitle:
+            remoteDocument.querySelector(".faq-hero-shell h4")?.textContent.trim() ||
+            "Se você já tirou suas dúvidas, agora é hora de entrar em ação.",
+          footerText:
+            remoteDocument.querySelector(".elementor-element-8c6b582 p")?.textContent.trim() ||
+            "Copyright © 2026 · Escalada Sebrae · FAQ do ciclo 2026."
+        };
+      }
+
+      function renderFaq(model) {
+        const sectionsHtml = model.sections
+          .map(
+            (section) => `
+              <section id="${section.id}" class="faq-section">
+                <h2><span class="section-tag ${section.accent}">${section.title}</span></h2>
+                <p class="faq-note">${section.noteHtml}</p>
+                <div class="accordion">
+                  ${section.items
+                    .map(
+                      (item) => `
+                        <details>
+                          <summary>${item.question}</summary>
+                          <div class="answer">${item.answerHtml}</div>
+                        </details>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </section>
+            `
+          )
           .join("");
 
-        fragmentHost.innerHTML = normalizeHtmlMarkup(bodyMarkup);
-        return fragmentHost;
-      }
+        return `
+          <div class="shell">
+            <header class="topbar">
+              <div class="topbar__inner">
+                <a class="brand" href="/" aria-label="Escalada Sebrae">
+                  <img src="/wp-content/uploads/2025/05/Escalada-Verde.png" alt="Escalada Sebrae" />
+                </a>
+                <nav class="nav" aria-label="Principal">
+                  <a href="/">Início</a>
+                  <a href="#sobre">Visão geral</a>
+                  <a href="#regulamento">Regulamento</a>
+                  <a href="#jovens">Jovens</a>
+                  <a href="#inove">Inove na Sala</a>
+                </nav>
+              </div>
+            </header>
 
-      function copyBodyAttributes(remoteDocument) {
-        const remoteBody = remoteDocument.body;
+            <section id="sobre" class="hero">
+              <div class="hero__inner">
+                <div class="hero__copy">
+                  <span class="eyebrow green">FAQ Escalada 2026</span>
+                  <h1>Tire suas dúvidas e siga para a próxima etapa.</h1>
+                  <p>${model.introHtml}</p>
+                  <div class="quick-links">
+                    <a href="#regulamento">Programa Escalada</a>
+                    <a href="#jovens">Jovens Mais Empreendedores</a>
+                    <a href="#inove">Incentivo Inove na Sala</a>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        Array.from(document.body.attributes).forEach((attribute) => {
-          if (attribute.name !== "class") {
-            document.body.removeAttribute(attribute.name);
-          }
-        });
+            <main class="content">
+              ${sectionsHtml}
+              <div class="bottom-note">${model.bottomNoteHtml}</div>
 
-        Array.from(remoteBody.attributes).forEach((attribute) => {
-          document.body.setAttribute(attribute.name, attribute.value);
-        });
-      }
+              <section class="cta">
+                <div class="cta__copy">
+                  <h3>${model.cta.title}</h3>
+                  <h4><span class="section-tag black">${model.cta.subtitle}</span></h4>
+                </div>
+              </section>
+            </main>
 
-      function renderError(errors) {
-        document.body.className = "faq-error";
-        document.body.innerHTML = `
-          <main class="faq-status-card" aria-live="polite">
-            <p class="faq-loader-text">Nao foi possivel carregar o FAQ</p>
-            <p class="faq-status-copy">
-              A rota abriu, mas o HTML remoto nao conseguiu ser montado com os estilos da landing.
-            </p>
-            <ul class="faq-error-log">
-              ${errors
-                .map(
-                  (entry) =>
-                    `<li><strong>${entry.url}</strong><br>${entry.message}</li>`
-                )
-                .join("")}
-            </ul>
-            <button class="faq-retry-button" type="button">Tentar novamente</button>
-          </main>
+            <footer class="footer">
+              <div class="footer__inner">
+                <div class="footer__badge">
+                  <img
+                    src="/wp-content/uploads/elementor/thumbs/badeira-escalada-100x100px@2x-r6qtk2rhmpmwr0pso8vhrmxy58f9fc1oslk417yazk.png"
+                    alt="Bandeira Escalada"
+                  />
+                </div>
+                <div class="footer__meta">
+                  <a href="#sobre">Visão geral</a>
+                  <a href="#regulamento">FAQ</a>
+                  <a href="/">Início</a>
+                  <span>${model.cta.footerText}</span>
+                </div>
+              </div>
+            </footer>
+          </div>
         `;
-
-        const retryButton = document.querySelector(".faq-retry-button");
-        if (retryButton) {
-          retryButton.addEventListener("click", () => window.location.reload());
-        }
       }
 
-      async function fetchRemoteDocument() {
-        const url = `${REMOTE_ORIGIN}${REMOTE_PATH}`;
+      function renderError(message, details) {
+        document.getElementById("app").innerHTML = `
+          <div class="status-card">
+            <h2>Não foi possível carregar o FAQ</h2>
+            <p>${message}</p>
+            ${details ? `<p>${details}</p>` : ""}
+            <button type="button" onclick="window.location.reload()">Tentar novamente</button>
+          </div>
+        `;
+      }
 
-        try {
-          const response = await fetch(url, { cache: "no-store" });
+      fetch(REMOTE_URL, { cache: "no-store" })
+        .then((response) => {
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw new Error(`Falha ao baixar o HTML remoto (HTTP ${response.status}).`);
+          }
+          return response.text();
+        })
+        .then((html) => {
+          const remoteDocument = new DOMParser().parseFromString(html, "text/html");
+          document.title = remoteDocument.title || document.title;
+
+          const remoteDescription = remoteDocument.querySelector('meta[name="description"]');
+          if (remoteDescription) {
+            document
+              .querySelector('meta[name="description"]')
+              ?.setAttribute("content", remoteDescription.getAttribute("content") || "");
           }
 
-          const html = await response.text();
-          if (!html || !html.trim()) {
-            throw new Error("Documento remoto vazio.");
-          }
+          const faqData = extractSections(remoteDocument);
+          const ctaData = extractCta(remoteDocument);
 
-          const parsed = new DOMParser().parseFromString(html, "text/html");
-          return { url, parsed };
-        } catch (error) {
-          throw [
-            {
-              url,
-              message: error instanceof Error ? error.message : String(error)
-            }
-          ];
-        }
-      }
-
-      async function loadRemoteScripts(remoteDocument) {
-        clearRemoteScripts();
-
-        const scripts = Array.from(remoteDocument.querySelectorAll("body script"));
-
-        for (const original of scripts) {
-          const script = document.createElement("script");
-          script.setAttribute(REMOTE_SCRIPT_MARKER, "");
-
-          Array.from(original.attributes).forEach((attribute) => {
-            if (attribute.name === "src") {
-              script.setAttribute("src", normalizeAssetPath(attribute.value));
-            } else {
-              script.setAttribute(attribute.name, attribute.value);
-            }
+          document.getElementById("app").innerHTML = renderFaq({
+            introHtml: faqData.introHtml,
+            bottomNoteHtml: faqData.bottomNoteHtml,
+            sections: faqData.sections,
+            cta: ctaData
           });
-
-          if (original.src) {
-            await new Promise((resolve, reject) => {
-              script.addEventListener("load", resolve, { once: true });
-              script.addEventListener(
-                "error",
-                () => reject(new Error(`Falha ao carregar script ${script.src}`)),
-                { once: true }
-              );
-              document.body.appendChild(script);
-            });
-          } else {
-            script.textContent = normalizeCssText(original.textContent || "");
-            document.body.appendChild(script);
-          }
-        }
-      }
-
-      async function mountRemoteFaq() {
-        const { url, parsed } = await fetchRemoteDocument();
-        const root = extractRemoteRoot(parsed);
-
-        syncHead(parsed);
-        copyBodyAttributes(parsed);
-        document.body.innerHTML = "";
-        document.body.appendChild(root);
-        await loadRemoteScripts(parsed);
-
-        console.info("[faq-loader] FAQ remoto montado com os assets da landing:", url);
-      }
-
-      mountRemoteFaq().catch((errors) => {
-        const normalizedErrors = Array.isArray(errors)
-          ? errors
-          : [
-              {
-                url: `${REMOTE_ORIGIN}${REMOTE_PATH}`,
-                message: errors instanceof Error ? errors.message : String(errors)
-              }
-            ];
-
-        console.error("[faq-loader] erro ao montar FAQ remoto:", normalizedErrors);
-        renderError(normalizedErrors);
-      });
+        })
+        .catch((error) => {
+          console.error("[faq-loader] erro ao montar FAQ:", error);
+          renderError(
+            "A rota abriu, mas o conteúdo remoto do bucket não conseguiu ser transformado em uma página formatada.",
+            error instanceof Error ? error.message : String(error)
+          );
+        });
     })();
   </script>
 </body>
