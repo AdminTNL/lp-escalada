@@ -11,14 +11,14 @@
   <style>
     :root {
       color-scheme: light;
-      --accent: #00d95d;
-      --bg-start: #08101d;
-      --bg-end: #121a2d;
-      --panel: rgba(10, 16, 29, 0.8);
-      --text: #ffffff;
-      --muted: rgba(255, 255, 255, 0.74);
-      --danger: #ff7a7a;
-      --border: rgba(255, 255, 255, 0.12);
+      --faq-accent: #00d95d;
+      --faq-bg-start: #08101d;
+      --faq-bg-end: #121a2d;
+      --faq-panel: rgba(10, 16, 29, 0.8);
+      --faq-text: #ffffff;
+      --faq-muted: rgba(255, 255, 255, 0.74);
+      --faq-danger: #ff7a7a;
+      --faq-border: rgba(255, 255, 255, 0.12);
     }
 
     * {
@@ -28,44 +28,45 @@
     html,
     body {
       min-height: 100%;
+      margin: 0;
     }
 
-    body {
-      margin: 0;
+    body.faq-loading,
+    body.faq-error {
       font-family: "Space Grotesk", "Segoe UI", Arial, sans-serif;
       background:
         radial-gradient(circle at top left, rgba(0, 217, 93, 0.18), transparent 28%),
-        linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
-      color: var(--text);
+        linear-gradient(135deg, var(--faq-bg-start) 0%, var(--faq-bg-end) 100%);
+      color: var(--faq-text);
       display: grid;
       place-items: center;
       padding: 24px;
       text-align: center;
     }
 
-    .status-card {
+    .faq-status-card {
       width: min(100%, 720px);
       padding: 32px 28px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--faq-border);
       border-radius: 24px;
-      background: var(--panel);
+      background: var(--faq-panel);
       backdrop-filter: blur(14px);
       box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
     }
 
-    .loader-text {
+    .faq-loader-text {
       position: relative;
       display: inline-block;
       margin: 0;
       padding-left: 22px;
-      color: var(--text);
+      color: var(--faq-text);
       font-size: clamp(26px, 4vw, 42px);
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
-    .loader-text::before {
+    .faq-loader-text::before {
       content: "";
       position: absolute;
       left: 0;
@@ -73,45 +74,45 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--accent);
+      background: var(--faq-accent);
       box-shadow: 0 0 0 8px rgba(0, 217, 93, 0.14);
       transform: translateY(-50%);
-      animation: pulse 1.4s ease-in-out infinite;
+      animation: faq-pulse 1.4s ease-in-out infinite;
     }
 
-    .status-copy {
+    .faq-status-copy {
       margin: 14px auto 0;
       max-width: 46ch;
-      color: var(--muted);
+      color: var(--faq-muted);
       font-size: 15px;
       line-height: 1.6;
     }
 
-    .status-card.error {
+    body.faq-error .faq-status-card {
       text-align: left;
     }
 
-    .status-card.error .loader-text {
-      color: var(--danger);
+    body.faq-error .faq-loader-text {
+      color: var(--faq-danger);
       text-transform: none;
       letter-spacing: normal;
       font-size: clamp(24px, 3.4vw, 34px);
     }
 
-    .status-card.error .loader-text::before {
-      background: var(--danger);
+    body.faq-error .faq-loader-text::before {
+      background: var(--faq-danger);
       box-shadow: 0 0 0 8px rgba(255, 122, 122, 0.14);
     }
 
-    .error-log {
+    .faq-error-log {
       margin: 18px 0 0;
       padding-left: 18px;
-      color: var(--muted);
+      color: var(--faq-muted);
       font-size: 14px;
       line-height: 1.6;
     }
 
-    .retry-button {
+    .faq-retry-button {
       margin-top: 22px;
       display: inline-flex;
       align-items: center;
@@ -120,14 +121,14 @@
       padding: 0 18px;
       border: 0;
       border-radius: 999px;
-      background: var(--accent);
+      background: var(--faq-accent);
       color: #08101d;
       font: inherit;
       font-weight: 700;
       cursor: pointer;
     }
 
-    @keyframes pulse {
+    @keyframes faq-pulse {
       0%,
       100% {
         transform: translateY(-50%) scale(1);
@@ -141,114 +142,254 @@
     }
   </style>
 </head>
-<body>
-  <main class="status-card" aria-live="polite">
-    <p class="loader-text">Carregando FAQ</p>
-    <p class="status-copy">
-      Buscando a versao mais recente do FAQ diretamente no bucket configurado do Supabase.
+<body class="faq-loading">
+  <main id="faq-status" class="faq-status-card" aria-live="polite">
+    <p class="faq-loader-text">Carregando FAQ</p>
+    <p class="faq-status-copy">
+      Buscando o conteudo remoto do bucket e aplicando os mesmos assets visuais da landing.
     </p>
   </main>
 
   <script>
     (() => {
-      // Ajuste aqui caso o host principal do Supabase mude novamente.
-      const REMOTE_ORIGINS = Array.isArray(window.__ESCALADA_FAQ_REMOTE_ORIGINS__)
-        ? window.__ESCALADA_FAQ_REMOTE_ORIGINS__
-        : ["https://database.tnledu.shop"];
+      const REMOTE_ORIGIN = "https://database.tnledu.shop";
       const REMOTE_PATH = "/storage/v1/object/public/scripts-escalada/scripts/index-lp.html";
       const FAQ_ROUTE = "/faq/";
+      const REMOTE_HEAD_MARKER = "data-faq-remote-head";
+      const REMOTE_SCRIPT_MARKER = "data-faq-remote-script";
 
-      function normalizeRemoteHtml(html) {
-        let normalized = html;
-
-        if (!/<base\s/i.test(normalized)) {
-          normalized = normalized.replace(/<head([^>]*)>/i, '<head$1><base href="/" />');
+      function normalizeAssetPath(value) {
+        if (!value) {
+          return value;
         }
 
-        normalized = normalized
-          .replace(/(["'(])\.\/wp-content\//g, "$1/wp-content/")
-          .replace(/(["'(])\.\/wp-includes\//g, "$1/wp-includes/")
-          .replace(/href=(['"])\.\/faq-exata\.html\1/gi, `href="${
-            FAQ_ROUTE
-          }"`);
+        return value
+          .replace(/^\.\/wp-content\//i, "/wp-content/")
+          .replace(/^\.\/wp-includes\//i, "/wp-includes/")
+          .replace(/^\.\/faq-exata\.html$/i, FAQ_ROUTE);
+      }
 
-        return normalized;
+      function normalizeCssText(value) {
+        if (!value) {
+          return value;
+        }
+
+        return value
+          .replace(/(["'(])\.\/wp-content\//gi, "$1/wp-content/")
+          .replace(/(["'(])\.\/wp-includes\//gi, "$1/wp-includes/")
+          .replace(/(["'(])\.\/faq-exata\.html/gi, `$1${FAQ_ROUTE}`);
+      }
+
+      function normalizeHtmlMarkup(value) {
+        if (!value) {
+          return value;
+        }
+
+        return normalizeCssText(value)
+          .replace(/href=(['"])\.\/faq-exata\.html\1/gi, `href="${FAQ_ROUTE}"`)
+          .replace(/(href|src|srcset)=(['"])\.\/wp-content\//gi, "$1=$2/wp-content/")
+          .replace(/(href|src|srcset)=(['"])\.\/wp-includes\//gi, "$1=$2/wp-includes/");
+      }
+
+      function setDescription(remoteDocument) {
+        const remoteDescription = remoteDocument.querySelector('meta[name="description"]');
+        if (!remoteDescription) {
+          return;
+        }
+
+        let localDescription = document.querySelector('meta[name="description"]');
+        if (!localDescription) {
+          localDescription = document.createElement("meta");
+          localDescription.setAttribute("name", "description");
+          document.head.appendChild(localDescription);
+        }
+
+        localDescription.setAttribute("content", remoteDescription.getAttribute("content") || "");
+      }
+
+      function clearRemoteHeadNodes() {
+        document
+          .querySelectorAll(`[${REMOTE_HEAD_MARKER}]`)
+          .forEach((node) => node.remove());
+      }
+
+      function clearRemoteScripts() {
+        document
+          .querySelectorAll(`script[${REMOTE_SCRIPT_MARKER}]`)
+          .forEach((node) => node.remove());
+      }
+
+      function syncHead(remoteDocument) {
+        clearRemoteHeadNodes();
+
+        document.title = remoteDocument.title || document.title;
+        setDescription(remoteDocument);
+
+        const headNodes = remoteDocument.querySelectorAll(
+          'head link[rel="icon"], head link[rel="stylesheet"], head style'
+        );
+
+        headNodes.forEach((node) => {
+          const clone = node.cloneNode(true);
+          clone.setAttribute(REMOTE_HEAD_MARKER, "");
+
+          if (clone.tagName === "LINK") {
+            clone.href = normalizeAssetPath(clone.getAttribute("href"));
+          }
+
+          if (clone.tagName === "STYLE") {
+            clone.textContent = normalizeCssText(clone.textContent);
+          }
+
+          document.head.appendChild(clone);
+        });
+      }
+
+      function extractRemoteRoot(remoteDocument) {
+        const pageRoot = remoteDocument.querySelector('[data-elementor-type="wp-page"]');
+        const wrapper = document.createElement("div");
+
+        if (pageRoot) {
+          wrapper.innerHTML = normalizeHtmlMarkup(pageRoot.outerHTML);
+          return wrapper.firstElementChild;
+        }
+
+        const fragmentHost = document.createElement("div");
+        const bodyMarkup = Array.from(remoteDocument.body.childNodes)
+          .filter((node) => node.nodeName !== "SCRIPT")
+          .map((node) => node.outerHTML || node.textContent || "")
+          .join("");
+
+        fragmentHost.innerHTML = normalizeHtmlMarkup(bodyMarkup);
+        return fragmentHost;
+      }
+
+      function copyBodyAttributes(remoteDocument) {
+        const remoteBody = remoteDocument.body;
+
+        Array.from(document.body.attributes).forEach((attribute) => {
+          if (attribute.name !== "class") {
+            document.body.removeAttribute(attribute.name);
+          }
+        });
+
+        Array.from(remoteBody.attributes).forEach((attribute) => {
+          document.body.setAttribute(attribute.name, attribute.value);
+        });
       }
 
       function renderError(errors) {
-        const errorItems = errors
-          .map((entry) => `<li><strong>${entry.url}</strong><br>${entry.message}</li>`)
-          .join("");
-
+        document.body.className = "faq-error";
         document.body.innerHTML = `
-          <main class="status-card error" aria-live="polite">
-            <p class="loader-text">Nao foi possivel carregar o FAQ</p>
-            <p class="status-copy">
-              A pagina existe, mas nenhum dos endpoints configurados devolveu o HTML remoto.
+          <main class="faq-status-card" aria-live="polite">
+            <p class="faq-loader-text">Nao foi possivel carregar o FAQ</p>
+            <p class="faq-status-copy">
+              A rota abriu, mas o HTML remoto nao conseguiu ser montado com os estilos da landing.
             </p>
-            <ul class="error-log">${errorItems}</ul>
-            <button class="retry-button" type="button">Tentar novamente</button>
+            <ul class="faq-error-log">
+              ${errors
+                .map(
+                  (entry) =>
+                    `<li><strong>${entry.url}</strong><br>${entry.message}</li>`
+                )
+                .join("")}
+            </ul>
+            <button class="faq-retry-button" type="button">Tentar novamente</button>
           </main>
         `;
 
-        const retryButton = document.querySelector(".retry-button");
+        const retryButton = document.querySelector(".faq-retry-button");
         if (retryButton) {
           retryButton.addEventListener("click", () => window.location.reload());
         }
       }
 
-      async function fetchRemoteHtml() {
-        const errors = [];
+      async function fetchRemoteDocument() {
+        const url = `${REMOTE_ORIGIN}${REMOTE_PATH}`;
 
-        for (const origin of REMOTE_ORIGINS) {
-          const url = `${origin}${REMOTE_PATH}`;
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
 
-          try {
-            const response = await fetch(url, { cache: "no-store" });
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
-            }
+          const html = await response.text();
+          if (!html || !html.trim()) {
+            throw new Error("Documento remoto vazio.");
+          }
 
-            const html = await response.text();
-            if (!html || !html.trim()) {
-              throw new Error("Documento remoto vazio.");
-            }
-
-            return { html, url };
-          } catch (error) {
-            errors.push({
+          const parsed = new DOMParser().parseFromString(html, "text/html");
+          return { url, parsed };
+        } catch (error) {
+          throw [
+            {
               url,
               message: error instanceof Error ? error.message : String(error)
-            });
-          }
+            }
+          ];
         }
-
-        throw errors;
       }
 
-      fetchRemoteHtml()
-        .then(({ html, url }) => {
-          const normalized = normalizeRemoteHtml(html);
+      async function loadRemoteScripts(remoteDocument) {
+        clearRemoteScripts();
 
-          document.open();
-          document.write(normalized);
-          document.close();
+        const scripts = Array.from(remoteDocument.querySelectorAll("body script"));
 
-          console.info("[faq-loader] FAQ remoto carregado de:", url);
-        })
-        .catch((errors) => {
-          const normalizedErrors = Array.isArray(errors)
-            ? errors
-            : [
-                {
-                  url: REMOTE_ORIGINS.map((origin) => `${origin}${REMOTE_PATH}`).join(" | "),
-                  message: errors instanceof Error ? errors.message : String(errors)
-                }
-              ];
+        for (const original of scripts) {
+          const script = document.createElement("script");
+          script.setAttribute(REMOTE_SCRIPT_MARKER, "");
 
-          console.error("[faq-loader] erro ao carregar HTML remoto:", normalizedErrors);
-          renderError(normalizedErrors);
-        });
+          Array.from(original.attributes).forEach((attribute) => {
+            if (attribute.name === "src") {
+              script.setAttribute("src", normalizeAssetPath(attribute.value));
+            } else {
+              script.setAttribute(attribute.name, attribute.value);
+            }
+          });
+
+          if (original.src) {
+            await new Promise((resolve, reject) => {
+              script.addEventListener("load", resolve, { once: true });
+              script.addEventListener(
+                "error",
+                () => reject(new Error(`Falha ao carregar script ${script.src}`)),
+                { once: true }
+              );
+              document.body.appendChild(script);
+            });
+          } else {
+            script.textContent = normalizeCssText(original.textContent || "");
+            document.body.appendChild(script);
+          }
+        }
+      }
+
+      async function mountRemoteFaq() {
+        const { url, parsed } = await fetchRemoteDocument();
+        const root = extractRemoteRoot(parsed);
+
+        syncHead(parsed);
+        copyBodyAttributes(parsed);
+        document.body.innerHTML = "";
+        document.body.appendChild(root);
+        await loadRemoteScripts(parsed);
+
+        console.info("[faq-loader] FAQ remoto montado com os assets da landing:", url);
+      }
+
+      mountRemoteFaq().catch((errors) => {
+        const normalizedErrors = Array.isArray(errors)
+          ? errors
+          : [
+              {
+                url: `${REMOTE_ORIGIN}${REMOTE_PATH}`,
+                message: errors instanceof Error ? errors.message : String(errors)
+              }
+            ];
+
+        console.error("[faq-loader] erro ao montar FAQ remoto:", normalizedErrors);
+        renderError(normalizedErrors);
+      });
     })();
   </script>
 </body>
