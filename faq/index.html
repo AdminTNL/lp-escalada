@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ Escalada Sebrae 2026</title>
+  <meta
+    name="description"
+    content="Carregando a versao remota da FAQ Escalada Sebrae 2026."
+  />
+  <style>
+    :root {
+      color-scheme: light;
+      --accent: #00d95d;
+      --bg-start: #08101d;
+      --bg-end: #121a2d;
+      --panel: rgba(10, 16, 29, 0.8);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.74);
+      --danger: #ff7a7a;
+      --border: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0, 217, 93, 0.18), transparent 28%),
+        linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .status-card {
+      width: min(100%, 720px);
+      padding: 32px 28px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
+    }
+
+    .loader-text {
+      position: relative;
+      display: inline-block;
+      margin: 0;
+      padding-left: 22px;
+      color: var(--text);
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .loader-text::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 8px rgba(0, 217, 93, 0.14);
+      transform: translateY(-50%);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    .status-copy {
+      margin: 14px auto 0;
+      max-width: 46ch;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .status-card.error {
+      text-align: left;
+    }
+
+    .status-card.error .loader-text {
+      color: var(--danger);
+      text-transform: none;
+      letter-spacing: normal;
+      font-size: clamp(24px, 3.4vw, 34px);
+    }
+
+    .status-card.error .loader-text::before {
+      background: var(--danger);
+      box-shadow: 0 0 0 8px rgba(255, 122, 122, 0.14);
+    }
+
+    .error-log {
+      margin: 18px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .retry-button {
+      margin-top: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #08101d;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: translateY(-50%) scale(0.8);
+        opacity: 0.72;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="status-card" aria-live="polite">
+    <p class="loader-text">Carregando FAQ</p>
+    <p class="status-copy">
+      Buscando a versao mais recente do FAQ diretamente no bucket configurado do Supabase.
+    </p>
+  </main>
+
+  <script>
+    (() => {
+      // Ajuste aqui caso o host principal do Supabase mude novamente.
+      const REMOTE_ORIGINS = Array.isArray(window.__ESCALADA_FAQ_REMOTE_ORIGINS__)
+        ? window.__ESCALADA_FAQ_REMOTE_ORIGINS__
+        : ["https://database.tnledu.shop"];
+      const REMOTE_PATH = "/storage/v1/object/public/scripts-escalada/scripts/index-lp.html";
+      const FAQ_ROUTE = "/faq/";
+
+      function normalizeRemoteHtml(html) {
+        let normalized = html;
+
+        if (!/<base\s/i.test(normalized)) {
+          normalized = normalized.replace(/<head([^>]*)>/i, '<head$1><base href="/" />');
+        }
+
+        normalized = normalized
+          .replace(/(["'(])\.\/wp-content\//g, "$1/wp-content/")
+          .replace(/(["'(])\.\/wp-includes\//g, "$1/wp-includes/")
+          .replace(/href=(['"])\.\/faq-exata\.html\1/gi, `href="${
+            FAQ_ROUTE
+          }"`);
+
+        return normalized;
+      }
+
+      function renderError(errors) {
+        const errorItems = errors
+          .map((entry) => `<li><strong>${entry.url}</strong><br>${entry.message}</li>`)
+          .join("");
+
+        document.body.innerHTML = `
+          <main class="status-card error" aria-live="polite">
+            <p class="loader-text">Nao foi possivel carregar o FAQ</p>
+            <p class="status-copy">
+              A pagina existe, mas nenhum dos endpoints configurados devolveu o HTML remoto.
+            </p>
+            <ul class="error-log">${errorItems}</ul>
+            <button class="retry-button" type="button">Tentar novamente</button>
+          </main>
+        `;
+
+        const retryButton = document.querySelector(".retry-button");
+        if (retryButton) {
+          retryButton.addEventListener("click", () => window.location.reload());
+        }
+      }
+
+      async function fetchRemoteHtml() {
+        const errors = [];
+
+        for (const origin of REMOTE_ORIGINS) {
+          const url = `${origin}${REMOTE_PATH}`;
+
+          try {
+            const response = await fetch(url, { cache: "no-store" });
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const html = await response.text();
+            if (!html || !html.trim()) {
+              throw new Error("Documento remoto vazio.");
+            }
+
+            return { html, url };
+          } catch (error) {
+            errors.push({
+              url,
+              message: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+
+        throw errors;
+      }
+
+      fetchRemoteHtml()
+        .then(({ html, url }) => {
+          const normalized = normalizeRemoteHtml(html);
+
+          document.open();
+          document.write(normalized);
+          document.close();
+
+          console.info("[faq-loader] FAQ remoto carregado de:", url);
+        })
+        .catch((errors) => {
+          const normalizedErrors = Array.isArray(errors)
+            ? errors
+            : [
+                {
+                  url: REMOTE_ORIGINS.map((origin) => `${origin}${REMOTE_PATH}`).join(" | "),
+                  message: errors instanceof Error ? errors.message : String(errors)
+                }
+              ];
+
+          console.error("[faq-loader] erro ao carregar HTML remoto:", normalizedErrors);
+          renderError(normalizedErrors);
+        });
+    })();
+  </script>
+</body>
+</html>
