@@ -2,7 +2,64 @@
 <html lang="pt-BR">
 <head><meta charset="UTF-8">
 <script>
-(function(){var p=new URLSearchParams(window.location.search);fetch('https://webhookn8n.tnledu.shop/webhook/trafego-escalada',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timestamp:new Date().toISOString(),userAgent:navigator.userAgent,page:window.location.href,utm_source:p.get('utm_source')||'no_source',utm_medium:p.get('utm_medium')||'no_medium',utm_campaign:p.get('utm_campaign')||'no_campaign',utm_term:p.get('utm_term')||'no_term',utm_content:p.get('utm_content')||'no_content',utm_referrer:document.referrer||'no_referrer',gclid:p.get('gclid')||null,fbclid:p.get('fbclid')||null}),keepalive:true});})();
+(function(){
+  var WEBHOOK_URL='https://webhookn8n.tnledu.shop/webhook/trafego-escalada';
+  var CTA_HOST='escalada.me';
+  var p=new URLSearchParams(window.location.search);
+
+  function getSessionId(){
+    try{
+      var id=sessionStorage.getItem('viz_session_id');
+      if(!id){
+        id=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);}));
+        sessionStorage.setItem('viz_session_id',id);
+      }
+      return id;
+    }catch(err){
+      return null;
+    }
+  }
+
+  function basePayload(){
+    return{
+      timestamp:new Date().toISOString(),
+      userAgent:navigator.userAgent,
+      page:window.location.href,
+      session_id:getSessionId(),
+      utm_source:p.get('utm_source')||'no_source',
+      utm_medium:p.get('utm_medium')||'no_medium',
+      utm_campaign:p.get('utm_campaign')||'no_campaign',
+      utm_term:p.get('utm_term')||'no_term',
+      utm_content:p.get('utm_content')||'no_content',
+      utm_referrer:document.referrer||'no_referrer',
+      gclid:p.get('gclid')||null,
+      fbclid:p.get('fbclid')||null
+    };
+  }
+
+  function send(evento){
+    var payload=basePayload();
+    payload.evento=evento;
+    fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true});
+  }
+
+  send('view');
+
+  function isCtaLink(link){
+    try{
+      var url=new URL(link.href,window.location.origin);
+      return url.hostname.replace(/^www\./,'')===CTA_HOST;
+    }catch(err){
+      return false;
+    }
+  }
+
+  document.addEventListener('click',function(event){
+    var link=event.target.closest('a[href]');
+    if(!link||!isCtaLink(link))return;
+    send('click');
+  },true);
+})();
 </script>
 	
 		<title>Escalada SEBRAE – A trilha para o sucesso está aberta</title>
