@@ -234,6 +234,17 @@ window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/16
     return Array.from(params.entries());
   }
 
+  // Mesma chave usada pelo tracker de visitas/cliques (viz_lp) no topo do
+  // arquivo -- lendo de novo aqui em vez de compartilhar variável porque os
+  // dois scripts rodam em IIFEs separadas.
+  function getLpSessionId() {
+    try {
+      return sessionStorage.getItem('viz_session_id') || null;
+    } catch (err) {
+      return null;
+    }
+  }
+
   function isTargetShortlink(href) {
     try {
       const url = new URL(href, window.location.origin);
@@ -248,16 +259,25 @@ window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/16
   function mergeMissingParamsIntoHref(href) {
     try {
       const url = new URL(href, window.location.origin);
-      const currentEntries = getCurrentQueryEntries();
 
-      if (!currentEntries.length) {
-        return url.toString();
-      }
-
-      for (const [key, value] of currentEntries) {
+      for (const [key, value] of getCurrentQueryEntries()) {
         if (!url.searchParams.has(key)) {
           url.searchParams.set(key, value);
         }
+      }
+
+      // lp_ref/lp_sid preenchem o que os UTMs não cobrem: quando não há
+      // NENHUM parâmetro de campanha na URL (ex.: alguém clicou num link cru
+      // compartilhado pelo ChatGPT), document.referrer e o session_id da
+      // visita (viz_lp) são o único sinal de origem que existe -- e sem isso
+      // eles nunca chegam em "enriquecimento" na inscrição.
+      if (!url.searchParams.has('lp_ref') && document.referrer) {
+        url.searchParams.set('lp_ref', document.referrer.slice(0, 300));
+      }
+
+      const lpSessionId = getLpSessionId();
+      if (!url.searchParams.has('lp_sid') && lpSessionId) {
+        url.searchParams.set('lp_sid', lpSessionId);
       }
 
       return url.toString();
