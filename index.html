@@ -33,7 +33,13 @@
       userAgent:navigator.userAgent,
       page:window.location.href,
       pagina:PAGINA,
-      viewport_w:window.innerWidth,
+      // screen.width (nao window.innerWidth): esse script roda no topo do
+      // <head>, antes da tag <meta name="viewport"> (que só vem la embaixo,
+      // depois de todo o CSS inline do Elementor) ser processada pelo
+      // parser -- ate ela ser aplicada, innerWidth reflete o "layout
+      // viewport" de fallback do Chrome mobile (~980px, "desktop-like"),
+      // nao o tamanho real da tela. screen.width nao depende desse timing.
+      viewport_w:screen.width,
       session_id:getSessionId(),
       utm_source:p.get('utm_source')||'no_source',
       utm_medium:p.get('utm_medium')||'no_medium',

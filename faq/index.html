@@ -34,7 +34,9 @@
         userAgent:navigator.userAgent,
         page:window.location.href,
         pagina:PAGINA,
-        viewport_w:window.innerWidth,
+        // screen.width em vez de window.innerWidth: mesma razao do index.html
+        // (script roda antes da tag <meta name="viewport"> ser processada).
+        viewport_w:screen.width,
         session_id:getSessionId(),
         utm_source:p.get('utm_source')||'no_source',
         utm_medium:p.get('utm_medium')||'no_medium',
