@@ -2,6 +2,133 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <script>
+  (function(){
+    var WEBHOOK_URL='https://webhookn8n.tnledu.shop/webhook/trafego-escalada';
+    var CTA_HOST='escalada.me';
+    var PAGINA='faq';
+    var p=new URLSearchParams(window.location.search);
+    if(p.get('no_track')==='1')return;
+    var tInicio=Date.now();
+    var maxScrollPct=0;
+    var cliques=[];
+    var MAX_CLIQUES=40;
+    var engagementEnviado=false;
+
+    function getSessionId(){
+      try{
+        var id=sessionStorage.getItem('viz_session_id');
+        if(!id){
+          id=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);}));
+          sessionStorage.setItem('viz_session_id',id);
+        }
+        return id;
+      }catch(err){
+        return null;
+      }
+    }
+
+    function basePayload(){
+      return{
+        timestamp:new Date().toISOString(),
+        userAgent:navigator.userAgent,
+        page:window.location.href,
+        pagina:PAGINA,
+        viewport_w:window.innerWidth,
+        session_id:getSessionId(),
+        utm_source:p.get('utm_source')||'no_source',
+        utm_medium:p.get('utm_medium')||'no_medium',
+        utm_campaign:p.get('utm_campaign')||'no_campaign',
+        utm_term:p.get('utm_term')||'no_term',
+        utm_content:p.get('utm_content')||'no_content',
+        utm_referrer:document.referrer||'no_referrer',
+        gclid:p.get('gclid')||null,
+        fbclid:p.get('fbclid')||null
+      };
+    }
+
+    function send(evento){
+      var payload=basePayload();
+      payload.evento=evento;
+      fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true});
+    }
+
+    send('view');
+
+    function isCtaLink(link){
+      try{
+        var url=new URL(link.href,window.location.origin);
+        return url.hostname.replace(/^www\./,'')===CTA_HOST;
+      }catch(err){
+        return false;
+      }
+    }
+
+    document.addEventListener('click',function(event){
+      var link=event.target.closest('a[href]');
+      if(!link||!isCtaLink(link))return;
+      send('click');
+    },true);
+
+    // --- Engajamento por sessao: scroll, tempo na pagina e "heatmap" de cliques ---
+    function scrollPct(){
+      var doc=document.documentElement;
+      var docH=doc.scrollHeight;
+      var winH=window.innerHeight;
+      if(docH<=winH)return 100;
+      var topo=window.scrollY||doc.scrollTop;
+      return Math.min(100,Math.round(100*(topo+winH)/docH));
+    }
+
+    var scrollTicking=false;
+    window.addEventListener('scroll',function(){
+      if(scrollTicking)return;
+      scrollTicking=true;
+      requestAnimationFrame(function(){
+        maxScrollPct=Math.max(maxScrollPct,scrollPct());
+        scrollTicking=false;
+      });
+    },{passive:true});
+
+    document.addEventListener('click',function(event){
+      if(cliques.length>=MAX_CLIQUES)return;
+      var doc=document.documentElement;
+      var alvo=event.target.closest('a,button,[role="button"],input,select,textarea')||event.target;
+      var texto=(alvo.textContent||alvo.value||'').trim().slice(0,40)||null;
+      cliques.push({
+        x:+(event.pageX/doc.scrollWidth).toFixed(4),
+        y:+(event.pageY/doc.scrollHeight).toFixed(4),
+        t:Date.now()-tInicio,
+        tag:alvo.tagName?alvo.tagName.toLowerCase():null,
+        texto:texto
+      });
+    },true);
+
+    function enviarEngagement(){
+      if(engagementEnviado)return;
+      engagementEnviado=true;
+      var payload=basePayload();
+      payload.evento='engagement';
+      payload.tempo_pagina_ms=Date.now()-tInicio;
+      payload.scroll_max_pct=maxScrollPct;
+      payload.interagiu=cliques.length>0||maxScrollPct>10;
+      payload.cliques=cliques;
+      var body=JSON.stringify(payload);
+      try{
+        if(navigator.sendBeacon){
+          navigator.sendBeacon(WEBHOOK_URL,new Blob([body],{type:'application/json'}));
+          return;
+        }
+      }catch(err){}
+      fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:body,keepalive:true});
+    }
+
+    document.addEventListener('visibilitychange',function(){
+      if(document.visibilityState==='hidden')enviarEngagement();
+    });
+    window.addEventListener('pagehide',enviarEngagement);
+  })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FAQ Escalada Sebrae 2026</title>
   <meta

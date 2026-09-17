@@ -5,7 +5,14 @@
 (function(){
   var WEBHOOK_URL='https://webhookn8n.tnledu.shop/webhook/trafego-escalada';
   var CTA_HOST='escalada.me';
+  var PAGINA='lp';
   var p=new URLSearchParams(window.location.search);
+  if(p.get('no_track')==='1')return;
+  var tInicio=Date.now();
+  var maxScrollPct=0;
+  var cliques=[];
+  var MAX_CLIQUES=40;
+  var engagementEnviado=false;
 
   function getSessionId(){
     try{
@@ -25,6 +32,8 @@
       timestamp:new Date().toISOString(),
       userAgent:navigator.userAgent,
       page:window.location.href,
+      pagina:PAGINA,
+      viewport_w:window.innerWidth,
       session_id:getSessionId(),
       utm_source:p.get('utm_source')||'no_source',
       utm_medium:p.get('utm_medium')||'no_medium',
@@ -59,6 +68,67 @@
     if(!link||!isCtaLink(link))return;
     send('click');
   },true);
+
+  // --- Engajamento por sessao: scroll, tempo na pagina e "heatmap" de cliques ---
+  // Sem cookie, sem terceiro: reaproveita o mesmo session_id e o mesmo webhook
+  // acima, so manda um evento extra ('engagement') uma vez, no fim da visita.
+
+  function scrollPct(){
+    var doc=document.documentElement;
+    var docH=doc.scrollHeight;
+    var winH=window.innerHeight;
+    if(docH<=winH)return 100;
+    var topo=window.scrollY||doc.scrollTop;
+    return Math.min(100,Math.round(100*(topo+winH)/docH));
+  }
+
+  var scrollTicking=false;
+  window.addEventListener('scroll',function(){
+    if(scrollTicking)return;
+    scrollTicking=true;
+    requestAnimationFrame(function(){
+      maxScrollPct=Math.max(maxScrollPct,scrollPct());
+      scrollTicking=false;
+    });
+  },{passive:true});
+
+  document.addEventListener('click',function(event){
+    if(cliques.length>=MAX_CLIQUES)return;
+    var doc=document.documentElement;
+    var alvo=event.target.closest('a,button,[role="button"],input,select,textarea')||event.target;
+    var texto=(alvo.textContent||alvo.value||'').trim().slice(0,40)||null;
+    cliques.push({
+      x:+(event.pageX/doc.scrollWidth).toFixed(4),
+      y:+(event.pageY/doc.scrollHeight).toFixed(4),
+      t:Date.now()-tInicio,
+      tag:alvo.tagName?alvo.tagName.toLowerCase():null,
+      texto:texto
+    });
+  },true);
+
+  function enviarEngagement(){
+    if(engagementEnviado)return;
+    engagementEnviado=true;
+    var payload=basePayload();
+    payload.evento='engagement';
+    payload.tempo_pagina_ms=Date.now()-tInicio;
+    payload.scroll_max_pct=maxScrollPct;
+    payload.interagiu=cliques.length>0||maxScrollPct>10;
+    payload.cliques=cliques;
+    var body=JSON.stringify(payload);
+    try{
+      if(navigator.sendBeacon){
+        navigator.sendBeacon(WEBHOOK_URL,new Blob([body],{type:'application/json'}));
+        return;
+      }
+    }catch(err){}
+    fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:body,keepalive:true});
+  }
+
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='hidden')enviarEngagement();
+  });
+  window.addEventListener('pagehide',enviarEngagement);
 })();
 </script>
 	

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heatmap — LP Escalada</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link rel="icon" href="https://assets-tnl.org/cropped-Escalada-SEBRAE-7-192x192.png" sizes="192x192">
+<link rel="stylesheet" href="/wp-content/uploads/elementor/google-fonts/css/spacegrotesk.css">
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --panel:#141414;
+    --panel-2:#1c1c1c;
+    --border:#2a2a2a;
+    --accent:#00d95d;
+    --accent-dim:rgba(0,217,93,.16);
+    --text:#f5f5f5;
+    --text-dim:#8f8f8f;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Space Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--accent);color:#000;}
+
+  /* ---------- portao de senha ---------- */
+  #gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 20%,#111 0%,#000 70%);z-index:50;padding:24px;}
+  #gate.hidden{display:none;}
+  #gate-card{width:100%;max-width:340px;text-align:center;
+    opacity:0;transform:translateY(8px);animation:rise .5s cubic-bezier(.16,1,.3,1) forwards;}
+  @keyframes rise{to{opacity:1;transform:translateY(0);}}
+  #gate-card .mark{width:34px;height:34px;border-radius:9px;background:var(--accent-dim);
+    border:1px solid rgba(0,217,93,.35);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
+  #gate-card .mark svg{width:16px;height:16px;stroke:var(--accent);}
+  #gate-card h1{font-size:15px;font-weight:600;margin:0 0 6px;letter-spacing:.01em;}
+  #gate-card p{font-size:13px;color:var(--text-dim);margin:0 0 22px;line-height:1.5;}
+  #gate-form{display:flex;gap:8px;}
+  #gate-input{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:9px;
+    padding:11px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease;}
+  #gate-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+  #gate-btn{background:var(--accent);color:#04120a;border:none;border-radius:9px;padding:0 16px;
+    font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:filter .15s ease, transform .15s ease;}
+  #gate-btn:hover{filter:brightness(1.08);}
+  #gate-btn:active{transform:scale(.97);}
+  #gate-err{font-size:12px;color:#ff6b6b;margin-top:12px;height:14px;opacity:0;transition:opacity .2s ease;}
+  #gate-err.show{opacity:1;}
+  #gate-card.shake{animation:shake .32s ease;}
+  @keyframes shake{20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+
+  /* ---------- app ---------- */
+  #app{display:none;}
+  #app.visible{display:block;}
+
+  #toolbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:11px 16px;background:rgba(10,10,10,.86);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  #toolbar h1{font-size:13px;font-weight:600;margin:0 14px 0 0;white-space:nowrap;
+    display:flex;align-items:center;gap:8px;}
+  #toolbar h1 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-dim);}
+
+  .seg{display:flex;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:2px;}
+  .seg button{background:transparent;border:none;color:var(--text-dim);font-family:inherit;
+    font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;
+    transition:background .16s ease, color .16s ease;}
+  .seg button.active{background:var(--panel-2);color:var(--text);}
+  .seg button:not(.active):hover{color:var(--text);}
+
+  #stats{display:flex;gap:18px;margin-left:auto;font-size:12px;color:var(--text-dim);flex-wrap:wrap;}
+  #stats b{color:var(--text);font-weight:600;}
+  #stats span{white-space:nowrap;}
+
+  #legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);margin-left:6px;}
+  #legend .bar{width:64px;height:6px;border-radius:3px;
+    background:linear-gradient(90deg,rgba(37,99,235,.85),rgba(16,185,129,.9),rgba(234,179,8,.95),rgba(239,68,68,1));}
+
+  #loading{position:fixed;inset:0;top:52px;display:flex;align-items:center;justify-content:center;
+    color:var(--text-dim);font-size:13px;gap:10px;z-index:15;background:var(--bg);}
+  #loading.hidden{display:none;}
+  .spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);
+    border-top-color:var(--accent);animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  #stage-wrap{display:flex;justify-content:center;background:#050505;padding:28px 0 60px;}
+  #stage{position:relative;background:#fff;box-shadow:0 0 0 1px var(--border),0 30px 80px -20px rgba(0,0,0,.6);
+    opacity:0;transition:opacity .4s ease;}
+  #stage.ready{opacity:1;}
+  #stage iframe{display:block;border:0;pointer-events:none;background:#fff;}
+  #heat-canvas{position:absolute;top:0;left:0;pointer-events:none;mix-blend-mode:normal;}
+
+  .ruler{position:absolute;left:0;right:0;pointer-events:none;
+    border-top:1px dashed rgba(255,255,255,.55);}
+  .ruler .tag{position:absolute;right:10px;top:-11px;background:#000;color:#fff;
+    font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:5px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.18);letter-spacing:.01em;white-space:nowrap;}
+
+  #empty-note{max-width:360px;margin:80px auto 0;text-align:center;color:var(--text-dim);font-size:13px;
+    line-height:1.6;}
+
+  @media (max-width:640px){
+    #toolbar{gap:8px;}
+    #toolbar h1{margin-right:6px;}
+    #stats{gap:12px;}
+    #legend{display:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div id="gate">
+    <div id="gate-card">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+      </div>
+      <h1>Acesso restrito</h1>
+      <p>Dados internos de navegação da LP.</p>
+      <form id="gate-form">
+        <input id="gate-input" type="password" placeholder="Senha" autocomplete="off" autofocus>
+        <button id="gate-btn" type="submit">Entrar</button>
+      </form>
+      <div id="gate-err">Senha incorreta</div>
+    </div>
+  </div>
+
+  <div id="app">
+    <div id="toolbar">
+      <h1><span class="dot"></span>Heatmap LP</h1>
+
+      <div class="seg" id="seg-pagina">
+        <button data-val="lp" class="active">LP</button>
+        <button data-val="faq">FAQ</button>
+      </div>
+
+      <div class="seg" id="seg-device">
+        <button data-val="all" class="active">Todos</button>
+        <button data-val="desktop">Desktop</button>
+        <button data-val="mobile">Mobile</button>
+      </div>
+
+      <div id="legend"><span>frio</span><div class="bar"></div><span>quente</span></div>
+
+      <div id="stats">
+        <span><b id="stat-sessoes">—</b> sessões</span>
+        <span><b id="stat-cliques">—</b> cliques</span>
+        <span><b id="stat-bounce">—</b> sem interação</span>
+      </div>
+    </div>
+
+    <div id="loading"><div class="spin"></div>carregando dados…</div>
+    <div id="stage-wrap"><div id="stage"></div></div>
+    <div id="empty-note" hidden>Ainda não há dados suficientes pra essa combinação de página/dispositivo.</div>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+
+  // troque essa senha e recalcule o hash: no console do navegador,
+  // rode `crypto.subtle.digest('SHA-256', new TextEncoder().encode('nova-senha')).then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('')))`
+  var SENHA_HASH = '534b769c3b9e846c552dc604af406e99404e23185b378e7add7c58143f7745c3';
+  var GATE_KEY = 'heat_lp_auth';
+
+  var SUPABASE_URL = 'https://database.tnledu.shop';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.FRcy1kxU_0vQ4JBPnkcxZPfc_RFOFKMGkj00MvBRmKM';
+
+  var PAGINAS = {lp: '/?no_track=1', faq: '/faq/?no_track=1'};
+  var DEVICE_W = {all: [0, 99999], desktop: [768, 99999], mobile: [0, 767]};
+  var IFRAME_W = {all: 1440, desktop: 1440, mobile: 390};
+
+  var state = {pagina: 'lp', device: 'all'};
+
+  // ---------- portao ----------
+  async function sha256Hex(texto){
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  }
+
+  function showApp(){
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    boot();
+  }
+
+  try{
+    if(sessionStorage.getItem(GATE_KEY) === '1'){ showApp(); }
+  }catch(err){}
+
+  document.getElementById('gate-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var val = document.getElementById('gate-input').value;
+    var hash = await sha256Hex(val);
+    if(hash === SENHA_HASH){
+      try{ sessionStorage.setItem(GATE_KEY, '1'); }catch(err){}
+      showApp();
+    }else{
+      var card = document.getElementById('gate-card');
+      var err = document.getElementById('gate-err');
+      err.classList.add('show');
+      card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+      document.getElementById('gate-input').value = '';
+      document.getElementById('gate-input').focus();
+    }
+  });
+
+  // ---------- app ----------
+  function boot(){
+    document.querySelectorAll('#seg-pagina button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        setActive('#seg-pagina', btn); state.pagina = btn.dataset.val; render();
+      });
+    });
+    document.querySelectorAll('#seg-device button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        setActive('#seg-device', btn); state.device = btn.dataset.val; render();
+      });
+    });
+    render();
+  }
+
+  function setActive(sel, btn){
+    document.querySelectorAll(sel + ' button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+  }
+
+  async function fetchDados(pagina, vmin, vmax){
+    var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/heat_lp_dados', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({p_pagina: pagina, p_viewport_min: vmin, p_viewport_max: vmax})
+    });
+    if(!r.ok) throw new Error('falha ao buscar dados (' + r.status + ')');
+    return r.json();
+  }
+
+  async function render(){
+    var loading = document.getElementById('loading');
+    var stageWrap = document.getElementById('stage-wrap');
+    var stage = document.getElementById('stage');
+    var emptyNote = document.getElementById('empty-note');
+
+    loading.classList.remove('hidden');
+    stage.classList.remove('ready');
+    stage.innerHTML = '';
+    emptyNote.hidden = true;
+
+    var range = DEVICE_W[state.device];
+    var dados;
+    try{
+      dados = await fetchDados(state.pagina, range[0], range[1]);
+    }catch(err){
+      loading.innerHTML = 'não consegui carregar os dados agora. tenta recarregar a página.';
+      return;
+    }
+
+    document.getElementById('stat-sessoes').textContent = dados.total_sessoes.toLocaleString('pt-BR');
+    document.getElementById('stat-cliques').textContent = dados.cliques.length.toLocaleString('pt-BR');
+    var bouncePct = dados.total_com_engagement > 0
+      ? Math.round(100 * dados.scroll.sem_interacao / dados.total_com_engagement) + '%'
+      : '—';
+    document.getElementById('stat-bounce').textContent = bouncePct;
+
+    if(dados.total_sessoes === 0){
+      loading.classList.add('hidden');
+      emptyNote.hidden = false;
+      return;
+    }
+
+    var iframeW = IFRAME_W[state.device];
+    var iframe = document.createElement('iframe');
+    iframe.src = PAGINAS[state.pagina];
+    iframe.style.width = iframeW + 'px';
+    iframe.setAttribute('scrolling', 'no');
+    stage.style.width = iframeW + 'px';
+    stage.appendChild(iframe);
+
+    iframe.addEventListener('load', function(){
+      var doc;
+      try{ doc = iframe.contentDocument; }catch(err){ doc = null; }
+      if(!doc){
+        loading.classList.add('hidden');
+        emptyNote.hidden = false;
+        emptyNote.textContent = 'não consegui carregar o preview da página (bloqueio de mesma origem).';
+        return;
+      }
+
+      var overlayBoasVindas = doc.getElementById('escalada-overlay');
+      if(overlayBoasVindas) overlayBoasVindas.remove();
+
+      var docH = doc.documentElement.scrollHeight;
+      var docW = doc.documentElement.scrollWidth;
+      iframe.style.height = docH + 'px';
+      stage.style.height = docH + 'px';
+
+      desenharHeatmap(stage, dados.cliques, docW, docH, iframeW);
+      desenharReguas(stage, dados.scroll, dados.total_com_engagement, docH);
+
+      loading.classList.add('hidden');
+      requestAnimationFrame(function(){ stage.classList.add('ready'); });
+    });
+  }
+
+  // ---------- heatmap ----------
+  var STOPS = [
+    {p: 0.00, c: [37, 99, 235]},
+    {p: 0.35, c: [16, 185, 129]},
+    {p: 0.65, c: [234, 179, 8]},
+    {p: 1.00, c: [239, 68, 68]}
+  ];
+  function corPorIntensidade(t){
+    for(var i = 0; i < STOPS.length - 1; i++){
+      var a = STOPS[i], b = STOPS[i+1];
+      if(t >= a.p && t <= b.p){
+        var f = (t - a.p) / (b.p - a.p || 1);
+        return [
+          Math.round(a.c[0] + (b.c[0]-a.c[0])*f),
+          Math.round(a.c[1] + (b.c[1]-a.c[1])*f),
+          Math.round(a.c[2] + (b.c[2]-a.c[2])*f)
+        ];
+      }
+    }
+    return STOPS[STOPS.length-1].c;
+  }
+
+  function desenharHeatmap(stage, cliques, docW, docH, iframeW){
+    var canvas = document.createElement('canvas');
+    canvas.id = 'heat-canvas';
+    canvas.width = iframeW;
+    canvas.height = docH;
+    canvas.style.opacity = '0.8';
+    stage.appendChild(canvas);
+
+    if(!cliques.length) return;
+
+    var mono = document.createElement('canvas');
+    mono.width = iframeW; mono.height = docH;
+    var mctx = mono.getContext('2d');
+    var raio = Math.max(26, Math.round(iframeW * 0.035));
+
+    cliques.forEach(function(c){
+      var px = c.x * iframeW;
+      var py = c.y * docH;
+      var grad = mctx.createRadialGradient(px, py, 0, px, py, raio);
+      grad.addColorStop(0, 'rgba(0,0,0,0.28)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      mctx.fillStyle = grad;
+      mctx.beginPath();
+      mctx.arc(px, py, raio, 0, Math.PI * 2);
+      mctx.fill();
+    });
+
+    var img = mctx.getImageData(0, 0, iframeW, docH);
+    var out = document.createElement('canvas');
+    out.width = iframeW; out.height = docH;
+    var octx = out.getContext('2d');
+    var outImg = octx.createImageData(iframeW, docH);
+
+    for(var i = 0; i < img.data.length; i += 4){
+      var alpha = img.data[i+3];
+      if(alpha === 0) continue;
+      var t = Math.min(1, alpha / 180);
+      var cor = corPorIntensidade(t);
+      outImg.data[i] = cor[0];
+      outImg.data[i+1] = cor[1];
+      outImg.data[i+2] = cor[2];
+      outImg.data[i+3] = Math.min(255, alpha * 1.6);
+    }
+    octx.putImageData(outImg, 0, 0);
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(out, 0, 0);
+  }
+
+  // ---------- reguas de scroll ----------
+  function desenharReguas(stage, scroll, total, docH){
+    if(!total) return;
+    var marcos = [
+      {pct: 25, val: scroll.p25},
+      {pct: 50, val: scroll.p50},
+      {pct: 75, val: scroll.p75},
+      {pct: 100, val: scroll.p100}
+    ];
+    marcos.forEach(function(m){
+      var linha = document.createElement('div');
+      linha.className = 'ruler';
+      linha.style.top = (docH * m.pct / 100) + 'px';
+      var tag = document.createElement('span');
+      tag.className = 'tag';
+      var pct = Math.round(100 * m.val / total);
+      tag.textContent = pct + '% chegaram aqui (' + m.pct + '% da página)';
+      linha.appendChild(tag);
+      stage.appendChild(linha);
+    });
+  }
+})();
+</script>
+</body>
+</html>
