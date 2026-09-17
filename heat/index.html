@@ -273,12 +273,46 @@
     }
 
     var iframeW = IFRAME_W[state.device];
+    var ALTURA_JANELA = state.device === 'mobile' ? 720 : 860;
+
+    // A "janela" do iframe fica com altura FIXA (como uma tela real) --
+    // esticar o iframe pra caber a página inteira sem scroll causa um loop
+    // de feedback destrutivo: seções com `min-height:100vh` recalculam o
+    // `vh` toda vez que a altura do iframe muda, o que infla ainda mais a
+    // altura, que aciona outro recálculo, etc. (confirmado ao vivo: com o
+    // iframe fixo em 900px a página mede ~3000px; deixando ele "acompanhar"
+    // o conteúdo, a mesma página mede quase o dobro). Em vez de expandir o
+    // iframe, ele rola por dentro (como um visitante real veria) e um
+    // overlay do tamanho real do documento fica sincronizado com esse
+    // scroll via transform.
+    stage.style.width = iframeW + 'px';
+    stage.style.height = ALTURA_JANELA + 'px';
+    stage.style.overflow = 'hidden';
+
     var iframe = document.createElement('iframe');
     iframe.src = PAGINAS[state.pagina];
     iframe.style.width = iframeW + 'px';
-    iframe.setAttribute('scrolling', 'no');
-    stage.style.width = iframeW + 'px';
+    iframe.style.height = ALTURA_JANELA + 'px';
     stage.appendChild(iframe);
+
+    var overlay = document.createElement('div');
+    overlay.id = 'heat-overlay';
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = iframeW + 'px';
+    overlay.style.pointerEvents = 'none';
+    overlay.style.willChange = 'transform';
+    stage.appendChild(overlay);
+
+    // Captura o scroll no stage (o iframe fica com pointer-events:none pra
+    // não deixar cliques reais navegarem a LP dentro do preview) e repassa
+    // pro documento de dentro do iframe manualmente.
+    stage.addEventListener('wheel', function(e){
+      e.preventDefault();
+      var doc = iframe.contentDocument;
+      if(doc) doc.documentElement.scrollTop += e.deltaY;
+    }, {passive: false});
 
     iframe.addEventListener('load', function(){
       var doc;
@@ -293,16 +327,45 @@
       var overlayBoasVindas = doc.getElementById('escalada-overlay');
       if(overlayBoasVindas) overlayBoasVindas.remove();
 
-      var docH = doc.documentElement.scrollHeight;
-      var docW = doc.documentElement.scrollWidth;
-      iframe.style.height = docH + 'px';
-      stage.style.height = docH + 'px';
+      // Medir a altura logo no 'load' pega a página ainda incompleta --
+      // várias imagens são loading="lazy" e só carregariam quando
+      // "entrassem" no viewport do iframe. Forçar 'eager' evita depender
+      // da heurística de carregamento lazy do browser.
+      Array.prototype.forEach.call(doc.querySelectorAll('img[loading="lazy"]'), function(img){
+        img.loading = 'eager';
+      });
 
-      desenharHeatmap(stage, dados.cliques, docW, docH, iframeW);
-      desenharReguas(stage, dados.scroll, dados.total_com_engagement, docH);
+      doc.addEventListener('scroll', function(){
+        overlay.style.transform = 'translateY(' + (-doc.documentElement.scrollTop) + 'px)';
+      }, {passive: true});
 
-      loading.classList.add('hidden');
-      requestAnimationFrame(function(){ stage.classList.add('ready'); });
+      var estavelDesde = Date.now();
+      var ultimaAltura = -1;
+      var inicioEspera = Date.now();
+      var LIMIAR_ESTAVEL_MS = 1200;
+      var TIMEOUT_MAX_MS = 10000;
+
+      var checarAltura = setInterval(function(){
+        var alturaAtual = doc.documentElement.scrollHeight;
+        if(alturaAtual !== ultimaAltura){
+          ultimaAltura = alturaAtual;
+          estavelDesde = Date.now();
+        }
+        var estabilizou = (Date.now() - estavelDesde) >= LIMIAR_ESTAVEL_MS;
+        var estourouTimeout = (Date.now() - inicioEspera) >= TIMEOUT_MAX_MS;
+        if(!estabilizou && !estourouTimeout) return;
+
+        clearInterval(checarAltura);
+        var docH = doc.documentElement.scrollHeight;
+        var docW = doc.documentElement.scrollWidth;
+        overlay.style.height = docH + 'px';
+
+        desenharHeatmap(overlay, dados.cliques, docW, docH, iframeW);
+        desenharReguas(overlay, dados.scroll, dados.total_com_engagement, docH);
+
+        loading.classList.add('hidden');
+        requestAnimationFrame(function(){ stage.classList.add('ready'); });
+      }, 200);
     });
   }
 
