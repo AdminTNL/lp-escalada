@@ -118,7 +118,12 @@
     var body=JSON.stringify(payload);
     try{
       if(navigator.sendBeacon){
-        navigator.sendBeacon(WEBHOOK_URL,new Blob([body],{type:'application/json'}));
+        // 'text/plain' em vez de 'application/json': esse ultimo faz o
+        // sendBeacon disparar um preflight CORS que, por algum motivo,
+        // nunca chega a soltar o POST real (confirmado em teste ao vivo --
+        // o preflight retorna 204 mas a requisicao de fato nunca sai). O
+        // n8n normaliza (JSON.parse) o body do lado de la.
+        navigator.sendBeacon(WEBHOOK_URL,new Blob([body],{type:'text/plain'}));
         return;
       }
     }catch(err){}
