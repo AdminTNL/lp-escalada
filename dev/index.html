@@ -16,7 +16,7 @@
     --magenta:#FF00FF; --magenta-claro:#FF76FF; --magenta-texto:#A6009B;
     --ciano:#00F9FF; --azul:#2A4FDA; --navy:#0A0F36;
     --papel:#FAF9F5; --papel-raised:#FFFFFF;
-    --ink:#12163A; --ink-soft:#4D5280; --ink-faint:#8A8FB0;
+    --ink:#12163A; --ink-soft:#4D5280; --ink-faint:#5A5E87;
     --line:#E7E4DA;
     --shadow: 0 1px 2px rgba(10,15,54,.05), 0 16px 32px -18px rgba(10,15,54,.22);
     --shadow-dark: 0 1px 0 rgba(255,255,255,.06) inset, 0 20px 40px -18px rgba(0,0,0,.5);
@@ -110,11 +110,10 @@
      de ficar em <5s) manda nao esconder a oferta atras da animacao */
   .hero-teaser{
     margin-bottom:22px; overflow:hidden; max-height:400px; opacity:1;
-    transition:max-height .5s cubic-bezier(.16,1,.3,1) .1s, opacity .3s ease, margin-bottom .5s ease .1s;
   }
   /* no mobile, quando o rank assenta, o teaser tambem some -- so' o texto
      padrao (.hero-copy) fica, sem duas manchetes empilhadas ao mesmo tempo */
-  #hero.settled .hero-teaser{max-height:0; opacity:0; margin-bottom:0; transition:max-height .4s cubic-bezier(.16,1,.3,1), opacity .25s ease, margin-bottom .4s ease;}
+  #hero.settled .hero-teaser{max-height:0; opacity:0; margin-bottom:0;}
   .hero-teaser-h1{
     font-family:var(--display); font-weight:700; color:#fff;
     font-size:clamp(28px,7.5vw,40px); line-height:1.1; max-width:15ch; margin:0;
@@ -126,19 +125,30 @@
      assentar -- mas o essencial (teaser acima) ja foi dito de cara */
   .hero-copy{
     order:2; overflow:hidden; max-height:0; opacity:0;
-    transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .5s ease;
   }
-  #hero.settled .hero-copy{max-height:900px; opacity:1; transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .6s ease .15s;}
+  #hero.settled .hero-copy{max-height:900px; opacity:1;}
 
   .hero-rank-zone{
     order:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
     min-height:calc(100svh - var(--hdr-h) - 220px);
     max-height:2000px; opacity:1; overflow:hidden;
-    transition:min-height .85s cubic-bezier(.16,1,.3,1), max-height .6s cubic-bezier(.16,1,.3,1) .25s,
-      opacity .5s ease .25s, padding .6s ease .25s;
     padding:8px 0 20px;
   }
   #hero.settled .hero-rank-zone{min-height:0; max-height:0; opacity:0; padding:0; pointer-events:none;}
+
+  /* transicoes do colapso hero-teaser/hero-copy/hero-rank-zone -- so' com
+     movimento, senao troca instantanea (sem isso, o "settled" ainda mexia
+     layout por ate 850ms mesmo com reduced-motion ligado) */
+  @media (prefers-reduced-motion:no-preference){
+    .hero-teaser{transition:max-height .5s cubic-bezier(.16,1,.3,1) .1s, opacity .3s ease, margin-bottom .5s ease .1s;}
+    #hero.settled .hero-teaser{transition:max-height .4s cubic-bezier(.16,1,.3,1), opacity .25s ease, margin-bottom .4s ease;}
+    .hero-copy{transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .5s ease;}
+    #hero.settled .hero-copy{transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .6s ease .15s;}
+    .hero-rank-zone{
+      transition:min-height .85s cubic-bezier(.16,1,.3,1), max-height .6s cubic-bezier(.16,1,.3,1) .25s,
+        opacity .5s ease .25s, padding .6s ease .25s;
+    }
+  }
 
   .hero-hook{
     margin:0; text-align:center; max-width:300px;
@@ -180,7 +190,7 @@
   .rc-header .streak{font-family:var(--mono); font-size:13px; color:#fff; display:flex; gap:5px; align-items:center;}
 
   .ps-lb-head{margin:0 0 10px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
-  .ps-lb-head .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); transition:opacity .3s ease;}
+  .ps-lb-head .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.85); transition:opacity .3s ease;}
   .ps-lb-head .prize{font-family:var(--mono); font-size:10px; color:var(--verde-claro); transition:opacity .3s ease;}
   .ps-lb-viewport{
     height:230px; overflow:hidden; position:relative;
@@ -431,6 +441,7 @@
   .fatos-grid .fato-card:nth-child(2){animation-delay:.10s;}
   .fatos-grid .fato-card:nth-child(3){animation-delay:.18s;}
   .fatos-grid .fato-card:nth-child(4){animation-delay:.26s;}
+  .fatos-grid .fato-card:nth-child(5){animation-delay:.34s;}
   .publicos-grid .publico-card:nth-child(1){animation-delay:.02s;}
   .publicos-grid .publico-card:nth-child(2){animation-delay:.14s;}
   .passos .passo:nth-child(1){animation-delay:.02s;}
@@ -547,11 +558,6 @@
     <div class="arco2" aria-hidden="true"></div>
     <div class="wrap">
       <div class="hero-left">
-        <div class="hero-teaser">
-          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Escalada Sebrae · grátis · 14+ anos</div>
-          <h2 class="hero-teaser-h1">Quer concorrer a um <em>prêmio incrível</em>?</h2>
-          <p class="hero-teaser-sub">Prêmios como smartphone esperam quem chega ao topo do ranking deste mês. É só entrar e disputar.</p>
-        </div>
         <div class="hero-copy">
           <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · gratuito · alunos 14+ e professores</div>
           <h1 class="hero-h1" id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h1>
@@ -565,13 +571,18 @@
             <span class="hero-fact">✓ ranking recomeça todo mês</span>
           </div>
         </div>
+        <div class="hero-teaser">
+          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Escalada Sebrae · grátis · 14+ anos</div>
+          <h2 class="hero-teaser-h1">Quer concorrer a um <em>prêmio incrível</em>?</h2>
+          <p class="hero-teaser-sub">Prêmios como smartphone esperam quem chega ao topo do ranking deste mês. É só entrar e disputar.</p>
+        </div>
       </div>
       <div class="hero-rank-zone">
         <p class="hero-hook" id="hero-hook-top">Você consegue se manter no rank?</p>
         <div class="rank-card" id="rank-card">
           <div class="rc-header">
             <span class="rank">Ranking mensal</span>
-            <span class="streak">🔥 12 dias restantes</span>
+            <span class="streak">🔥 em andamento</span>
           </div>
           <div class="ps-lb-head">
             <span class="lbl" id="lb-lbl">Top do mês</span>
@@ -630,7 +641,7 @@
           <ul>
             <li>Trilha própria (com quizzes e artigos) pra você também evoluir</li>
             <li>Pontua por estudante ativo vinculado, por atividade válida deles e pela sua própria sequência diária</li>
-            <li>Prêmio: o educador de maior pontuação do mês leva um voucher de R$1.000, por até 3 meses consecutivos</li>
+            <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês — e repete o prêmio se continuar em 1º, por até 3 meses seguidos</li>
             <li>Professor, educador ou gestor vinculado a uma instituição de ensino</li>
           </ul>
           <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-professores1">Quero participar como educador</a>
@@ -650,6 +661,11 @@
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
           <h3>Prêmio pro vencedor do mês</h3>
           <p>Quem vence o GameShow Escalada leva prêmios como smartphone e tablet, anunciados a cada ciclo.</p>
+        </div>
+        <div class="fato-card reveal">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FFD84D" stroke-width="1.6" aria-hidden="true"><path d="M2 9a3 3 0 010 6v2a2 2 0 002 2h16a2 2 0 002-2v-2a3 3 0 010-6V7a2 2 0 00-2-2H4a2 2 0 00-2 2v2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
+          <h3>Voucher pro educador destaque</h3>
+          <p>O educador de maior pontuação do mês leva R$1.000, e repete por até 3 meses seguidos em 1º.</p>
         </div>
         <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
