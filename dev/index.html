@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Escalada Sebrae — A trilha para o sucesso está aberta</title>
-<meta name="description" content="Trilhas, missões e um ranking que te leva de Aprendiz a Líder Escalada. Gratuito, para estudantes a partir de 14 anos. Inscrições até 15 de maio de 2026.">
+<meta name="description" content="Trilhas, missões e um ranking mensal auditado que te leva de Explorador a Líder Escalada, com smartphone pro topo do mês. Gratuito, para estudantes a partir de 14 anos.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="https://assets-tnl.org/cropped-Escalada-SEBRAE-7-32x32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,7 +89,7 @@
   @media (min-width:960px){ #hero .wrap{grid-template-columns:1.05fr .95fr; gap:32px;} }
   .hero-eyebrow{color:var(--verde-claro); display:flex; align-items:center; gap:8px; margin-bottom:18px;}
   .hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--verde-claro); box-shadow:0 0 0 4px rgba(0,255,133,.18);}
-  #hero h1{font-size:clamp(32px,5.2vw,52px); line-height:1.06; max-width:14ch;}
+  #hero h1{font-size:clamp(34px,5.8vw,58px); line-height:1.04; max-width:13.5ch;}
   #hero h1 em{font-style:normal; color:var(--verde-claro);}
   #hero .sub{font-size:17px; color:rgba(255,255,255,.82); max-width:46ch; margin:20px 0 28px;}
   #hero .sub b{color:#fff;}
@@ -136,6 +136,27 @@
   .ps-mission.done .chk{background:var(--verde); color:#052312;}
   .ps-mission.pend .chk{border:1.5px solid rgba(255,255,255,.3);}
 
+  /* mini leaderboard no mockup do hero */
+  .ps-lb-head{margin:0 16px 10px; display:flex; align-items:center; justify-content:space-between;}
+  .ps-lb-head .lbl{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55);}
+  .ps-lb-head .prize{font-family:var(--mono); font-size:9.5px; color:var(--verde-claro);}
+  .ps-lb{margin:0 16px; display:flex; flex-direction:column; gap:6px;}
+  .ps-lb-row{
+    display:grid; grid-template-columns:20px 24px 1fr auto; gap:8px; align-items:center;
+    padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.045);
+  }
+  .ps-lb-row.me{background:rgba(0,217,92,.16); border:1px solid rgba(0,217,92,.4);}
+  .ps-lb-row .pos{font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.5); text-align:center;}
+  .ps-lb-row.p1 .pos{color:#FFD84D;}
+  .ps-lb-row .av{
+    width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:9px; font-weight:600; color:#fff;
+    background:linear-gradient(135deg,var(--azul),var(--ciano));
+  }
+  .ps-lb-row.me .av{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
+  .ps-lb-row .nm{font-size:11.5px; color:rgba(255,255,255,.88); font-weight:600;}
+  .ps-lb-row .pt{font-family:var(--mono); font-size:10.5px; color:rgba(255,255,255,.6);}
+
   /* ---------- secoes claras ---------- */
   section{padding:72px 0;}
   .section-head{max-width:640px; margin-bottom:36px;}
@@ -167,16 +188,34 @@
     width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;
     flex:none;
   }
-  .degrau:nth-child(1) .n{background:linear-gradient(135deg,#2A4FDA,#00F9FF);}
-  .degrau:nth-child(2) .n{background:linear-gradient(135deg,#00D95C,#00FF85);}
-  .degrau:nth-child(3) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF);}
-  .degrau:nth-child(4) .n{background:linear-gradient(135deg,#0A0F36,#2A4FDA);}
-  .degrau h3{font-size:17px; margin-bottom:4px;}
+  .degrau:nth-child(1) .n{background:linear-gradient(135deg,#8A8FB0,#4D5280);}
+  .degrau:nth-child(2) .n{background:linear-gradient(135deg,#2A4FDA,#00F9FF);}
+  .degrau:nth-child(3) .n{background:linear-gradient(135deg,#00D95C,#00FF85);}
+  .degrau:nth-child(4) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF);}
+  .degrau:nth-child(5) .n{background:linear-gradient(135deg,#0A0F36,#2A4FDA);}
+  .degrau h3{font-size:17px; margin-bottom:2px;}
+  .degrau .faixa{font-family:var(--mono); font-size:11px; color:var(--ink-faint); display:block; margin-bottom:6px;}
   .degrau p{font-size:14px; color:var(--ink-soft); margin:0;}
   @media (min-width:700px){
     .escada{gap:0;}
-    .degrau{margin-left:calc(var(--i, 0) * 36px); margin-bottom:14px;}
+    .degrau{margin-left:calc(var(--i, 0) * 28px); margin-bottom:12px;}
   }
+
+  /* matriz de pontuacao - prova de esforco real */
+  #pontuacao{background:var(--papel-raised); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .pontos-grid{display:grid; grid-template-columns:1fr; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:18px; overflow:hidden; margin-top:8px;}
+  @media (min-width:640px){ .pontos-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (min-width:960px){ .pontos-grid{grid-template-columns:repeat(3,1fr);} }
+  .pontos-item{background:var(--papel-raised); padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .pontos-item .ac{font-size:14px; color:var(--ink);}
+  .pontos-item .pv{font-family:var(--mono); font-weight:600; font-size:14px; color:var(--verde); white-space:nowrap;}
+  .integridade-box{
+    display:flex; gap:14px; align-items:flex-start; margin-top:24px; padding:20px 22px;
+    background:var(--papel); border-radius:16px;
+  }
+  .integridade-box .ico{flex:none; width:22px; height:22px; margin-top:2px;}
+  .integridade-box p{margin:0; font-size:14px; color:var(--ink-soft);}
+  .integridade-box strong{color:var(--ink);}
 
   /* prova / mecanica */
   #mecanica{background:var(--navy); color:#fff;}
@@ -290,7 +329,7 @@
     <a class="logo" href="/" aria-label="Escalada Sebrae"><img src="https://assets-tnl.org/Escalada-Verde.webp" alt="Escalada Sebrae"></a>
     <nav class="primary nav-desktop-only">
       <a href="#jornada">A jornada</a>
-      <a href="#mecanica">Como funciona</a>
+      <a href="#pontuacao">Pontuação</a>
       <a href="/faq/">FAQ</a>
       <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
     </nav>
@@ -307,34 +346,36 @@
     <div class="arco2" aria-hidden="true"></div>
     <div class="wrap">
       <div class="reveal">
-        <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · inscrições abertas</div>
-        <h1>Sua ideia vira jornada. Sua jornada vira <em>prêmio de verdade</em>.</h1>
-        <p class="sub">Trilhas, missões e um ranking que te leva de <b>Aprendiz</b> a <b>Líder Escalada</b>. No caminho: smartphone pro topo do mês, vouchers e um GameShow ao vivo. Gratuito, pra estudante a partir de 14 anos.</p>
+        <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · ranking mensal aberto</div>
+        <h1>Todo mês, alguém do topo do ranking leva um <em>smartphone pra casa</em>. Podia ser você.</h1>
+        <p class="sub">Não é sorte, é esforço que conta ponto por ponto: trilha concluída, missão cumprida, sequência de dias mantida. O sistema audita contra fraude, então quem sobe, sobe porque trabalhou. Gratuito, pra estudante a partir de 14 anos.</p>
         <div class="hero-ctas">
           <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
         </div>
         <div class="hero-facts">
           <span class="hero-fact">✓ 100% gratuito</span>
           <span class="hero-fact">✓ direto do celular</span>
-          <span class="hero-fact">✓ inscrições até 15 de maio de 2026</span>
+          <span class="hero-fact">✓ ranking recomeça todo mês</span>
         </div>
       </div>
       <div class="reveal" style="animation-delay:.1s;">
         <div class="phone-mock">
           <div class="phone-screen">
             <div class="ps-header">
-              <span class="rank">Rank atual</span>
+              <span class="rank">Ranking · Mês Flash</span>
               <span class="streak">🔥 12 dias</span>
             </div>
-            <div class="ps-card">
-              <div class="lbl">Protagonista</div>
-              <div class="val">2.480 pts</div>
-              <div class="ps-bar"><i style="width:64%;"></i></div>
+            <div class="ps-lb-head"><span class="lbl">Top da temporada</span><span class="prize">🏆 smartphone pro 1º</span></div>
+            <div class="ps-lb">
+              <div class="ps-lb-row p1"><span class="pos">1º</span><span class="av">JM</span><span class="nm">J. Martins</span><span class="pt">2.180</span></div>
+              <div class="ps-lb-row"><span class="pos">2º</span><span class="av">AC</span><span class="nm">Ana C.</span><span class="pt">1.940</span></div>
+              <div class="ps-lb-row me"><span class="pos">3º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">1.680</span></div>
+              <div class="ps-lb-row"><span class="pos">4º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">1.520</span></div>
             </div>
-            <div class="ps-missions">
-              <div class="ps-mission done"><span class="chk">✓</span>Missão: seu primeiro plano de ideia</div>
-              <div class="ps-mission done"><span class="chk">✓</span>Trilha: validando com o público</div>
-              <div class="ps-mission pend"><span class="chk"></span>Mês Flash: desafio de setembro</div>
+            <div class="ps-card" style="margin-top:12px;">
+              <div class="lbl">Transformador</div>
+              <div class="val">1.680 pts</div>
+              <div class="ps-bar"><i style="width:57%;"></i></div>
             </div>
           </div>
         </div>
@@ -346,7 +387,7 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow" style="color:var(--verde);">O que você ganha</span>
-        <h2>Não é só motivação. Tem prêmio, prazo e regra clara.</h2>
+        <h2>Não é só motivação. Tem prêmio, regra clara e reconhecimento real.</h2>
       </div>
       <div class="fatos-grid reveal">
         <div class="fato-card">
@@ -377,26 +418,55 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow">A escada</span>
-        <h2>Quatro degraus. Cada um com o que ele desbloqueia de verdade.</h2>
-        <p>Não é nível por nível vazio. Cada rank abre algo concreto na comunidade e na plataforma.</p>
+        <h2>Cinco degraus. Cada um com a pontuação exata pra chegar lá.</h2>
+        <p>É o mesmo nível que aparece no seu perfil dentro da plataforma, sem enfeite.</p>
       </div>
       <div class="escada reveal">
         <div class="degrau" style="--i:0;">
           <div class="n">01</div>
-          <div><h3>Aprendiz Empreendedor</h3><p>Primeiras trilhas, primeiras missões, acesso à comunidade Escalada.</p></div>
+          <div><h3>Explorador</h3><span class="faixa">0 – 199 pontos</span><p>Primeiro acesso, primeira trilha, primeiro passo dado.</p></div>
         </div>
         <div class="degrau" style="--i:1;">
           <div class="n">02</div>
-          <div><h3>Protagonista</h3><p>Desbloqueia webinares exclusivos e missões em grupo.</p></div>
+          <div><h3>Aprendiz Empreendedor</h3><span class="faixa">200 – 499 pontos</span><p>Ritmo pego: trilhas concluídas, comunidade descoberta.</p></div>
         </div>
         <div class="degrau" style="--i:2;">
           <div class="n">03</div>
-          <div><h3>Transformador</h3><p>Elegível a mentorias e aos desafios do Mês Flash com premiação.</p></div>
+          <div><h3>Protagonista</h3><span class="faixa">500 – 999 pontos</span><p>Webinares exclusivos e missões em grupo desbloqueados.</p></div>
         </div>
         <div class="degrau" style="--i:3;">
           <div class="n">04</div>
-          <div><h3>Líder Escalada</h3><p>Certificação, elegibilidade a Embaixador e vaga na final do GameShow.</p></div>
+          <div><h3>Transformador</h3><span class="faixa">1.000 – 2.199 pontos</span><p>Elegível a mentorias e aos desafios do Mês Flash com premiação.</p></div>
         </div>
+        <div class="degrau" style="--i:4;">
+          <div class="n">05</div>
+          <div><h3>Líder Escalada</h3><span class="faixa">2.200+ pontos</span><p>Topo da escada: certificação e caminho pro GameShow.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pontuacao">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" style="color:var(--verde);">Esforço, não sorte</span>
+        <h2>Cada ponto tem uma ação real por trás.</h2>
+        <p>Esta é a régua completa. Nada de caixa-preta.</p>
+      </div>
+      <div class="pontos-grid reveal">
+        <div class="pontos-item"><span class="ac">Finalizar uma trilha completa</span><span class="pv">+60</span></div>
+        <div class="pontos-item"><span class="ac">Concluir um módulo</span><span class="pv">+40</span></div>
+        <div class="pontos-item"><span class="ac">Participar de um webinar</span><span class="pv">+25</span></div>
+        <div class="pontos-item"><span class="ac">Completar um quiz</span><span class="pv">+15</span></div>
+        <div class="pontos-item"><span class="ac">Cumprir missão especial</span><span class="pv">+15</span></div>
+        <div class="pontos-item"><span class="ac">Baixar material de apoio</span><span class="pv">+20</span></div>
+        <div class="pontos-item"><span class="ac">Cumprir missão semanal</span><span class="pv">+10</span></div>
+        <div class="pontos-item"><span class="ac">Indicar um novo membro</span><span class="pv">+10</span></div>
+        <div class="pontos-item"><span class="ac">Manter sequência diária</span><span class="pv">+10 <span style="color:var(--ink-faint);">(+ bônus a cada 7 dias)</span></span></div>
+      </div>
+      <div class="integridade-box reveal">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+        <p><strong>O sistema audita contra manipulação de pontos.</strong> Clique repetido sem propósito, comportamento de robô e outras condutas vedadas são detectados e a pontuação pode ser revertida. Quem está no topo do ranking chegou lá fazendo a trilha de verdade.</p>
       </div>
     </div>
   </section>
@@ -429,7 +499,7 @@
         </details>
         <details class="faq-item">
           <summary>Até quando posso me inscrever?<span></span></summary>
-          <div class="a">As inscrições para o Reconhecimento Sebrae Jovens Mais Empreendedores 2026 vão de 2 de março a 15 de maio de 2026. O cadastro na plataforma Escalada em si é contínuo.</div>
+          <div class="a">O cadastro na plataforma Escalada é contínuo durante o Ciclo 2026 (março a agosto). Já o Reconhecimento Sebrae Jovens Mais Empreendedores, que exige o Selo Escalada 2025 como pré-requisito, tem inscrições à parte, de 2 de março a 15 de maio de 2026.</div>
         </details>
         <details class="faq-item">
           <summary>Quem pode participar como estudante?<span></span></summary>
@@ -444,9 +514,9 @@
 
   <section id="cta-final">
     <div class="wrap-narrow">
-      <div class="prazo-pill">⏳ Inscrições até 15 de maio de 2026</div>
+      <div class="prazo-pill">🔥 o ranking deste mês já está rodando</div>
       <h2>A trilha para o sucesso está aberta. Falta você dar o primeiro passo.</h2>
-      <p>Cadastro gratuito, direto do celular. Comece hoje e chegue no GameShow Escalada.</p>
+      <p>Cadastro gratuito, direto do celular. Comece hoje e entre na disputa deste ciclo.</p>
       <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </section>
@@ -465,7 +535,7 @@
 </footer>
 
 <div id="sticky-cta">
-  <div class="txt"><b>Inscrições até 15/05</b>gratuito, direto do celular</div>
+  <div class="txt"><b>Ranking do mês já rodando</b>gratuito, direto do celular</div>
   <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Entrar</a>
 </div>
 
