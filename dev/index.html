@@ -314,6 +314,11 @@
   @media (prefers-reduced-motion: reduce){
     .teste-final .pts-grande{ animation:none; }
   }
+  .teste-final .teste-perfil-nome{
+    display:inline-block; font-family:var(--mono); font-size:11px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--verde-texto); background:rgba(0,217,92,.12);
+    padding:6px 14px; border-radius:999px; margin-bottom:14px;
+  }
   .teste-final p{color:var(--ink-soft); font-size:14.5px; margin-bottom:20px;}
 
   /* efeito de foco: ao centralizar o card do publico escolhido na tela,
@@ -759,7 +764,7 @@
         <p class="nota-publico" id="teste-nota-professor" hidden>Esse teste mostra a trilha do <strong>estudante</strong>. Sua trilha de educador pontua de um jeito diferente (veja mais abaixo).</p>
       </div>
       <div class="teste-card reveal" id="teste-card">
-        <div class="teste-progress">
+        <div class="teste-progress" id="teste-progress">
           <span id="teste-step-label">Missão 1 de 3</span>
           <span class="teste-total">Sem certo ou errado</span>
         </div>
@@ -1619,6 +1624,7 @@
   if(!root) return;
   var body = document.getElementById('teste-body');
   var stepLbl = document.getElementById('teste-step-label');
+  var progressEl = document.getElementById('teste-progress');
   var trackEl = document.getElementById('teste-track');
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1720,14 +1726,20 @@
   }
 
   function renderFinal(){
-    renderTrack();
-    stepLbl.textContent = 'Seu perfil';
+    // a barra "Missão X de 3" e os pontinhos de progresso nao fazem mais
+    // sentido depois que o quiz acabou -- eram sinal de "falta isso",
+    // nao "seu resultado e' esse". Usa style.display direto (nao o atributo
+    // hidden) porque .teste-progress/.teste-track ja tem "display:flex"
+    // proprio no CSS -- especificidade igual a [hidden] do UA stylesheet,
+    // e regra de autor vence UA, entao so' o atributo hidden nao bastaria
+    if(progressEl) progressEl.style.display = 'none';
+    if(trackEl) trackEl.style.display = 'none';
     var perfil = calcularPerfil();
     body.innerHTML =
       '<div class="teste-final">' +
         '<span class="pts-grande">+15</span>' +
-        '<p><strong>' + perfil.nome + '.</strong> Pelas suas respostas, ' + perfil.texto + '</p>' +
-        '<p>Isso não veio de acertar nada. Veio de completar o quiz, igual na régua oficial do Escalada. Quer começar a valer pra sua conta?</p>' +
+        '<span class="teste-perfil-nome">Seu perfil: ' + perfil.nome + '</span>' +
+        '<p>' + perfil.texto + '</p>' +
         '<a class="btn btn-primario" href="#publicos">Quero participar →</a>' +
       '</div>';
   }
