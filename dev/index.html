@@ -147,11 +147,17 @@
   }
   #hero.settled .hero-copy{max-height:900px; opacity:1; visibility:visible;}
 
+  /* min-height modesto e' so' um piso pra nao' ficar curto demais em tela
+     alta -- nao tenta preencher o viewport inteiro (isso deixava um vao
+     vazio embaixo, ja que o conteudo real -- 2 ganchos curtos + o card --
+     nunca chega perto de 100svh sozinho). Se sobrar espaco de verdade, a
+     proxima secao ja' aparece espiada no rodape, o que e' bom (mostra que
+     tem mais pra rolar) em vez de deixar um vazio sem nada */
   .hero-rank-zone{
-    order:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:14px;
-    min-height:calc(100svh - var(--hdr-h) - 220px);
+    order:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    min-height:min(560px, calc(100svh - var(--hdr-h) - 40px));
     max-height:2000px; opacity:1; overflow:hidden;
-    padding:8px 0 20px;
+    padding:28px 0 32px;
   }
   #hero.settled .hero-rank-zone{min-height:0; max-height:0; opacity:0; padding:0; pointer-events:none;}
 
@@ -522,11 +528,6 @@
   }
   #cta-final h2{font-size:clamp(28px,4vw,40px); max-width:18ch; margin:0 auto 16px;}
   #cta-final p{color:rgba(255,255,255,.92); max-width:48ch; margin:0 auto 30px; font-size:16px;}
-  .prazo-pill{
-    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px;
-    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); padding:8px 16px;
-    border-radius:999px; margin-bottom:26px;
-  }
 
   /* footer */
   footer{background:var(--navy); color:rgba(255,255,255,.55); padding:36px 0 100px; font-size:13px;}
@@ -683,7 +684,7 @@
       <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
     </nav>
     <div class="hdr-actions">
-      <button type="button" class="modo-badge" id="modo-badge" hidden>Modo: <strong id="modo-badge-txt">estudante</strong><span aria-hidden="true"> · trocar</span></button>
+      <button type="button" class="modo-badge" id="modo-badge" hidden>Modo: <strong id="modo-badge-txt">estudante</strong><span> · trocar</span></button>
       <a class="btn btn-primario btn-sm hdr-cta" id="cta-header" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </div>
@@ -714,7 +715,6 @@
         <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada. É assim que pontos reais movem sua posição.">
           <div class="rc-header">
             <span class="rank">Ranking mensal · exemplo</span>
-            <span class="streak" id="rc-countdown"><span aria-hidden="true">🔥</span> em andamento</span>
           </div>
           <div class="ps-lb-head">
             <span class="lbl" id="lb-lbl">Top do mês</span>
@@ -755,8 +755,8 @@
       <div class="section-head reveal">
         <span class="eyebrow">Teste rápido · sem cadastro</span>
         <h2>Antes de entrar, joga uma rodada.</h2>
-        <p>3 perguntas sem certo ou errado — é sobre te conhecer, não uma prova. Complete as 3 e veja seu perfil, com pontos reais na régua oficial do Escalada.</p>
-        <p class="nota-publico" id="teste-nota-professor" hidden>Esse teste mostra a trilha do <strong>estudante</strong> — sua trilha de educador pontua de um jeito diferente (veja mais abaixo).</p>
+        <p>3 perguntas sem certo ou errado. É sobre te conhecer, não uma prova. Complete as 3 e veja seu perfil, com pontos reais na régua oficial do Escalada.</p>
+        <p class="nota-publico" id="teste-nota-professor" hidden>Esse teste mostra a trilha do <strong>estudante</strong>. Sua trilha de educador pontua de um jeito diferente (veja mais abaixo).</p>
       </div>
       <div class="teste-card reveal" id="teste-card">
         <div class="teste-progress">
@@ -782,7 +782,7 @@
           <ul>
             <li>Cada trilha, módulo e missão concluída soma pontos direto no seu ranking</li>
             <li>Prêmio: itens como smartphone e tablet pra quem vence o GameShow Escalada</li>
-            <li>A partir de 14 anos, cadastro gratuito e rápido pelo celular</li>
+            <li>A partir de 14 anos</li>
           </ul>
           <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Quero participar como estudante</a>
         </div>
@@ -793,7 +793,7 @@
             <li>Trilha própria (com quizzes e artigos) pra você também evoluir</li>
             <li>Pontua por estudante ativo vinculado, por atividade válida deles e pela sua própria sequência diária</li>
             <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês, por até 3 meses seguidos, mantendo o engajamento mínimo exigido pelo programa (estudantes ativos, atividade na plataforma e participação quando convocado)</li>
-            <li>Ranking e prêmio próprios — o GameShow ao vivo é a disputa dos estudantes; você concorre no seu placar de educador</li>
+            <li>Ranking e prêmio próprios: o GameShow ao vivo é a disputa dos estudantes; você concorre no seu placar de educador</li>
           </ul>
           <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-professores1">Quero participar como educador</a>
         </div>
@@ -806,7 +806,7 @@
       <div class="section-head reveal">
         <span class="eyebrow" style="color:#1A3AAD;">A escada</span>
         <h2>Cinco degraus. Cada um com a pontuação exata pra chegar lá.</h2>
-        <p>É o mesmo nível que aparece no seu perfil dentro da plataforma, sem enfeite. Esses pontos se acumulam a jornada toda e não zeram — já o ranking mensal (ali do lado) é outra contagem, que recomeça todo mês. Essa escada de 5 níveis é da trilha do estudante; o professor tem placar e prêmio próprios, sem passar por ela (veja mais abaixo).</p>
+        <p>É o mesmo nível que aparece no seu perfil dentro da plataforma, sem enfeite. Esses pontos se acumulam a jornada toda e não zeram. Já o ranking mensal (ali do lado) é outra contagem, que recomeça todo mês. Essa escada de 5 níveis é da trilha do estudante; o professor tem placar e prêmio próprios, sem passar por ela (veja mais abaixo).</p>
       </div>
       <div class="escada reveal">
         <div class="degrau" style="--i:0;">
@@ -861,7 +861,7 @@
       </div>
       <div class="integridade-box reveal">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.8" aria-hidden="true"><path d="M2 9a3 3 0 010 6v2a2 2 0 002 2h16a2 2 0 002-2v-2a3 3 0 010-6V7a2 2 0 00-2-2H4a2 2 0 00-2 2v2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
-        <p><strong>Professor, seu placar soma pontos por um caminho diferente:</strong> +5 por estudante ativo vinculado, +1 por atividade válida que ele completa, e a mesma sequência diária acima (+10/dia). Sua trilha própria (com quizzes e artigos) é pra você evoluir — ela não entra nesse placar.</p>
+        <p><strong>Professor, seu placar soma pontos por um caminho diferente:</strong> +5 por estudante ativo vinculado, +1 por atividade válida que ele completa, e a mesma sequência diária acima (+10/dia). Sua trilha própria (com quizzes e artigos) é pra você evoluir. Ela não entra nesse placar.</p>
       </div>
       <div class="integridade-box reveal">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
@@ -921,7 +921,7 @@
       </div>
       <div class="integridade-box reveal" style="margin-top:16px;">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.8" aria-hidden="true"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.97-4.03 9-9 9-1.6 0-3.1-.42-4.4-1.15L3 21l1.15-3.6A8.96 8.96 0 013 12c0-4.97 4.03-9 9-9s9 4.03 9 9z"/></svg>
-        <p><strong>Receba pontos por interagir todo dia e acumule bônus.</strong> Comentar em duas publicações de colegas (com pelo menos 20 caracteres cada) já soma no seu streak diário, e a cada 7 dias seguidos vem um bônus extra em cima.</p>
+        <p><strong>Receba pontos por interagir todo dia e acumule bônus.</strong> Comentar em publicações de colegas conta pra sua sequência diária, a mesma régua de pontos lá em cima, com bônus a cada 7 dias seguidos.</p>
       </div>
       <div class="quote-card reveal">
         <div class="qav" style="background:linear-gradient(135deg,#B8860B,#FFD84D);" aria-hidden="true">EE</div>
@@ -961,7 +961,6 @@
 
   <section id="cta-final">
     <div class="wrap-narrow">
-      <div class="prazo-pill" id="cta-countdown"><span aria-hidden="true">🔥</span> o ranking deste mês já está rodando</div>
       <h2>A trilha para o sucesso está aberta. Falta você dar o primeiro passo.</h2>
       <p>Comece hoje e entre na disputa deste ciclo.</p>
       <a class="btn btn-primario" id="cta-final-btn" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
@@ -1194,7 +1193,6 @@
   var viewport = document.getElementById('lb-viewport');
   var rankCard = document.getElementById('rank-card');
   var lblEl = document.getElementById('lb-lbl');
-  var prizeEl = document.getElementById('lb-prize');
   var hookTop = document.getElementById('hero-hook-top');
   var hookBottom = document.getElementById('hero-hook-bottom');
   if(!track || !viewport) return;
@@ -1485,7 +1483,6 @@
 
   function finalState(){
     fadeText(lblEl, 'Top 20 do mês');
-    fadeText(prizeEl, '<span aria-hidden="true">🏆</span> vaga no GameShow');
     if(hero) hero.classList.add('settled');
   }
 
@@ -1493,7 +1490,6 @@
     if(reduced){
       resolverRankingFinal();
       lblEl.textContent = 'Top 20 do mês';
-      prizeEl.innerHTML = '<span aria-hidden="true">🏆</span> vaga no GameShow';
       if(hookTop) hookTop.classList.add('in');
       if(hookBottom) hookBottom.classList.add('in');
       if(hero) hero.classList.add('settled');
@@ -1518,7 +1514,6 @@
       viewport.removeEventListener('click', skip);
       resolverRankingFinal(); // forca "Você" no 1o lugar de verdade, nao so' o texto ao redor
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
-      prizeEl.style.opacity = '1'; prizeEl.innerHTML = '<span aria-hidden="true">🏆</span> vaga no GameShow';
       if(hero) hero.classList.add('settled');
     }
     viewport.addEventListener('click', skip);
@@ -1664,10 +1659,10 @@
   ];
 
   var PERFIS = {
-    testador: { nome: 'Testador', texto: 'você aprende fazendo — prefere colocar a mão na massa, testar na prática e ajustar pelo que vê de verdade acontecer.' },
-    estrategista: { nome: 'Estrategista', texto: 'você para pra pensar antes de agir — mapeia o problema, avalia caminhos e só então decide.' },
-    comunitario: { nome: 'Comunitário', texto: 'você conta com gente — busca rede, divide o problema e constrói junto.' },
-    misto: { nome: 'Combinado', texto: 'você mistura um pouco de cada jeito — testa na prática, pensa estratégico e conta com gente, dependendo da situação. É comum: as trilhas do Escalada trabalham essas competências juntas.' }
+    testador: { nome: 'Testador', texto: 'você aprende fazendo, colocando a mão na massa, testando na prática e ajustando pelo que vê de verdade acontecer.' },
+    estrategista: { nome: 'Estrategista', texto: 'você para pra pensar antes de agir, mapeia o problema, avalia caminhos e só então decide.' },
+    comunitario: { nome: 'Comunitário', texto: 'você conta com gente: busca rede, divide o problema e constrói junto.' },
+    misto: { nome: 'Combinado', texto: 'você mistura um pouco de cada jeito: testa na prática, pensa estratégico e conta com gente, dependendo da situação. É comum: as trilhas do Escalada trabalham essas competências juntas.' }
   };
 
   var idx = 0;
@@ -1692,7 +1687,7 @@
     q.opcoes.forEach(function(op, i){
       html += '<button type="button" class="teste-opcao" data-i="' + i + '">' + op.texto + '</button>';
     });
-    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;"><span aria-hidden="true">✓</span> Resposta registrada.</div></div>';
+    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;">Resposta registrada.</div></div>';
     body.innerHTML = html;
     Array.prototype.forEach.call(body.querySelectorAll('.teste-opcao'), function(btn){
       btn.addEventListener('click', onPick);
@@ -1732,7 +1727,7 @@
       '<div class="teste-final">' +
         '<span class="pts-grande">+15</span>' +
         '<p><strong>' + perfil.nome + '.</strong> Pelas suas respostas, ' + perfil.texto + '</p>' +
-        '<p>Isso não veio de acertar nada — veio de completar o quiz, igual na régua oficial do Escalada. Quer começar a valer pra sua conta?</p>' +
+        '<p>Isso não veio de acertar nada. Veio de completar o quiz, igual na régua oficial do Escalada. Quer começar a valer pra sua conta?</p>' +
         '<a class="btn btn-primario" href="#publicos">Quero participar →</a>' +
       '</div>';
   }
@@ -1741,21 +1736,6 @@
 })();
 </script>
 
-<script>
-(function(){
-  'use strict';
-  // o Mes Flash NAO fecha no ultimo dia do mes civil -- dura ~20 a 26 dias
-  // corridos, variavel por edicao (Art. 31 do regulamento; dados reais de
-  // ciclos anteriores fecharam em 24/06 e 26/08, nunca no dia 30/31). Uma
-  // contagem regressiva por dia do calendario seria um numero inventado
-  // com cara de precisao que nao existe -- por isso o texto fica sem
-  // numero, ate' existir uma fonte real (ex.: API) da data de fechamento.
-  var rc = document.getElementById('rc-countdown');
-  if(rc) rc.innerHTML = '<span aria-hidden="true">🔥</span> ranking em andamento';
-  var cta = document.getElementById('cta-countdown');
-  if(cta) cta.innerHTML = '<span aria-hidden="true">🔥</span> o ranking deste mês já está rodando';
-})();
-</script>
 
 <script>
 (function(){
@@ -1840,7 +1820,13 @@
     // (o anel do card e' visivel so' por um instante, ate' rolar mais)
     if(modoBadge){
       modoBadge.hidden = false;
-      if(modoBadgeTxt) modoBadgeTxt.textContent = pub === 'estudante' ? 'estudante' : 'professor';
+      var modoTxt = pub === 'estudante' ? 'estudante' : 'professor';
+      if(modoBadgeTxt) modoBadgeTxt.textContent = modoTxt;
+      // aria-label fixo, nao' depende do span " · trocar" -- ele some por
+      // CSS (display:none) em telas bem estreitas, o que tambem tira do
+      // leitor de tela; o aria-label garante que "toque pra trocar" sempre
+      // chega ao leitor de tela, independente do viewport
+      modoBadge.setAttribute('aria-label', 'Modo: ' + modoTxt + '. Toque para trocar.');
     }
     // o teste jogavel e o "como funciona" continuam escritos pro estudante
     // -- reescrever os dois de verdade e' uma mudanca grande demais pra
