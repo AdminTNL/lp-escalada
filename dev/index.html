@@ -109,16 +109,31 @@
   #hero.settled .hero-copy{max-height:900px; opacity:1; transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .6s ease .15s;}
 
   .hero-rank-zone{
-    order:1; display:flex; align-items:center; justify-content:center;
+    order:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
     min-height:calc(100svh - var(--hdr-h) - 32px);
-    transition:min-height .85s cubic-bezier(.16,1,.3,1);
+    max-height:2000px; opacity:1; overflow:hidden;
+    transition:min-height .85s cubic-bezier(.16,1,.3,1), max-height .6s cubic-bezier(.16,1,.3,1) .25s,
+      opacity .5s ease .25s, padding .6s ease .25s;
     padding:8px 0 28px;
   }
-  #hero.settled .hero-rank-zone{min-height:0; padding:0;}
+  #hero.settled .hero-rank-zone{min-height:0; max-height:0; opacity:0; padding:0; pointer-events:none;}
+
+  .hero-hook{
+    margin:0; text-align:center; max-width:300px;
+    font-family:var(--display); font-weight:700; font-size:17px; line-height:1.35; color:#fff;
+    opacity:0; transform:translateY(10px);
+    transition:opacity .6s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  }
+  .hero-hook.in{opacity:1; transform:translateY(0);}
+  .hero-hook em{font-style:normal; color:var(--verde-claro);}
 
   @media (min-width:960px){
     .hero-copy{order:0; max-height:none!important; opacity:1!important; overflow:visible;}
-    .hero-rank-zone{order:0; min-height:0!important; padding:0;}
+    .hero-rank-zone{
+      order:0; flex-direction:row; min-height:0!important; max-height:none!important;
+      opacity:1!important; padding:0!important; pointer-events:auto!important; overflow:visible!important;
+    }
+    .hero-hook{display:none;}
   }
 
   /* rank-card: sem moldura de celular, cartao de vidro flutuando */
@@ -127,39 +142,27 @@
     background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.14);
     backdrop-filter:blur(18px) saturate(1.2); border-radius:26px;
     padding:22px 18px 24px; box-shadow:var(--shadow-dark);
-    transform:scale(1.14);
-    transition:transform .85s cubic-bezier(.16,1,.3,1), padding .85s cubic-bezier(.16,1,.3,1);
   }
-  #hero.settled .rank-card{transform:scale(1); padding:14px 16px 16px;}
-  @media (min-width:960px){ .rank-card{transform:none!important; padding:22px 18px 24px!important;} }
 
-  .rc-header{
-    display:flex; align-items:center; justify-content:space-between;
-    max-height:40px; opacity:1; overflow:hidden; margin-bottom:16px;
-    transition:max-height .6s ease, opacity .4s ease, margin .6s ease;
-  }
+  .rc-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
   .rc-header .rank{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--verde-claro); text-transform:uppercase;}
   .rc-header .streak{font-family:var(--mono); font-size:13px; color:#fff; display:flex; gap:5px; align-items:center;}
-  #hero.settled .rc-header{max-height:0; opacity:0; margin-bottom:0;}
-  @media (min-width:960px){ #hero.settled .rc-header{max-height:40px!important; opacity:1!important; margin-bottom:16px!important;} }
 
   .ps-lb-head{margin:0 0 10px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
   .ps-lb-head .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); transition:opacity .3s ease;}
   .ps-lb-head .prize{font-family:var(--mono); font-size:10px; color:var(--verde-claro); transition:opacity .3s ease;}
   .ps-lb-viewport{
     height:230px; overflow:hidden; position:relative;
-    transition:height .85s cubic-bezier(.16,1,.3,1);
     -webkit-mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
     mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
   }
-  #hero.settled .ps-lb-viewport{height:142px;}
-  @media (min-width:960px){ #hero.settled .ps-lb-viewport{height:230px!important;} }
   .ps-lb-track{display:flex; flex-direction:column; gap:7px; will-change:transform;}
   .ps-lb-row{
-    display:grid; grid-template-columns:22px 28px 1fr auto; gap:9px; align-items:center;
+    position:relative; display:grid; grid-template-columns:22px 28px 1fr auto; gap:9px; align-items:center;
     padding:9px 11px; border-radius:11px; background:rgba(255,255,255,.045);
-    flex:none; transition:background .4s ease, border-color .4s ease;
+    flex:none; transition:background .4s ease, border-color .4s ease, box-shadow .3s ease;
   }
+  .ps-lb-row.lifting{box-shadow:0 10px 22px -8px rgba(0,0,0,.5); background:rgba(255,255,255,.09);}
   .ps-lb-row.me{background:rgba(0,217,92,.16); border:1px solid rgba(0,217,92,.4);}
   .ps-lb-row .pos{font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums;}
   .ps-lb-row.p1 .pos{color:#FFD84D;}
@@ -202,7 +205,8 @@
 
   /* escada de ranks - elemento assinatura */
   #jornada{background:var(--papel);}
-  .escada{display:flex; flex-direction:column; gap:14px; margin-top:36px;}
+  .escada{position:relative; display:flex; flex-direction:column; gap:14px; margin-top:36px;}
+  .escada-trilha{position:absolute; top:0; left:0; z-index:0; pointer-events:none;}
   .degrau{
     display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
     background:var(--papel-raised); border-radius:20px; padding:22px 24px; box-shadow:var(--shadow);
@@ -231,9 +235,28 @@
   .pontos-grid{display:grid; grid-template-columns:1fr; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:18px; overflow:hidden; margin-top:8px;}
   @media (min-width:640px){ .pontos-grid{grid-template-columns:repeat(2,1fr);} }
   @media (min-width:960px){ .pontos-grid{grid-template-columns:repeat(3,1fr);} }
-  .pontos-item{background:var(--papel-raised); padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px;}
-  .pontos-item .ac{font-size:14px; color:var(--ink);}
-  .pontos-item .pv{font-family:var(--mono); font-weight:600; font-size:14px; color:var(--verde); white-space:nowrap;}
+  .pontos-item{
+    position:relative; background:var(--papel-raised); padding:18px 20px 21px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; overflow:hidden;
+  }
+  .pontos-item .ac{font-size:14px; color:var(--ink); position:relative; z-index:1;}
+  .pontos-item .pv{font-family:var(--mono); font-weight:600; font-size:14px; color:var(--verde); white-space:nowrap; position:relative; z-index:1;}
+  .pontos-item .bar{
+    position:absolute; left:0; bottom:0; height:3px; width:100%;
+    background:linear-gradient(90deg,var(--verde),var(--verde-claro));
+    transform-origin:left; transform:scaleX(0);
+    transition:transform 1.1s cubic-bezier(.16,1,.3,1);
+  }
+  .pontos-grid.in .bar{transform:scaleX(1);}
+  .pontos-item:nth-child(1) .bar{transition-delay:.02s;}
+  .pontos-item:nth-child(2) .bar{transition-delay:.08s;}
+  .pontos-item:nth-child(3) .bar{transition-delay:.14s;}
+  .pontos-item:nth-child(4) .bar{transition-delay:.20s;}
+  .pontos-item:nth-child(5) .bar{transition-delay:.26s;}
+  .pontos-item:nth-child(6) .bar{transition-delay:.32s;}
+  .pontos-item:nth-child(7) .bar{transition-delay:.38s;}
+  .pontos-item:nth-child(8) .bar{transition-delay:.44s;}
+  .pontos-item:nth-child(9) .bar{transition-delay:.50s;}
   .integridade-box{
     display:flex; gap:14px; align-items:flex-start; margin-top:24px; padding:20px 22px;
     background:var(--papel); border-radius:16px;
@@ -242,17 +265,25 @@
   .integridade-box p{margin:0; font-size:14px; color:var(--ink-soft);}
   .integridade-box strong{color:var(--ink);}
 
-  /* quote de comunidade real */
+  /* quote de comunidade real - estilo mini post social */
   .quote-card{
-    max-width:640px; margin:28px auto 0; padding:24px 26px; border-radius:18px;
-    background:var(--papel); display:flex; gap:14px; align-items:flex-start;
+    max-width:640px; margin:28px auto 0; padding:20px 22px; border-radius:18px;
+    background:var(--papel); display:flex; gap:13px; align-items:flex-start;
   }
-  .quote-card .qico{flex:none; width:22px; height:22px; margin-top:2px; opacity:.5;}
-  .quote-card blockquote{margin:0 0 8px; font-size:15px; line-height:1.5; color:var(--ink); font-style:italic;}
-  .quote-card cite{font-family:var(--mono); font-size:11px; font-style:normal; color:var(--ink-faint); letter-spacing:.02em;}
+  .quote-card .qav{
+    flex:none; width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,var(--azul),var(--ciano));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .quote-card .qav svg{width:16px; height:16px; stroke:#fff;}
+  .quote-card .qhead{display:flex; align-items:center; gap:7px; margin-bottom:6px;}
+  .quote-card .qname{font-size:13px; font-weight:700; color:var(--ink);}
+  .quote-card .qtag{font-family:var(--mono); font-size:10.5px; color:var(--ink-faint);}
+  .quote-card blockquote{margin:0; font-size:14.5px; line-height:1.5; color:var(--ink);}
   #mecanica .quote-card, #hero .quote-card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);}
-  #mecanica .quote-card blockquote{color:#fff;}
-  #mecanica .quote-card cite{color:rgba(255,255,255,.55);}
+  #mecanica .quote-card .qname, #hero .quote-card .qname{color:#fff;}
+  #mecanica .quote-card .qtag, #hero .quote-card .qtag{color:rgba(255,255,255,.5);}
+  #mecanica .quote-card blockquote, #hero .quote-card blockquote{color:rgba(255,255,255,.9);}
 
   /* comunidade */
   .comunidade-grid{display:grid; grid-template-columns:1fr; gap:16px;}
@@ -269,12 +300,19 @@
   #mecanica .section-head h2{color:#fff;}
   #mecanica .section-head p{color:rgba(255,255,255,.72);}
   .passos{display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px;}
-  @media (min-width:760px){ .passos{grid-template-columns:repeat(4,1fr);} }
+  @media (min-width:760px){ .passos{grid-template-columns:repeat(4,1fr); gap:0;} }
   .passo{
-    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+    position:relative; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
     border-radius:18px; padding:22px 20px; backdrop-filter:blur(8px);
   }
-  .passo .idx{font-family:var(--mono); font-size:12px; color:var(--verde-claro); margin-bottom:10px;}
+  @media (min-width:760px){
+    .passo{border-radius:0; border-left-width:0;}
+    .passo:first-child{border-radius:18px 0 0 18px; border-left-width:1px;}
+    .passo:last-child{border-radius:0 18px 18px 0;}
+  }
+  .passo .idx{font-family:var(--mono); font-size:12px; color:var(--verde-claro); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .passo .idx svg{width:13px; height:13px; opacity:.7; display:none;}
+  @media (min-width:760px){ .passo:not(:first-child) .idx svg{display:block;} }
   .passo h3{font-size:15.5px; color:#fff; margin-bottom:6px;}
   .passo p{font-size:13.5px; color:rgba(255,255,255,.68); margin:0;}
 
@@ -350,7 +388,7 @@
   }
   #mobile-frame-wrapper.active{display:flex;}
   .iphone-shell{
-    position:relative; width:393px; max-width:92vw; flex:1; min-height:0;
+    position:relative; width:393px; height:852px; max-width:92vw; flex:none;
     background:#0b0b0f; border-radius:56px; padding:14px;
     box-shadow:0 30px 70px -20px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
   }
@@ -441,6 +479,7 @@
             <div class="ps-lb-badge" id="lb-badge"><span class="num">20</span><span class="txt">vagas no GameShow Escalada deste mês</span></div>
           </div>
         </div>
+        <p class="hero-hook" id="hero-hook">Disputa real, <em>prêmio real</em>: todo mês tem vencedor.</p>
       </div>
     </div>
   </section>
@@ -464,8 +503,8 @@
         </div>
         <div class="fato-card">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M6 21l6-4 6 4-2-7 6-4h-7l-3-7-3 7H2l6 4z"/></svg>
-          <h3>Reconhecimento nacional</h3>
-          <p>Selo Escalada abre caminho pro Sebrae Jovens Mais Empreendedores.</p>
+          <h3>Selo Escalada</h3>
+          <p>Reconhecimento oficial de quem completa a jornada até o topo.</p>
         </div>
         <div class="fato-card">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00F9FF" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>
@@ -506,10 +545,10 @@
         </div>
       </div>
       <div class="quote-card reveal">
-        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div class="qav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div>
+          <div class="qhead"><span class="qname">Estudante Escalada</span><span class="qtag">· publicação na comunidade</span></div>
           <blockquote>Empreender é subir um degrau de cada vez, testando rápido e aprendendo ainda mais rápido.</blockquote>
-          <cite>Um estudante, na comunidade Escalada</cite>
         </div>
       </div>
     </div>
@@ -523,25 +562,25 @@
         <p>Esta é a régua completa. Nada de caixa-preta.</p>
       </div>
       <div class="pontos-grid reveal">
-        <div class="pontos-item"><span class="ac">Finalizar uma trilha completa</span><span class="pv">+60</span></div>
-        <div class="pontos-item"><span class="ac">Concluir um módulo</span><span class="pv">+40</span></div>
-        <div class="pontos-item"><span class="ac">Participar de um webinar</span><span class="pv">+25</span></div>
-        <div class="pontos-item"><span class="ac">Completar um quiz</span><span class="pv">+15</span></div>
-        <div class="pontos-item"><span class="ac">Cumprir missão especial</span><span class="pv">+15</span></div>
-        <div class="pontos-item"><span class="ac">Baixar material de apoio</span><span class="pv">+20</span></div>
-        <div class="pontos-item"><span class="ac">Cumprir missão semanal</span><span class="pv">+10</span></div>
-        <div class="pontos-item"><span class="ac">Indicar um novo membro</span><span class="pv">+10</span></div>
-        <div class="pontos-item"><span class="ac">Manter sequência diária</span><span class="pv">+10 <span style="color:var(--ink-faint);">(+ bônus a cada 7 dias)</span></span></div>
+        <div class="pontos-item"><span class="ac">Finalizar uma trilha completa</span><span class="pv">+60</span><span class="bar" style="width:100%;"></span></div>
+        <div class="pontos-item"><span class="ac">Concluir um módulo</span><span class="pv">+40</span><span class="bar" style="width:66.7%;"></span></div>
+        <div class="pontos-item"><span class="ac">Participar de um webinar</span><span class="pv">+25</span><span class="bar" style="width:41.7%;"></span></div>
+        <div class="pontos-item"><span class="ac">Baixar material de apoio</span><span class="pv">+20</span><span class="bar" style="width:33.3%;"></span></div>
+        <div class="pontos-item"><span class="ac">Completar um quiz</span><span class="pv">+15</span><span class="bar" style="width:25%;"></span></div>
+        <div class="pontos-item"><span class="ac">Cumprir missão especial</span><span class="pv">+15</span><span class="bar" style="width:25%;"></span></div>
+        <div class="pontos-item"><span class="ac">Cumprir missão semanal</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
+        <div class="pontos-item"><span class="ac">Indicar um novo membro</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
+        <div class="pontos-item"><span class="ac">Manter sequência diária</span><span class="pv">+10 <span style="color:var(--ink-faint);">(+ bônus a cada 7 dias)</span></span><span class="bar" style="width:16.7%;"></span></div>
       </div>
       <div class="integridade-box reveal">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
         <p><strong>O sistema audita contra manipulação de pontos.</strong> Clique repetido sem propósito, comportamento de robô e outras condutas vedadas são detectados e a pontuação pode ser revertida. Quem está no topo do ranking chegou lá fazendo a trilha de verdade.</p>
       </div>
       <div class="quote-card reveal">
-        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div class="qav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div>
+          <div class="qhead"><span class="qname">Estudante Escalada</span><span class="qtag">· comentário na comunidade</span></div>
           <blockquote>2.000 pontos já estão logo ali! Mas o mais importante é que cada ponto representa uma participação, uma interação e um aprendizado. Bora buscar essa conquista!</blockquote>
-          <cite>Um estudante, comentando na comunidade Escalada</cite>
         </div>
       </div>
     </div>
@@ -555,15 +594,15 @@
       </div>
       <div class="passos reveal">
         <div class="passo"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
-        <div class="passo"><div class="idx">02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
-        <div class="passo"><div class="idx">03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
-        <div class="passo"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Mês Flash, vouchers e a final ao vivo do GameShow Escalada.</p></div>
+        <div class="passo"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
+        <div class="passo"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
+        <div class="passo"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>04</div><h3>Concorra aos prêmios</h3><p>Mês Flash, vouchers e a final ao vivo do GameShow Escalada.</p></div>
       </div>
       <div class="quote-card reveal">
-        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div class="qav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div>
+          <div class="qhead"><span class="qname">Estudante Escalada</span><span class="qtag">· comentário na comunidade</span></div>
           <blockquote>A linha de chegada mudou, então não dá pra vacilar na base agora. É a hora de gastar toda a energia que restou pra garantir a vaga no pódio e fechar com chave de ouro no GameShow Escalada!</blockquote>
-          <cite>Um estudante, comentando na comunidade Escalada</cite>
         </div>
       </div>
     </div>
@@ -593,10 +632,10 @@
         <p><strong>Sua sequência também é social.</strong> Pra manter o streak, você comenta em duas publicações diferentes de colegas por dia, com pelo menos 20 caracteres cada. Ou seja: pontuar exige participar de verdade, não só assistir.</p>
       </div>
       <div class="quote-card reveal">
-        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div class="qav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div>
+          <div class="qhead"><span class="qname">Estudante Escalada</span><span class="qtag">· comentário na comunidade</span></div>
           <blockquote>É exatamente isso! A Escalada fica ainda mais forte quando a gente transforma aprendizado em interação e troca.</blockquote>
-          <cite>Um estudante, comentando na comunidade Escalada</cite>
         </div>
       </div>
     </div>
@@ -611,11 +650,11 @@
       <div class="faq-list reveal">
         <details class="faq-item">
           <summary>Quais são os incentivos previstos no programa?<span></span></summary>
-          <div class="a">Os 20 melhores do ranking mensal disputam o GameShow Escalada ao vivo, e quem vence leva um smartphone pra casa. Há também vouchers financeiros mensais para multiplicadores, e reconhecimento nacional via Selo Escalada e Sebrae Jovens Mais Empreendedores.</div>
+          <div class="a">Os 20 melhores do ranking mensal disputam o GameShow Escalada ao vivo, e quem vence leva um smartphone pra casa. Há também vouchers financeiros mensais para multiplicadores e o Selo Escalada como reconhecimento de quem completa a jornada.</div>
         </details>
         <details class="faq-item">
           <summary>Até quando posso me inscrever?<span></span></summary>
-          <div class="a">O cadastro na plataforma Escalada é contínuo durante o Ciclo 2026 (março a agosto). Já o Reconhecimento Sebrae Jovens Mais Empreendedores, que exige o Selo Escalada 2025 como pré-requisito, tem inscrições à parte, de 2 de março a 15 de maio de 2026.</div>
+          <div class="a">O cadastro na plataforma Escalada é contínuo durante o Ciclo 2026 (março a agosto). Assim que você entra, já concorre ao ranking do mês em andamento.</div>
         </details>
         <details class="faq-item">
           <summary>Quem pode participar como estudante?<span></span></summary>
@@ -684,12 +723,83 @@
 <script>
 (function(){
   'use strict';
+  var escada = document.querySelector('.escada');
+  if(!escada) return;
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var drawn = false;
+
+  function desenhar(){
+    var nos = escada.querySelectorAll('.degrau .n');
+    if(nos.length < 2) return;
+    var old = escada.querySelector('.escada-trilha');
+    if(old) old.remove();
+
+    var rect = escada.getBoundingClientRect();
+    var pts = [];
+    nos.forEach(function(n){
+      var r = n.getBoundingClientRect();
+      pts.push([r.left + r.width/2 - rect.left, r.top + r.height/2 - rect.top]);
+    });
+    var d = 'M' + pts.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' L');
+
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'escada-trilha');
+    svg.setAttribute('width', rect.width);
+    svg.setAttribute('height', rect.height);
+    svg.setAttribute('viewBox', '0 0 ' + rect.width + ' ' + rect.height);
+
+    var path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'rgba(0,217,92,.5)');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-dasharray', '7 8');
+    svg.appendChild(path);
+    escada.insertBefore(svg, escada.firstChild);
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduced && !drawn){
+      var len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      requestAnimationFrame(function(){
+        path.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1)';
+        path.style.strokeDashoffset = '0';
+        setTimeout(function(){
+          path.style.transition = '';
+          path.setAttribute('stroke-dasharray', '7 8');
+          path.style.strokeDasharray = '';
+          path.style.strokeDashoffset = '';
+        }, 1450);
+      });
+    }
+  }
+
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting && !drawn){ drawn = true; desenhar(); io.disconnect(); }
+      });
+    }, {threshold:.3});
+    io.observe(escada);
+  } else {
+    desenhar();
+  }
+  window.addEventListener('resize', function(){ if(drawn) desenhar(); });
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
   var hero = document.getElementById('hero');
   var track = document.getElementById('lb-track');
   var viewport = document.getElementById('lb-viewport');
   var badge = document.getElementById('lb-badge');
   var lblEl = document.getElementById('lb-lbl');
   var prizeEl = document.getElementById('lb-prize');
+  var hookEl = document.getElementById('hero-hook');
   if(!track || !viewport) return;
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -709,32 +819,51 @@
     requestAnimationFrame(step);
   }
 
-  function crossfadeSwap(rowA, rowB, onDone){
-    var aHtml = rowA.innerHTML, bHtml = rowB.innerHTML;
-    var aMe = rowA.classList.contains('me'), bMe = rowB.classList.contains('me');
-    rowA.style.transition = 'opacity .16s ease';
-    rowB.style.transition = 'opacity .16s ease';
-    rowA.style.opacity = '0';
-    rowB.style.opacity = '0';
-    setTimeout(function(){
-      rowA.innerHTML = bHtml;
-      rowB.innerHTML = aHtml;
-      rowA.classList.toggle('me', bMe);
-      rowB.classList.toggle('me', aMe);
-      rowA.style.opacity = '1';
-      rowB.style.opacity = '1';
-      if(onDone) onDone();
-    }, 160);
+  // FLIP de verdade: o card que sobe realmente se desloca pra cima, o de
+  // baixo desce e toma o lugar -- sao os NOS reordenados no DOM, nao um
+  // crossfade de opacidade trocando texto por baixo.
+  function flipSwap(rowA, rowB, duration, onDone){
+    var rA = rowA.getBoundingClientRect();
+    var rB = rowB.getBoundingClientRect();
+    var parent = rowA.parentNode;
+    var aNext = rowA.nextSibling;
+    parent.insertBefore(rowB, rowA);
+    if(aNext){ parent.insertBefore(rowA, aNext); } else { parent.appendChild(rowA); }
+
+    var rA2 = rowA.getBoundingClientRect();
+    var rB2 = rowB.getBoundingClientRect();
+    var dA = rA.top - rA2.top;
+    var dB = rB.top - rB2.top;
+
+    [rowA, rowB].forEach(function(el){ el.classList.add('lifting'); el.style.zIndex = '4'; });
+    rowA.style.transition = 'none'; rowB.style.transition = 'none';
+    rowA.style.transform = 'translateY(' + dA + 'px)';
+    rowB.style.transform = 'translateY(' + dB + 'px)';
+    void rowA.offsetHeight;
+
+    requestAnimationFrame(function(){
+      var easing = 'cubic-bezier(.4,0,.2,1)';
+      rowA.style.transition = 'transform ' + duration + 'ms ' + easing;
+      rowB.style.transition = 'transform ' + duration + 'ms ' + easing;
+      rowA.style.transform = ''; rowB.style.transform = '';
+      setTimeout(function(){
+        rowA.style.transition = ''; rowB.style.transition = '';
+        rowA.style.zIndex = ''; rowB.style.zIndex = '';
+        rowA.classList.remove('lifting'); rowB.classList.remove('lifting');
+        if(onDone) onDone();
+      }, duration + 30);
+    });
   }
 
   // varias trocas encadeadas entre as 5 primeiras posicoes -- sensacao de
   // disputa acontecendo de verdade, nao so uma pessoa mudando de lugar
-  function shuffleSequence(rows, pairs, gapMs, onAllDone){
+  function shuffleSequence(track, pairs, gapMs, swapMs, onAllDone){
     var i = 0;
     function next(){
       if(i >= pairs.length){ onAllDone(); return; }
       var pair = pairs[i++];
-      crossfadeSwap(rows[pair[0]], rows[pair[1]], function(){
+      var rows = track.children;
+      flipSwap(rows[pair[0]], rows[pair[1]], swapMs, function(){
         setTimeout(next, gapMs);
       });
     }
@@ -757,7 +886,7 @@
     setTimeout(function(){
       badge.classList.remove('show');
       if(hero) hero.classList.add('settled');
-    }, 900);
+    }, 550);
   }
 
   function run(){
@@ -768,15 +897,17 @@
       return;
     }
 
+    if(hookEl) setTimeout(function(){ hookEl.classList.add('in'); }, 1500);
+
     var rows = track.children;
     var rowH = rows[0].getBoundingClientRect().height;
     var gap = 7;
     var step = rowH + gap;
     var targetY = -(step * (rows.length - 5));
 
-    // 6 trocas passando pelas 5 primeiras posicoes (0-4), cada uma participa
+    // 5 trocas passando pelas 5 primeiras posicoes (0-4), cada uma participa
     // de pelo menos uma disputa
-    var pairs = [[0,1],[3,4],[1,2],[2,3],[0,2],[3,4]];
+    var pairs = [[0,1],[3,4],[1,2],[2,3],[0,2]];
 
     var skipped = false;
     var timers = [];
@@ -797,17 +928,17 @@
     viewport.addEventListener('click', skip);
 
     t(function(){
-      shuffleSequence(rows, pairs, 85, function(){
+      shuffleSequence(track, pairs, 80, 360, function(){
         t(function(){
-          animateTransform(track, 0, targetY, 1750, easeInOutCubic, function(){
+          animateTransform(track, 0, targetY, 1450, easeInOutCubic, function(){
             t(function(){
               viewport.removeEventListener('click', skip);
               finalState();
-            }, 200);
+            }, 180);
           });
-        }, 260);
+        }, 180);
       });
-    }, 400);
+    }, 300);
   }
 
   if('IntersectionObserver' in window){
@@ -835,9 +966,31 @@
   document.body.classList.add('has-dev-switch');
 
   var wrapper = document.getElementById('mobile-frame-wrapper');
+  var shell = document.querySelector('.iphone-shell');
   var frame = document.getElementById('mobile-preview-frame');
   var btnDesktop = bar.querySelector('[data-mode="desktop"]');
   var btnMobile = bar.querySelector('[data-mode="mobile"]');
+
+  // iPhone 15: 393x852pt reais (nao 15 Pro Max). Ajusta a moldura pro maior
+  // tamanho que caiba no espaco disponivel SEM distorcer essa proporcao --
+  // sem isso, flex:1 esticava a altura livre e a moldura virava "tablet".
+  var IPHONE_RATIO = 393 / 852;
+  function sizeShell(){
+    if(!wrapper.classList.contains('active')) return;
+    var padSides = 32, padVert = 94;
+    var availW = wrapper.clientWidth - padSides;
+    var availH = wrapper.clientHeight - padVert;
+    // a largura real de 393px e' o que ativa os media queries corretos la
+    // dentro -- nunca encolhe por causa de pouca altura de janela, so' pela
+    // largura da propria janela (telas realmente estreitas). A altura
+    // acompanha a proporcao real do iPhone 15 e, se nao couber inteira,
+    // e' cortada (o conteudo rola por dentro, como um celular de verdade).
+    var w = Math.min(393, availW);
+    var h = Math.min(w / IPHONE_RATIO, availH);
+    shell.style.width = Math.round(w) + 'px';
+    shell.style.height = Math.round(h) + 'px';
+  }
+  window.addEventListener('resize', sizeShell);
 
   function embedUrl(){
     var p = new URLSearchParams(location.search);
@@ -852,6 +1005,7 @@
     btnMobile.classList.add('active');
     btnDesktop.classList.remove('active');
     document.body.style.overflow = 'hidden';
+    sizeShell();
   }
   function showDesktop(){
     wrapper.classList.remove('active');
