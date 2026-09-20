@@ -1338,22 +1338,25 @@
   // Pontuacao tambem so' aparece no final, com o mesmo valor da regua real
   // (#pontuacao: "Completar um quiz" = +15) -- por completar, nao por
   // acertar nada.
-  // Cenarios baseados em temas reais dos quizzes da plataforma (validar
-  // ideia, lidar com dificuldade, identificar oportunidade de negocio) --
-  // nao em comportamento de uso da propria plataforma (a versao anterior
-  // perguntava sobre travar "na trilha" e sobre minutos livres entre aulas,
-  // o que nao tem nada a ver com empreendedorismo de verdade).
+  // Cenarios de VERDADE fieis ao registro dos quizzes reais da plataforma
+  // ("Jornada Empreendedora", formId meJ7bx: "quando enfrenta uma
+  // dificuldade em seus estudos ou projetos...", "quando voce pensa no que
+  // aprende na escola...") -- escola/projeto pessoal/dia a dia, NUNCA
+  // "seu negocio"/vender/preco. Abrir um negocio de verdade e' uma etapa
+  // avancada demais da vida empreendedora pra um adolescente de 14-17 anos
+  // se identificar; os quizzes reais nunca assumem isso, e' sempre sobre
+  // estudo, projeto pessoal ou trabalho escolar.
   var QUESTOES = [
     {
-      texto: 'Sua ideia de negócio não está vendendo como esperado. O que soa mais com você?',
+      texto: 'Uma ideia sua (um projeto, um trabalho da escola, algo que você queria fazer) não está saindo como esperava. O que soa mais com você?',
       opcoes: [
-        { texto: 'Busco 5 pessoas reais pra ouvir o que não está funcionando', perfil: 'testador' },
-        { texto: 'Revejo o preço e a proposta antes de qualquer mudança grande', perfil: 'estrategista' },
+        { texto: 'Busco pessoas reais pra ouvir o que não está funcionando', perfil: 'testador' },
+        { texto: 'Repenso o plano antes de qualquer mudança grande', perfil: 'estrategista' },
         { texto: 'Chamo alguém de confiança pra pensar comigo antes de decidir', perfil: 'comunitario' }
       ]
     },
     {
-      texto: 'Você trava numa dificuldade real: um problema chato, uma ideia que não sai do papel. O que você faz primeiro?',
+      texto: 'Você trava numa dificuldade, seja nos estudos ou num projeto seu. O que você faz primeiro?',
       opcoes: [
         { texto: 'Tento uma solução diferente, na prática, e vejo se funciona', perfil: 'testador' },
         { texto: 'Paro, repenso o plano, e só depois tento de novo', perfil: 'estrategista' },
@@ -1364,7 +1367,7 @@
       texto: 'Você percebe um problema chato e repetido no seu dia a dia. O que chama mais sua atenção nisso?',
       opcoes: [
         { texto: 'Já penso em como resolver isso na prática', perfil: 'testador' },
-        { texto: 'Penso em quem mais tem esse problema e se dá pra crescer daí', perfil: 'estrategista' },
+        { texto: 'Penso em quem mais passa por isso, e como ajudar mais gente', perfil: 'estrategista' },
         { texto: 'Comento com outras pessoas pra ver se sentem o mesmo', perfil: 'comunitario' }
       ]
     }
