@@ -653,7 +653,7 @@
       <div class="hero-left">
         <div class="hero-copy">
           <h1 class="hero-h1" id="hero-h1">Prêmios reais pra quem sobe no <em>ranking</em>.</h1>
-          <p class="sub" id="hero-sub">Complete trilhas sobre comportamento empreendedor e oportunidades de negócio, suba de nível e dispute prêmios como smartphone e tablet no GameShow Escalada ao vivo.</p>
+          <p class="sub" id="hero-sub">Complete trilhas sobre comportamento empreendedor e oportunidades de negócio, suba no ranking e dispute prêmios como smartphone e tablet no GameShow Escalada ao vivo.</p>
           <div class="hero-ctas" id="hero-ctas">
             <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
           </div>
@@ -668,7 +668,7 @@
         <p class="hero-hook" id="hero-hook-top">O <em>Escalada</em> é um jogo.</p>
         <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada.">
           <div class="ps-lb-head" aria-hidden="true">
-            <span class="lbl" id="lb-lbl">Top do mês · exemplo</span>
+            <span class="lbl" id="lb-lbl">Top 20 do mês · exemplo</span>
             <span class="prize" id="lb-prize"><span aria-hidden="true">🏆</span> vaga no GameShow</span>
           </div>
           <div class="ps-lb-viewport" id="lb-viewport" aria-hidden="true">
@@ -797,7 +797,7 @@
         <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--magenta-texto);">O clube da comunidade</span>
           <h3>Clube por interesse</h3>
-          <p>Dentro da comunidade existem clubes por interesse, como o clube de idiomas, onde participantes comentam e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários desde que entrou.</p>
+          <p>Tem clube de idiomas, onde participantes comentam e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários desde que entrou.</p>
         </div>
       </div>
       <div class="integridade-box reveal" style="margin-top:16px;">
@@ -1449,8 +1449,21 @@
         '<span class="pts-grande">+15</span>' +
         '<span class="teste-perfil-nome perfil-' + chave + '">Seu perfil: ' + perfil.nome + '</span>' +
         '<p>' + perfil.texto + '</p>' +
-        '<a class="btn btn-primario" href="#publicos">' + perfil.cta + ' →</a>' +
+        '<button type="button" class="btn btn-primario" id="teste-cta-final">' + perfil.cta + ' →</button>' +
       '</div>';
+    // reaproveita o mesmo mecanismo que "Sou estudante"/"Sou professor" ja'
+    // usa no hero (anel .publico-match, foco/blur ao centralizar, badge
+    // persistente "Modo: estudante") em vez de so' navegar por href puro
+    // sem nenhuma continuidade visual com o perfil que acabou de aparecer.
+    // O teste ja' e' todo escrito pra trilha do estudante (nota-publico do
+    // #teste avisa isso quando "professor" esta' selecionado), entao
+    // 'estudante' e' o publico certo aqui sempre
+    var ctaFinalQuiz = document.getElementById('teste-cta-final');
+    if(ctaFinalQuiz){
+      ctaFinalQuiz.addEventListener('click', function(){
+        if(window.escolher) window.escolher('estudante');
+      });
+    }
   }
 
   renderQuestion();
@@ -1564,6 +1577,10 @@
     var cardEscolhido = document.querySelector('.publico-card.publico-match');
     centralizarComFoco(cardEscolhido || publicosSection);
   }
+  // exposta global pra o CTA final do quiz jogavel (#teste, outro script)
+  // poder reaproveitar o mesmo mecanismo de destaque/foco/badge, em vez de
+  // so' navegar por href puro sem nenhuma continuidade visual
+  window.escolher = escolher;
 
   var CTA_PADRAO = { href:'https://escalada.me/lpescalada-estudantes1', label:'Quero participar', curto:'Participar' };
 
