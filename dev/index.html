@@ -233,7 +233,18 @@
     -webkit-mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
     mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
   }
+  /* enquanto a camera esta afastada do 1o lugar (Você subindo do 20o), o
+     topo tambem esvanece -- sinaliza que aquilo e' uma janela dentro de uma
+     lista maior, nao o topo real do ranking. Some de novo (volta pro fade
+     so' embaixo) assim que ela chega ao 1o, pra nao cortar a propria linha */
+  .ps-lb-viewport.panned{
+    -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent 100%);
+    mask-image:linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent 100%);
+  }
   .ps-lb-track{display:flex; flex-direction:column; gap:7px; will-change:transform;}
+  @media (prefers-reduced-motion:no-preference){
+    .ps-lb-track{transition:transform .55s cubic-bezier(.16,1,.3,1);}
+  }
   .ps-lb-row{
     position:relative; display:grid; grid-template-columns:22px 28px 1fr auto; gap:9px; align-items:center;
     padding:9px 11px; border-radius:11px; background:rgba(255,255,255,.045);
@@ -253,6 +264,55 @@
   .ps-lb-row.me .av{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
   .ps-lb-row .nm{font-size:13px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.85); font-variant-numeric:tabular-nums; transition:color .3s ease, text-shadow .3s ease;}
+
+  /* card lateral de atividade: aparece por cima do card do ranking, um
+     momento de cada vez (nunca junto com outro elemento competindo pela
+     atencao), sempre com pan + rotacao leve na entrada -- so' transform e
+     opacity, os dois unicos jeitos GPU de animar isso */
+  .rank-activity{
+    position:absolute; z-index:6; top:9%; right:-30px; width:200px; max-width:58%;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transform:translate(50px,-16px) rotate(11deg);
+  }
+  .rank-activity.show{ opacity:1; visibility:visible; transform:translate(0,0) rotate(-3deg); }
+  @media (prefers-reduced-motion:no-preference){
+    .rank-activity{transition:opacity .4s ease, transform .5s cubic-bezier(.16,1,.3,1), visibility 0s linear .4s;}
+    .rank-activity.show{transition:opacity .4s ease, transform .5s cubic-bezier(.34,1.56,.64,1), visibility 0s linear;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .rank-activity{display:none;}
+  }
+  @media (max-width:959px){
+    .rank-activity{top:-16px; right:8px; width:176px; transform:translate(0,36px) rotate(6deg);}
+    .rank-activity.show{transform:translate(0,0) rotate(-2deg);}
+  }
+  .ra-card{
+    background:rgba(6,10,34,.86); border:1px solid rgba(255,255,255,.18);
+    backdrop-filter:blur(14px) saturate(1.3); border-radius:16px; padding:12px 13px;
+    box-shadow:0 16px 30px -12px rgba(0,0,0,.55);
+  }
+  .ra-tag{
+    display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--verde-claro); background:rgba(0,217,92,.18); padding:3px 8px; border-radius:999px; margin-bottom:7px;
+  }
+  .ra-tag-gold{color:#FFD84D; background:rgba(255,216,77,.18);}
+  .ra-post-head{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
+  .ra-post-head b{font-size:11.5px; color:#fff; font-weight:700;}
+  .ra-post-head .ra-club{font-family:var(--mono); font-size:8.5px; color:rgba(255,255,255,.55); margin-left:auto; white-space:nowrap;}
+  .ra-av{
+    width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
+    font-family:var(--mono); font-size:8px; font-weight:700; color:#fff;
+    background:linear-gradient(135deg,#2A4FDA,#1A3AAD);
+  }
+  .ra-av.me{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
+  .ra-post-txt{font-size:11.5px; color:rgba(255,255,255,.85); line-height:1.4; margin:0 0 8px;}
+  .ra-post-reply{display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--verde-claro); font-weight:600;}
+  .ra-lesson-title{font-size:13px; color:#fff; font-weight:700; margin:0 0 4px; line-height:1.3;}
+  .ra-lesson-trilha{font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.6);}
+  .ra-trilha-item{display:flex; align-items:center; gap:8px;}
+  .ra-trilha-item + .ra-trilha-item{margin-top:7px;}
+  .ra-thumb{width:26px; height:26px; border-radius:7px; flex:none; background:linear-gradient(135deg,var(--magenta),var(--azul));}
+  .ra-trilha-item span:last-child{font-size:11.5px; color:#fff; font-weight:600;}
 
   /* confete de clímax -- canvas full-viewport, so' desenha durante o burst */
   /* abaixo do #mobile-frame-wrapper (9000) de proposito -- assim, quando o
@@ -666,35 +726,36 @@
       </div>
       <div class="hero-rank-zone">
         <p class="hero-hook" id="hero-hook-top">O <em>Escalada</em> é um jogo.</p>
-        <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada.">
+        <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você entra em 20º lugar e, conforme comenta na comunidade, assiste aulas e explora as trilhas, sobe posições até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada.">
           <div class="ps-lb-head" aria-hidden="true">
-            <span class="lbl" id="lb-lbl">Top 20 do mês · exemplo</span>
+            <span class="lbl" id="lb-lbl">Você chegou agora</span>
             <span class="prize" id="lb-prize"><span aria-hidden="true">🏆</span> vaga no GameShow</span>
           </div>
           <div class="ps-lb-viewport" id="lb-viewport" aria-hidden="true">
             <div class="ps-lb-track" id="lb-track">
               <div class="ps-lb-row p1"><span class="pos">1º</span><span class="av">JM</span><span class="nm">J. Martins</span><span class="pt">2.840</span></div>
               <div class="ps-lb-row"><span class="pos">2º</span><span class="av">AC</span><span class="nm">Ana C.</span><span class="pt">2.615</span></div>
-              <div class="ps-lb-row me"><span class="pos">3º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">2.480</span></div>
-              <div class="ps-lb-row"><span class="pos">4º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">2.310</span></div>
-              <div class="ps-lb-row"><span class="pos">5º</span><span class="av">BS</span><span class="nm">Bia S.</span><span class="pt">2.190</span></div>
-              <div class="ps-lb-row"><span class="pos">6º</span><span class="av">LF</span><span class="nm">Lucas F.</span><span class="pt">2.050</span></div>
-              <div class="ps-lb-row"><span class="pos">7º</span><span class="av">MT</span><span class="nm">Marina T.</span><span class="pt">1.980</span></div>
-              <div class="ps-lb-row"><span class="pos">8º</span><span class="av">RO</span><span class="nm">Rafael O.</span><span class="pt">1.920</span></div>
-              <div class="ps-lb-row"><span class="pos">9º</span><span class="av">DM</span><span class="nm">Duda M.</span><span class="pt">1.860</span></div>
-              <div class="ps-lb-row"><span class="pos">10º</span><span class="av">TB</span><span class="nm">Théo B.</span><span class="pt">1.790</span></div>
-              <div class="ps-lb-row"><span class="pos">11º</span><span class="av">SR</span><span class="nm">Sofia R.</span><span class="pt">1.720</span></div>
-              <div class="ps-lb-row"><span class="pos">12º</span><span class="av">EP</span><span class="nm">Enzo P.</span><span class="pt">1.650</span></div>
-              <div class="ps-lb-row"><span class="pos">13º</span><span class="av">AN</span><span class="nm">Alice N.</span><span class="pt">1.590</span></div>
-              <div class="ps-lb-row"><span class="pos">14º</span><span class="av">MA</span><span class="nm">Miguel A.</span><span class="pt">1.530</span></div>
-              <div class="ps-lb-row"><span class="pos">15º</span><span class="av">LV</span><span class="nm">Laura V.</span><span class="pt">1.470</span></div>
-              <div class="ps-lb-row"><span class="pos">16º</span><span class="av">DC</span><span class="nm">Davi C.</span><span class="pt">1.410</span></div>
-              <div class="ps-lb-row"><span class="pos">17º</span><span class="av">IG</span><span class="nm">Isabela G.</span><span class="pt">1.350</span></div>
-              <div class="ps-lb-row"><span class="pos">18º</span><span class="av">GS</span><span class="nm">Gabriel S.</span><span class="pt">1.290</span></div>
-              <div class="ps-lb-row"><span class="pos">19º</span><span class="av">MK</span><span class="nm">Manu K.</span><span class="pt">1.230</span></div>
-              <div class="ps-lb-row"><span class="pos">20º</span><span class="av">BH</span><span class="nm">Bento H.</span><span class="pt">1.180</span></div>
+              <div class="ps-lb-row"><span class="pos">3º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">2.310</span></div>
+              <div class="ps-lb-row"><span class="pos">4º</span><span class="av">BS</span><span class="nm">Bia S.</span><span class="pt">2.190</span></div>
+              <div class="ps-lb-row"><span class="pos">5º</span><span class="av">LF</span><span class="nm">Lucas F.</span><span class="pt">2.050</span></div>
+              <div class="ps-lb-row"><span class="pos">6º</span><span class="av">MT</span><span class="nm">Marina T.</span><span class="pt">1.980</span></div>
+              <div class="ps-lb-row"><span class="pos">7º</span><span class="av">RO</span><span class="nm">Rafael O.</span><span class="pt">1.920</span></div>
+              <div class="ps-lb-row"><span class="pos">8º</span><span class="av">DM</span><span class="nm">Duda M.</span><span class="pt">1.860</span></div>
+              <div class="ps-lb-row"><span class="pos">9º</span><span class="av">TB</span><span class="nm">Théo B.</span><span class="pt">1.790</span></div>
+              <div class="ps-lb-row"><span class="pos">10º</span><span class="av">SR</span><span class="nm">Sofia R.</span><span class="pt">1.720</span></div>
+              <div class="ps-lb-row"><span class="pos">11º</span><span class="av">EP</span><span class="nm">Enzo P.</span><span class="pt">1.650</span></div>
+              <div class="ps-lb-row"><span class="pos">12º</span><span class="av">AN</span><span class="nm">Alice N.</span><span class="pt">1.590</span></div>
+              <div class="ps-lb-row"><span class="pos">13º</span><span class="av">MA</span><span class="nm">Miguel A.</span><span class="pt">1.530</span></div>
+              <div class="ps-lb-row"><span class="pos">14º</span><span class="av">LV</span><span class="nm">Laura V.</span><span class="pt">1.470</span></div>
+              <div class="ps-lb-row"><span class="pos">15º</span><span class="av">DC</span><span class="nm">Davi C.</span><span class="pt">1.410</span></div>
+              <div class="ps-lb-row"><span class="pos">16º</span><span class="av">IG</span><span class="nm">Isabela G.</span><span class="pt">1.350</span></div>
+              <div class="ps-lb-row"><span class="pos">17º</span><span class="av">GS</span><span class="nm">Gabriel S.</span><span class="pt">1.290</span></div>
+              <div class="ps-lb-row"><span class="pos">18º</span><span class="av">MK</span><span class="nm">Manu K.</span><span class="pt">1.230</span></div>
+              <div class="ps-lb-row"><span class="pos">19º</span><span class="av">BH</span><span class="nm">Bento H.</span><span class="pt">1.180</span></div>
+              <div class="ps-lb-row me"><span class="pos">20º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">980</span></div>
             </div>
           </div>
+          <div class="rank-activity" id="rank-activity" aria-hidden="true"></div>
         </div>
         <p class="hero-hook" id="hero-hook-bottom">Você consegue ficar entre os <em>melhores</em>?</p>
       </div>
@@ -909,6 +970,7 @@
   // parcialmente reordenado se chamada no meio da animacao, via skip())
   var linhasIniciais = Array.prototype.slice.call(track.children);
   var pontosIniciais = linhasIniciais.map(function(r){ return parsePt(r.querySelector('.pt').textContent); });
+  var meRow = track.querySelector('.ps-lb-row.me');
 
   // desligada por skip() -- countUpPoints/flipSwap checam isso pra parar
   // de vez, senao um rAF/timeout que ja' estava em voo quando a pessoa
@@ -1053,6 +1115,37 @@
     }
   }
 
+  // mantem a linha de "Você" visivel enquanto ela sobe de perto do 20o pro
+  // 1o lugar -- usa offsetTop/offsetHeight/scrollHeight (posicao de LAYOUT,
+  // nunca afetada por transform) pra calcular o quanto deslocar o track,
+  // nunca a posicao pintada na tela (que ja' esta deslocada pelo transform
+  // anterior); por isso o calculo funciona igual não importa quantas vezes
+  // ja' foi chamado antes.
+  function panCamera(instant){
+    if(!track.contains(meRow)) return;
+    var rowTop = meRow.offsetTop;
+    var rowH = meRow.offsetHeight;
+    var vpH = viewport.clientHeight;
+    var trackH = track.scrollHeight;
+    var anchor = vpH * 0.6;
+    var target = anchor - (rowTop + rowH / 2);
+    var minShift = Math.min(0, vpH - trackH);
+    target = Math.max(minShift, Math.min(0, target));
+    if(instant){
+      // pra "Você" ja' aparecer perto do 20o lugar assim que a animacao
+      // comeca, sem um pan visivel descendo do 1o ate' la' -- so' o
+      // POSICIONAMENTO inicial e' instantaneo, toda subida depois disso
+      // continua transicionando via CSS normalmente
+      track.style.transition = 'none';
+      track.style.transform = 'translateY(' + Math.round(target) + 'px)';
+      void track.offsetHeight;
+      track.style.transition = '';
+    } else {
+      track.style.transform = 'translateY(' + Math.round(target) + 'px)';
+    }
+    viewport.classList.toggle('panned', target < -1);
+  }
+
   // conta os pontos subindo (com glow) -- onFrame recebe o valor JA'
   // interpolado a cada frame, pra quem chama poder reagir ao numero que
   // esta na tela AGORA (nao so' ao valor final, no fim da contagem)
@@ -1083,10 +1176,15 @@
   // de contar. Como as disputas rodam uma de cada vez (nunca duas linhas
   // contando ao mesmo tempo), e' seguro comparar contra o pointsState atual
   // do vizinho a cada frame.
-  function disputa(pointsState, idx, ganho, countMs, swapMs, onDone){
+  // "row" e' sempre a referencia estavel da linha (nunca um indice fixo) --
+  // com "Você" subindo do 20o pro 1o lugar ao longo de varias disputas, seu
+  // indice muda a cada uma; achar a posicao atual dela via indexOf, aqui e
+  // em cada callback abaixo, e' o que deixa a funcao correta nao' importa
+  // quantas vezes ja' tenha sido chamada antes.
+  function disputa(pointsState, row, ganho, countMs, swapMs, onDone){
     if(!animacaoAtiva) return; // skip() pode ter cortado durante o intervalo (gapMs) entre disputas
-    var row = track.children[idx];
-    var novo = pointsState[idx] + ganho;
+    var idx0 = Array.prototype.indexOf.call(track.children, row);
+    var novo = pointsState[idx0] + ganho;
     var countDone = false;
     var swapping = false;
 
@@ -1112,12 +1210,13 @@
       pointsState[i] = tmp;
       flipSwap(rows[i - 1], rows[i], swapMs, function(){
         updatePosLabels();
+        panCamera();
         swapping = false;
         tryBubble();
       });
     }
 
-    countUpPoints(row, pointsState[idx], novo, countMs, function(current){
+    countUpPoints(row, pointsState[idx0], novo, countMs, function(current){
       var i = Array.prototype.indexOf.call(track.children, row);
       pointsState[i] = current;
       tryBubble();
@@ -1132,20 +1231,82 @@
     });
   }
 
-  var DISPUTA_SEQ = [{idx:2, ganho:200}, {idx:4, ganho:160}, {idx:1, ganho:280}];
+  // sequencia narrativa: cada etapa e' uma atividade real da plataforma
+  // (comentar, assistir aula, explorar trilhas) que rende pontos e faz
+  // "Você" subir -- sempre a mesma linha (meRow), a disputa acha a posicao
+  // atual dela sozinha
+  var RANK_SEQ = [
+    {beat:'comente', label:'Comentou no clube', ganho:300},
+    {beat:'aula', label:'Assistiu uma aula', ganho:500},
+    {beat:'trilhas', label:'Explorou as trilhas', ganho:600}
+  ];
 
-  // 3 disputas encadeadas, sempre justificadas por um ganho real de pontos
-  // -- termina com "Você" assumindo a lideranca, momento de clímax
-  function runDisputas(pointsState, gapMs, countMs, swapMs, onAllDone){
+  // clímax: a "rolagem do rank" -- varios saltos curtos e rapidos em
+  // sequencia (mesmo mecanismo de disputa()/flipSwap, so' que com pausas
+  // bem menores), pra dar a sensacao de arrasto continuo ate' o topo, nao'
+  // mais uma disputa isolada de cada vez
+  var ROLAGEM_GANHOS = [220, 220, 260, 320];
+
+  function runNarrativa(pointsState, t, onAllDone){
     var i = 0;
     function next(){
-      if(i >= DISPUTA_SEQ.length){ onAllDone(); return; }
-      var d = DISPUTA_SEQ[i++];
-      disputa(pointsState, d.idx, d.ganho, countMs, swapMs, function(){
-        setTimeout(next, gapMs);
+      if(!animacaoAtiva) return;
+      if(i >= RANK_SEQ.length){ onAllDone(); return; }
+      var s = RANK_SEQ[i++];
+      fadeText(lblEl, s.label);
+      showActivity(s.beat, t, function(){
+        if(!animacaoAtiva) return;
+        disputa(pointsState, meRow, s.ganho, 320, 200, function(){
+          t(next, 300);
+        });
       });
     }
     next();
+  }
+
+  function runRolagem(pointsState, t, onDone){
+    var i = 0;
+    function next(){
+      if(!animacaoAtiva) return;
+      if(i >= ROLAGEM_GANHOS.length){ onDone(); return; }
+      disputa(pointsState, meRow, ROLAGEM_GANHOS[i++], 180, 140, function(){
+        t(next, 50);
+      });
+    }
+    next();
+  }
+
+  var ACTIVITY_HTML = {
+    comente:
+      '<div class="ra-card ra-post"><div class="ra-post-head"><span class="ra-av">DM</span><b>Duda M.</b><span class="ra-club">Clube de idiomas</span></div>' +
+      '<p class="ra-post-txt">"Terminei o módulo de hoje, alguém mais on?"</p>' +
+      '<div class="ra-post-reply"><span class="ra-av me">EU</span><span>Você comentou</span></div></div>',
+    aula:
+      '<div class="ra-card ra-lesson"><span class="ra-tag">Visto</span>' +
+      '<p class="ra-lesson-title">Quem sou eu?</p>' +
+      '<span class="ra-lesson-trilha">Começa por você</span></div>',
+    trilhas:
+      '<div class="ra-card ra-trilhas">' +
+      '<div class="ra-trilha-item"><span class="ra-thumb" aria-hidden="true"></span><span>Começa por você</span></div>' +
+      '<div class="ra-trilha-item"><span class="ra-thumb" aria-hidden="true"></span><span>Modo protagonista</span></div></div>',
+    gameshow:
+      '<div class="ra-card ra-gameshow"><span class="ra-tag ra-tag-gold">🏆 Você é Top 1</span>' +
+      '<p class="ra-lesson-title">Desafio final: GameShow Escalada</p></div>'
+  };
+
+  function showActivity(kind, t, onDone){
+    var box = document.getElementById('rank-activity');
+    if(!box){ onDone(); return; }
+    box.innerHTML = ACTIVITY_HTML[kind];
+    box.className = 'rank-activity show ra-' + kind;
+    t(function(){
+      if(!animacaoAtiva) return;
+      box.classList.remove('show');
+      t(function(){
+        if(!animacaoAtiva) return;
+        onDone();
+      }, 400);
+    }, 950);
   }
 
   // aplica a MESMA sequencia de disputas, sem nenhuma animacao, e forca o
@@ -1160,20 +1321,27 @@
   function resolverRankingFinal(){
     var linhas = linhasIniciais.slice();
     var pointsState = pontosIniciais.slice();
-    DISPUTA_SEQ.forEach(function(d){
-      pointsState[d.idx] += d.ganho;
-      var i = d.idx;
+    var meIdx = linhas.indexOf(meRow);
+    var ganhos = RANK_SEQ.map(function(s){ return s.ganho; }).concat(ROLAGEM_GANHOS);
+    ganhos.forEach(function(ganho){
+      pointsState[meIdx] += ganho;
+      var i = meIdx;
       while(i > 0 && pointsState[i] > pointsState[i - 1]){
         var tmpL = linhas[i - 1]; linhas[i - 1] = linhas[i]; linhas[i] = tmpL;
         var tmpP = pointsState[i - 1]; pointsState[i - 1] = pointsState[i]; pointsState[i] = tmpP;
         i--;
       }
+      meIdx = i;
     });
     linhas.forEach(function(el, i){
       el.querySelector('.pt').textContent = formatPt(pointsState[i]);
       track.appendChild(el); // idempotente: reordena pro final certo nao' importa a ordem atual
     });
     updatePosLabels();
+    track.style.transform = '';
+    viewport.classList.remove('panned');
+    var box = document.getElementById('rank-activity');
+    if(box) box.classList.remove('show');
   }
 
   function fadeText(el, newHtml){
@@ -1205,6 +1373,7 @@
 
     var rows = track.children;
     var pointsState = Array.prototype.map.call(rows, function(r){ return parsePt(r.querySelector('.pt').textContent); });
+    panCamera(); // "Você" comeca perto do 20o lugar -- centraliza a camera nela antes de tudo
 
     var skipped = false;
     var timers = [];
@@ -1225,14 +1394,23 @@
     if(skipBtn) skipBtn.addEventListener('click', skip);
 
     t(function(){
-      runDisputas(pointsState, 90, 420, 300, function(){
-        burstConfetti();
+      runNarrativa(pointsState, t, function(){
         t(function(){
-          viewport.removeEventListener('click', skip);
-          finalState();
-        }, 650);
+          runRolagem(pointsState, t, function(){
+            burstConfetti();
+            t(function(){
+              fadeText(lblEl, 'Top 1 do ranking!');
+              showActivity('gameshow', t, function(){
+                t(function(){
+                  viewport.removeEventListener('click', skip);
+                  finalState();
+                }, 350);
+              });
+            }, 300);
+          });
+        }, 350);
       });
-    }, 250);
+    }, 550);
   }
 
   if('IntersectionObserver' in window){
