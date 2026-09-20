@@ -202,15 +202,8 @@
   .ps-lb-row .nm{font-size:13px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums; transition:color .3s ease, text-shadow .3s ease;}
 
-  .ps-lb-badge{
-    position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:4px; text-align:center;
-    background:linear-gradient(180deg, rgba(10,13,36,.4) 0%, rgba(10,13,36,.92) 55%);
-    opacity:0; transform:scale(.9); pointer-events:none; border-radius:14px;
-  }
-  .ps-lb-badge.show{opacity:1; transform:scale(1); transition:opacity .5s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.34,1.56,.64,1);}
-  .ps-lb-badge .num{font-family:var(--display); font-size:68px; font-weight:700; color:var(--verde-claro); line-height:1; text-shadow:0 0 40px rgba(0,255,133,.5);}
-  .ps-lb-badge .txt{font-size:13.5px; color:#fff; font-weight:600; max-width:220px; line-height:1.35;}
+  /* confete de clímax -- canvas full-viewport, so' desenha durante o burst */
+  #confetti-canvas{position:fixed; inset:0; z-index:9500; pointer-events:none;}
 
   /* ---------- secoes claras ---------- */
   section{padding:72px 0;}
@@ -219,7 +212,8 @@
   .section-head h2{font-size:clamp(26px,3.4vw,36px);}
   .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
 
-  /* estudante vs professor */
+  /* estudante vs professor -- leve lavagem de verde pra sair do branco corrido */
+  #publicos{background:#F1FAF5;}
   .publicos-grid{display:grid; grid-template-columns:1fr; gap:16px;}
   @media (min-width:760px){ .publicos-grid{grid-template-columns:1fr 1fr;} }
   .publico-card{
@@ -238,8 +232,15 @@
   .publico-card li::marker{color:var(--verde);}
   .publico-card .btn{margin-top:auto; align-self:flex-start;}
 
-  /* fatos */
-  .fatos-grid{display:grid; grid-template-columns:1fr; gap:14px;}
+  /* fatos -- respiro no creme padrao + brilho decorativo sutil, ecoando os
+     arcos do hero pra nao cortar a linguagem visual fora dele */
+  #fatos{position:relative; overflow:hidden;}
+  #fatos::before{
+    content:''; position:absolute; top:-160px; right:-120px; width:360px; height:360px;
+    border-radius:50%; background:radial-gradient(circle, rgba(0,217,92,.12), transparent 70%);
+    pointer-events:none;
+  }
+  .fatos-grid{display:grid; grid-template-columns:1fr; gap:14px; position:relative;}
   @media (min-width:700px){ .fatos-grid{grid-template-columns:repeat(2,1fr);} }
   @media (min-width:1040px){ .fatos-grid{grid-template-columns:repeat(4,1fr);} }
   .fato-card{
@@ -250,7 +251,7 @@
   .fato-card p{font-size:14px; color:var(--ink-soft); margin:0;}
 
   /* escada de ranks - elemento assinatura */
-  #jornada{background:var(--papel);}
+  #jornada{background:#F0F3FC;}
   .escada{position:relative; display:flex; flex-direction:column; gap:14px; margin-top:36px;}
   .escada-trilha{position:absolute; top:0; left:0; z-index:0; pointer-events:none;}
   .degrau{
@@ -331,7 +332,8 @@
   #mecanica .quote-card .qtag, #hero .quote-card .qtag{color:rgba(255,255,255,.5);}
   #mecanica .quote-card blockquote, #hero .quote-card blockquote{color:rgba(255,255,255,.9);}
 
-  /* comunidade */
+  /* comunidade -- lavagem de magenta, casa com o eyebrow da secao */
+  #comunidade{background:#FBF1FA;}
   .comunidade-grid{display:grid; grid-template-columns:1fr; gap:16px;}
   @media (min-width:760px){ .comunidade-grid{grid-template-columns:1fr 1fr;} }
   .comunidade-card{background:var(--papel-raised); border-radius:20px; padding:26px 24px; box-shadow:var(--shadow);}
@@ -585,7 +587,6 @@
               <div class="ps-lb-row"><span class="pos">19º</span><span class="av">MK</span><span class="nm">Manu K.</span><span class="pt">1.230</span></div>
               <div class="ps-lb-row"><span class="pos">20º</span><span class="av">BH</span><span class="nm">Bento H.</span><span class="pt">1.180</span></div>
             </div>
-            <div class="ps-lb-badge" id="lb-badge"><span class="num">20</span><span class="txt">vagas no GameShow Escalada deste mês</span></div>
           </div>
         </div>
         <p class="hero-hook" id="hero-hook-bottom">Ponto por ponto, sua posição <em>muda de verdade</em>.</p>
@@ -834,6 +835,8 @@
   <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Entrar</a>
 </div>
 
+<canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
 <div id="mobile-frame-wrapper">
   <div id="iphone-viewport">
     <div class="iphone-scaler" id="iphone-scaler">
@@ -940,7 +943,7 @@
   var hero = document.getElementById('hero');
   var track = document.getElementById('lb-track');
   var viewport = document.getElementById('lb-viewport');
-  var badge = document.getElementById('lb-badge');
+  var rankCard = document.getElementById('rank-card');
   var lblEl = document.getElementById('lb-lbl');
   var prizeEl = document.getElementById('lb-prize');
   var hookTop = document.getElementById('hero-hook-top');
@@ -948,21 +951,6 @@
   if(!track || !viewport) return;
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
-
-  function animateTransform(el, fromY, toY, duration, easing, onDone){
-    var start = null;
-    function step(ts){
-      if(!start) start = ts;
-      var p = Math.min(1, (ts - start) / duration);
-      var y = fromY + (toY - fromY) * easing(p);
-      el.style.transform = 'translateY(' + y.toFixed(2) + 'px)';
-      if(p < 1){ requestAnimationFrame(step); }
-      else if(onDone){ onDone(); }
-    }
-    requestAnimationFrame(step);
-  }
 
   // FLIP de verdade: o card que sobe realmente se desloca pra cima, o de
   // baixo desce e toma o lugar -- sao os NOS reordenados no DOM, nao um
@@ -998,6 +986,73 @@
         if(onDone) onDone();
       }, duration + 30);
     });
+  }
+
+  // clímax: "Você" chegou ao 1o lugar -- confete estoura do topo do rank
+  // pra cima da PÁGINA (canvas fixo, nao preso ao card) e cai ate sumir,
+  // igual efeito de level-up. Depois disso o rank ja da lugar ao texto.
+  function burstConfetti(){
+    if(reduced) return;
+    var canvas = document.getElementById('confetti-canvas');
+    if(!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = window.innerWidth, h = window.innerHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var originRect = (rankCard || viewport).getBoundingClientRect();
+    var originX = originRect.left + originRect.width / 2;
+    var originY = originRect.top;
+
+    var colors = ['#00D95C', '#00FF85', '#FF00FF', '#FF76FF', '#00F9FF', '#2A4FDA', '#FFD84D'];
+    var particles = [];
+    var N = 70;
+    for(var i = 0; i < N; i++){
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.85;
+      var speed = 7 + Math.random() * 9;
+      particles.push({
+        x: originX + (Math.random() - 0.5) * 50,
+        y: originY,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed,
+        size: 5 + Math.random() * 5,
+        color: colors[(Math.random() * colors.length) | 0],
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 0.35,
+        shape: Math.random() < 0.5 ? 'rect' : 'circle',
+        life: 1,
+        decay: 0.006 + Math.random() * 0.006
+      });
+    }
+    var gravity = 0.32, drag = 0.982;
+
+    function frame(){
+      ctx.clearRect(0, 0, w, h);
+      var alive = false;
+      particles.forEach(function(p){
+        if(p.life <= 0) return;
+        p.vx *= drag;
+        p.vy = p.vy * drag + gravity;
+        p.x += p.vx; p.y += p.vy;
+        p.rot += p.vrot;
+        p.life -= p.decay;
+        if(p.y > h + 40 || p.life <= 0){ p.life = 0; return; }
+        alive = true;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        if(p.shape === 'rect'){ ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.6); }
+        else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
+      });
+      if(alive){ requestAnimationFrame(frame); }
+      else { ctx.clearRect(0, 0, w, h); }
+    }
+    requestAnimationFrame(frame);
   }
 
   function parsePt(text){ return parseInt(text.replace(/\./g, ''), 10); }
@@ -1080,13 +1135,9 @@
   }
 
   function finalState(){
-    badge.classList.add('show');
     fadeText(lblEl, 'Top 20 do mês');
     fadeText(prizeEl, '🏆 vencedor leva o smartphone');
-    setTimeout(function(){
-      badge.classList.remove('show');
-      if(hero) hero.classList.add('settled');
-    }, 550);
+    if(hero) hero.classList.add('settled');
   }
 
   function run(){
@@ -1101,10 +1152,6 @@
     if(hookBottom) setTimeout(function(){ hookBottom.classList.add('in'); }, 600);
 
     var rows = track.children;
-    var rowH = rows[0].getBoundingClientRect().height;
-    var gap = 7;
-    var step = rowH + gap;
-    var targetY = -(step * (rows.length - 5));
     var pointsState = Array.prototype.map.call(rows, function(r){ return parsePt(r.querySelector('.pt').textContent); });
 
     var skipped = false;
@@ -1116,9 +1163,6 @@
       skipped = true;
       timers.forEach(clearTimeout);
       viewport.removeEventListener('click', skip);
-      track.style.transition = 'none';
-      track.style.transform = 'translateY(' + targetY + 'px)';
-      badge.classList.remove('show');
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
       prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vencedor leva o smartphone';
       if(hero) hero.classList.add('settled');
@@ -1127,14 +1171,11 @@
 
     t(function(){
       runDisputas(pointsState, 90, 420, 300, function(){
+        burstConfetti();
         t(function(){
-          animateTransform(track, 0, targetY, 1200, easeInOutCubic, function(){
-            t(function(){
-              viewport.removeEventListener('click', skip);
-              finalState();
-            }, 150);
-          });
-        }, 150);
+          viewport.removeEventListener('click', skip);
+          finalState();
+        }, 650);
       });
     }, 250);
   }
