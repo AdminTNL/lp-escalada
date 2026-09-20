@@ -60,6 +60,13 @@
   }
   .skip-link:focus{top:8px;}
 
+  /* esconde visualmente mas mantem audivel pra leitor de tela -- usado na
+     regiao aria-live que anuncia a escolha de publico */
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
   /* ---------- header ---------- */
   #site-header{
     position:sticky; top:0; z-index:40; height:var(--hdr-h);
@@ -74,6 +81,19 @@
   .nav-desktop-only a:hover{opacity:1;}
   .hdr-actions{display:flex; align-items:center; gap:14px;}
   .hdr-cta{display:none;}
+  /* unico sinal PERSISTENTE de que a pagina "aprendeu" o publico -- antes
+     disso a unica pista era um anel de sombra num card la' embaixo, que
+     some da vista assim que a pessoa rola mais um pouco */
+  .modo-badge{
+    display:none; align-items:center; gap:4px; font-family:var(--mono);
+    font-size:11px; color:rgba(255,255,255,.7); background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 12px;
+    cursor:pointer; white-space:nowrap;
+  }
+  .modo-badge strong{color:var(--verde-claro); font-weight:700;}
+  .modo-badge:not([hidden]){display:inline-flex;}
+  @media (hover:hover){ .modo-badge:hover{background:rgba(255,255,255,.16);} }
+  @media (max-width:499px){ .modo-badge span{display:none;} }
   @media (min-width:860px){
     .nav-desktop-only{display:flex;}
     .hdr-cta{display:inline-flex;}
@@ -261,6 +281,12 @@
   .section-head .eyebrow{color:var(--verde-texto); display:block; margin-bottom:12px;}
   .section-head h2{font-size:clamp(26px,3.4vw,36px);}
   .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
+  /* nota condicional (so' aparece com um publico escolhido) -- nao mexe em
+     color/font-size de proposito, pra herdar o que .section-head p ja'
+     definiu certo pra cada secao (clara ou escura) sem brigar de
+     especificidade com #mecanica .section-head p */
+  .nota-publico{display:block; padding:10px 14px; border-radius:10px; border-left:3px solid var(--azul); background:rgba(42,79,218,.1);}
+  .nota-publico strong{font-weight:700;}
 
   /* teste jogavel -- prova concreta da mecanica antes de qualquer cadastro.
      tom lavanda/indigo novo (nao repete verde/azul/magenta ja usados nas
@@ -323,7 +349,11 @@
      classes, entao aqui a regra ja' nasce especifica o bastante pra vencer
      de qualquer jeito */
   #publicos .publico-card.publico-match{box-shadow:0 0 0 2px var(--verde), var(--shadow);}
-  #publicos .publico-card.publico-outro{opacity:.55;}
+  /* recua o card sem tirar opacidade (opacity:.55 derrubava o contraste do
+     texto pra ~2.6:1, abaixo do minimo AA de 4.5:1 -- o card continua
+     focavel/clicavel, entao o texto tem que continuar legivel). So' o
+     "peso" visual (sombra, fundo solido) diminui; cor do texto nao muda */
+  #publicos .publico-card.publico-outro{background:rgba(255,255,255,.6); box-shadow:none;}
   .publico-tag{
     display:inline-block; align-self:flex-start; font-family:var(--mono); font-size:11px; font-weight:600;
     letter-spacing:.06em; text-transform:uppercase; color:var(--verde-texto); background:rgba(0,217,92,.12);
@@ -346,7 +376,7 @@
   }
   .fatos-grid{display:grid; grid-template-columns:1fr; gap:14px; position:relative;}
   @media (min-width:700px){ .fatos-grid{grid-template-columns:repeat(2,1fr);} }
-  @media (min-width:1040px){ .fatos-grid{grid-template-columns:repeat(5,1fr);} }
+  @media (min-width:1040px){ .fatos-grid{grid-template-columns:repeat(4,1fr);} }
   .fato-card{
     background:var(--papel-raised); border-radius:20px; padding:24px 22px; box-shadow:var(--shadow);
   }
@@ -530,10 +560,23 @@
 
   /* os dois botoes "sou estudante"/"sou professor" continuam clicaveis
      depois da escolha (pra trocar direto, sem precisar de um "resetar"
-     separado) -- o escolhido fica em destaque, o outro recua (mesmo
-     tratamento dos cards em #publicos) */
-  .hero-ctas button{transition:opacity .2s ease;}
-  .hero-ctas.escolhido button:not(.ativo){opacity:.5;}
+     separado). O .ativo precisa de um tratamento PROPRIO -- so' esmaecer o
+     outro nao bastava: se a escolha fosse o botao ghost (contorno), ele
+     continuava com a mesma cara fraca de antes do clique, sem nenhum sinal
+     de "isso foi selecionado". Os dois agora usam o mesmo verbo visual
+     (preenchido = escolhido), nao dependem de qual comecou preenchido/ghost.
+     E o nao-escolhido recua por fundo/borda, nao por opacity no texto --
+     opacity:.5 no botao inteiro derrubava o contraste do label abaixo de
+     4.5:1 (o botao continua focavel/clicavel, precisa continuar legivel). */
+  .hero-ctas button{transition:background .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;}
+  .hero-ctas.escolhido button.ativo{
+    background:var(--verde); color:#052312; border-color:transparent;
+    box-shadow:0 10px 24px -8px rgba(0,217,92,.55);
+  }
+  .hero-ctas.escolhido button:not(.ativo){
+    background:transparent; color:rgba(255,255,255,.82); border:1.5px solid rgba(255,255,255,.28);
+    box-shadow:none;
+  }
 
   /* transition (nao animation) de proposito: com @keyframes de um so' stop
      ("to"), varias ferramentas de inspecao (getAnimations()) relatam o
@@ -554,7 +597,6 @@
   .fatos-grid .fato-card:nth-child(2){transition-delay:.10s;}
   .fatos-grid .fato-card:nth-child(3){transition-delay:.18s;}
   .fatos-grid .fato-card:nth-child(4){transition-delay:.26s;}
-  .fatos-grid .fato-card:nth-child(5){transition-delay:.34s;}
   .publicos-grid .publico-card:nth-child(1){transition-delay:.02s;}
   .publicos-grid .publico-card:nth-child(2){transition-delay:.14s;}
   .passos .passo:nth-child(1){transition-delay:.02s;}
@@ -644,6 +686,7 @@
 <body>
 
 <a class="skip-link" href="#page-content">Pular para o conteúdo</a>
+<div id="anuncio-publico" class="sr-only" aria-live="polite"></div>
 
 <header id="site-header">
   <div class="wrap">
@@ -656,6 +699,7 @@
       <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
     </nav>
     <div class="hdr-actions">
+      <button type="button" class="modo-badge" id="modo-badge" hidden>Modo: <strong id="modo-badge-txt">estudante</strong><span aria-hidden="true"> · trocar</span></button>
       <a class="btn btn-primario btn-sm hdr-cta" id="cta-header" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </div>
@@ -688,7 +732,7 @@
       </div>
       <div class="hero-rank-zone">
         <p class="hero-hook" id="hero-hook-top">Quer aparecer nesse ranking?</p>
-        <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada. É assim que pontos reais movem sua posição de verdade.">
+        <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada. É assim que pontos reais movem sua posição.">
           <div class="rc-header">
             <span class="rank">Ranking mensal · exemplo</span>
             <span class="streak" id="rc-countdown"><span aria-hidden="true">🔥</span> em andamento</span>
@@ -733,6 +777,7 @@
         <span class="eyebrow">Teste rápido · sem cadastro</span>
         <h2>Antes de entrar, joga uma rodada.</h2>
         <p>3 decisões rápidas. Pontos reais, na régua oficial do Escalada — só que sem compromisso nenhum.</p>
+        <p class="nota-publico" id="teste-nota-professor" hidden>Esse teste mostra a trilha do <strong>estudante</strong> — sua trilha de educador pontua de um jeito diferente (veja mais abaixo).</p>
       </div>
       <div class="teste-card reveal" id="teste-card">
         <div class="teste-progress">
@@ -782,23 +827,18 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow" style="color:var(--verde-texto);">O que você ganha</span>
-        <h2>Prêmio de verdade, regra clara, reconhecimento real.</h2>
+        <h2>Prêmio de verdade, regra clara.</h2>
       </div>
       <div class="fatos-grid">
         <div class="fato-card reveal">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-          <h3>Prêmio pra quem vence o GameShow</h3>
-          <p>Quem vence o GameShow Escalada leva prêmios como smartphone e tablet, anunciados a cada ciclo.</p>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
+          <h3>GameShow Escalada</h3>
+          <p>Até os 20 melhores do ranking disputam uma final ao vivo, e quem vence leva prêmios como smartphone e tablet.</p>
         </div>
         <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FFD84D" stroke-width="1.6" aria-hidden="true"><path d="M2 9a3 3 0 010 6v2a2 2 0 002 2h16a2 2 0 002-2v-2a3 3 0 010-6V7a2 2 0 00-2-2H4a2 2 0 00-2 2v2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
           <h3>Voucher pro educador destaque</h3>
           <p>O educador de maior pontuação do mês leva R$1.000, por até 3 meses seguidos, mantendo o engajamento mínimo exigido pelo programa.</p>
-        </div>
-        <div class="fato-card reveal">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
-          <h3>GameShow Escalada</h3>
-          <p>Até os 20 melhores do ranking disputam uma final ao vivo.</p>
         </div>
         <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M6 21l6-4 6 4-2-7 6-4h-7l-3-7-3 7H2l6 4z"/></svg>
@@ -896,6 +936,7 @@
         <span class="eyebrow">Como funciona</span>
         <h2>Do cadastro ao GameShow, em quatro passos.</h2>
         <p>O Escalada Sebrae é um programa gratuito de educação empreendedora, com trilhas gamificadas, ranking mensal e prêmios reais.</p>
+        <p class="nota-publico" id="mecanica-nota-professor" hidden>Esses passos mostram a jornada do <strong>estudante</strong>. Como educador, seu caminho é: cadastre-se → vincule sua turma → acompanhe o engajamento deles → dispute o voucher mensal.</p>
       </div>
       <div class="passos">
         <div class="passo reveal"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
@@ -917,7 +958,7 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow" style="color:var(--magenta-texto);">Você não faz sozinho</span>
-        <h2>Trilha de conteúdo real, clube de gente real.</h2>
+        <h2>Trilha com nome, clube com gente de verdade.</h2>
         <p>A pontuação é só a metade. A outra metade é quem está do seu lado enquanto você sobe.</p>
       </div>
       <div class="comunidade-grid">
@@ -976,7 +1017,7 @@
     <div class="wrap-narrow">
       <div class="prazo-pill" id="cta-countdown"><span aria-hidden="true">🔥</span> o ranking deste mês já está rodando</div>
       <h2>A trilha para o sucesso está aberta. Falta você dar o primeiro passo.</h2>
-      <p>Cadastro gratuito, direto do celular. Comece hoje e entre na disputa deste ciclo.</p>
+      <p>Comece hoje e entre na disputa deste ciclo.</p>
       <a class="btn btn-primario" id="cta-final-btn" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </section>
@@ -1214,10 +1255,24 @@
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // snapshot imutavel do estado inicial (linhas + pontos), capturado uma
+  // unica vez antes de qualquer disputa comecar -- resolverRankingFinal()
+  // sempre recalcula A PARTIR DAQUI, nunca do DOM atual (que pode estar
+  // parcialmente reordenado se chamada no meio da animacao, via skip())
+  var linhasIniciais = Array.prototype.slice.call(track.children);
+  var pontosIniciais = linhasIniciais.map(function(r){ return parsePt(r.querySelector('.pt').textContent); });
+
+  // desligada por skip() -- countUpPoints/flipSwap checam isso pra parar
+  // de vez, senao um rAF/timeout que ja' estava em voo quando a pessoa
+  // pulou a animacao continuava rodando por cima do resultado ja' forcado
+  // por resolverRankingFinal(), usando um pointsState velho e desatualizado
+  var animacaoAtiva = true;
+
   // FLIP de verdade: o card que sobe realmente se desloca pra cima, o de
   // baixo desce e toma o lugar -- sao os NOS reordenados no DOM, nao um
   // crossfade de opacidade trocando texto por baixo.
   function flipSwap(rowA, rowB, duration, onDone){
+    if(!animacaoAtiva) return;
     var rA = rowA.getBoundingClientRect();
     var rB = rowB.getBoundingClientRect();
     var parent = rowA.parentNode;
@@ -1237,6 +1292,7 @@
     void rowA.offsetHeight;
 
     requestAnimationFrame(function(){
+      if(!animacaoAtiva) return;
       var easing = 'cubic-bezier(.4,0,.2,1)';
       rowA.style.transition = 'transform ' + duration + 'ms ' + easing;
       rowB.style.transition = 'transform ' + duration + 'ms ' + easing;
@@ -1245,6 +1301,7 @@
         rowA.style.transition = ''; rowB.style.transition = '';
         rowA.style.zIndex = ''; rowB.style.zIndex = '';
         rowA.classList.remove('lifting'); rowB.classList.remove('lifting');
+        if(!animacaoAtiva) return;
         if(onDone) onDone();
       }, duration + 30);
     });
@@ -1356,6 +1413,7 @@
     row.classList.add('ganhando');
     var start = null;
     function step(ts){
+      if(!animacaoAtiva) return;
       if(!start) start = ts;
       var p = Math.min(1, (ts - start) / duration);
       var current = fromVal + (toVal - fromVal) * p;
@@ -1378,6 +1436,7 @@
   // contando ao mesmo tempo), e' seguro comparar contra o pointsState atual
   // do vizinho a cada frame.
   function disputa(pointsState, idx, ganho, countMs, swapMs, onDone){
+    if(!animacaoAtiva) return; // skip() pode ter cortado durante o intervalo (gapMs) entre disputas
     var row = track.children[idx];
     var novo = pointsState[idx] + ganho;
     var countDone = false;
@@ -1441,25 +1500,30 @@
     next();
   }
 
-  // aplica a MESMA sequencia de disputas, sem nenhuma animacao -- usada so'
-  // com prefers-reduced-motion, a partir do estado inicial limpo (garantido
-  // porque roda antes de qualquer disputa animada comecar). Sem isso, quem
-  // usa reduced-motion via texto/leitura visual (nao leitor de tela -- esse
-  // ja' tem o aria-label correto) via o texto ao redor falando como se
-  // "Você" ja' tivesse vencido, mas a linha continuava parada no 3o lugar
-  function resolverRankingInstantaneo(){
-    var pointsState = Array.prototype.map.call(track.children, function(r){ return parsePt(r.querySelector('.pt').textContent); });
+  // aplica a MESMA sequencia de disputas, sem nenhuma animacao, e forca o
+  // DOM pro resultado final -- usada com prefers-reduced-motion E quando a
+  // pessoa pula a animacao clicando no card (skip(), mais abaixo). Sempre
+  // recalcula a partir do snapshot IMUTAVEL (linhasIniciais/pontosIniciais),
+  // nunca do DOM atual: se lesse o DOM no meio de uma animacao ja' em
+  // andamento (skip a qualquer momento), a ordem/valores parciais dali
+  // dariam um resultado errado (contagem duplicada ou incompleta). Como
+  // sempre parte do mesmo ponto zero e' seguro chamar a qualquer momento,
+  // inclusive mais de uma vez.
+  function resolverRankingFinal(){
+    var linhas = linhasIniciais.slice();
+    var pointsState = pontosIniciais.slice();
     DISPUTA_SEQ.forEach(function(d){
-      var novo = pointsState[d.idx] + d.ganho;
-      pointsState[d.idx] = novo;
-      track.children[d.idx].querySelector('.pt').textContent = formatPt(novo);
+      pointsState[d.idx] += d.ganho;
       var i = d.idx;
       while(i > 0 && pointsState[i] > pointsState[i - 1]){
-        var rows = track.children;
-        rows[i - 1].parentNode.insertBefore(rows[i], rows[i - 1]);
-        var tmp = pointsState[i - 1]; pointsState[i - 1] = pointsState[i]; pointsState[i] = tmp;
+        var tmpL = linhas[i - 1]; linhas[i - 1] = linhas[i]; linhas[i] = tmpL;
+        var tmpP = pointsState[i - 1]; pointsState[i - 1] = pointsState[i]; pointsState[i] = tmpP;
         i--;
       }
+    });
+    linhas.forEach(function(el, i){
+      el.querySelector('.pt').textContent = formatPt(pointsState[i]);
+      track.appendChild(el); // idempotente: reordena pro final certo nao' importa a ordem atual
     });
     updatePosLabels();
   }
@@ -1481,7 +1545,7 @@
 
   function run(){
     if(reduced){
-      resolverRankingInstantaneo();
+      resolverRankingFinal();
       lblEl.textContent = 'Top 20 do mês';
       prizeEl.innerHTML = '<span aria-hidden="true">🏆</span> vaga no GameShow';
       if(hookTop) hookTop.classList.add('in');
@@ -1503,8 +1567,10 @@
     function skip(){
       if(skipped) return;
       skipped = true;
+      animacaoAtiva = false; // corta qualquer rAF/timeout de disputa/flipSwap em voo
       timers.forEach(clearTimeout);
       viewport.removeEventListener('click', skip);
+      resolverRankingFinal(); // forca "Você" no 1o lugar de verdade, nao so' o texto ao redor
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
       prizeEl.style.opacity = '1'; prizeEl.innerHTML = '<span aria-hidden="true">🏆</span> vaga no GameShow';
       if(hero) hero.classList.add('settled');
@@ -1770,6 +1836,7 @@
 
   function marcarCards(pub){
     Array.prototype.forEach.call(document.querySelectorAll('.publico-card'), function(card){
+      if(!pub){ card.classList.remove('publico-match', 'publico-outro'); return; }
       var match = card.getAttribute('data-publico') === pub;
       card.classList.toggle('publico-match', match);
       card.classList.toggle('publico-outro', !match);
@@ -1778,6 +1845,13 @@
 
   var publicosSection = document.getElementById('publicos');
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var anuncio = document.getElementById('anuncio-publico');
+  var modoBadge = document.getElementById('modo-badge');
+  var modoBadgeTxt = document.getElementById('modo-badge-txt');
+  var notasProfessor = [
+    document.getElementById('teste-nota-professor'),
+    document.getElementById('mecanica-nota-professor')
+  ];
 
   function escolher(pub){
     var info = PUBLICOS[pub];
@@ -1788,6 +1862,21 @@
     Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){
       btn.classList.toggle('ativo', btn.getAttribute('data-pub') === pub);
     });
+    // unico sinal PERSISTENTE de que a escolha "pegou" -- sem isso, quem
+    // rola a pagina depois de escolher nunca mais ve nenhum rastro disso
+    // (o anel do card e' visivel so' por um instante, ate' rolar mais)
+    if(modoBadge){
+      modoBadge.hidden = false;
+      if(modoBadgeTxt) modoBadgeTxt.textContent = pub === 'estudante' ? 'estudante' : 'professor';
+    }
+    // o teste jogavel e o "como funciona" continuam escritos pro estudante
+    // -- reescrever os dois de verdade e' uma mudanca grande demais pra
+    // essa rodada, mas pelo menos avisa quem escolheu professor que aquele
+    // trecho especifico nao e' a jornada dele, evitando a ambiguidade
+    notasProfessor.forEach(function(el){ if(el) el.hidden = (pub !== 'professor'); });
+    // leitor de tela nao' ve o anel/preenchimento nem o CTA do header mudar
+    // sozinho -- sem isso, a escolha so' era percebida por quem enxerga
+    if(anuncio) anuncio.textContent = 'Modo ' + (pub === 'estudante' ? 'estudante' : 'professor/educador') + ' selecionado. Botões de participar atualizados em toda a página.';
     // a escolha muda os cards de "Escolha seu caminho" (mais abaixo, depois
     // do teste jogavel) -- sem rolar ate' la', a pessoa clica e nao ve nada
     // acontecer na propria viewport, o que parece um botao quebrado
@@ -1796,13 +1885,35 @@
     }
   }
 
+  var CTA_PADRAO = { href:'https://escalada.me/lpescalada-estudantes1', label:'Quero participar', curto:'Participar' };
+
+  if(modoBadge){
+    modoBadge.addEventListener('click', function(){
+      modoBadge.hidden = true;
+      aplicarCtas(CTA_PADRAO);
+      marcarCards(null);
+      notasProfessor.forEach(function(el){ if(el) el.hidden = true; });
+      heroCtas.classList.remove('escolhido');
+      Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){ btn.classList.remove('ativo'); });
+      if(anuncio) anuncio.textContent = 'Seleção de público removida.';
+    });
+  }
+
   function montarPicker(){
+    // se o foco de teclado estiver no link unico original quando ele vira
+    // os dois botoes, o elemento focado e' destruido e o foco cai pro
+    // <body> sem aviso -- guarda isso pra re-focar o equivalente depois
+    var tinhaFoco = heroCtas.contains(document.activeElement);
     heroCtas.innerHTML =
       '<button type="button" class="btn btn-primario" data-pub="estudante">Sou estudante</button>' +
       '<button type="button" class="btn btn-ghost" data-pub="professor">Sou professor</button>';
     Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){
       btn.addEventListener('click', function(){ escolher(btn.getAttribute('data-pub')); });
     });
+    if(tinhaFoco){
+      var primeiro = heroCtas.querySelector('button');
+      if(primeiro) primeiro.focus();
+    }
   }
 
   if(hero.classList.contains('settled')){
