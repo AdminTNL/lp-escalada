@@ -413,6 +413,52 @@
   }
   @keyframes rise{to{opacity:1; transform:translateY(0);}}
 
+  /* cascata: cada card de uma grade entra em sequencia, nao tudo de uma vez --
+     mesmo padrao de delay ja usado nas barras de #pontuacao */
+  .fatos-grid .fato-card:nth-child(1){animation-delay:.02s;}
+  .fatos-grid .fato-card:nth-child(2){animation-delay:.10s;}
+  .fatos-grid .fato-card:nth-child(3){animation-delay:.18s;}
+  .fatos-grid .fato-card:nth-child(4){animation-delay:.26s;}
+  .publicos-grid .publico-card:nth-child(1){animation-delay:.02s;}
+  .publicos-grid .publico-card:nth-child(2){animation-delay:.14s;}
+  .passos .passo:nth-child(1){animation-delay:.02s;}
+  .passos .passo:nth-child(2){animation-delay:.10s;}
+  .passos .passo:nth-child(3){animation-delay:.18s;}
+  .passos .passo:nth-child(4){animation-delay:.26s;}
+  .comunidade-grid .comunidade-card:nth-child(1){animation-delay:.02s;}
+  .comunidade-grid .comunidade-card:nth-child(2){animation-delay:.14s;}
+
+  /* seta entre os passos "desenha" depois que o card ja assentou */
+  .passo .idx svg{stroke-dasharray:40; stroke-dashoffset:40; animation:drawArrow .5s cubic-bezier(.16,1,.3,1) forwards; animation-play-state:paused;}
+  .passo.reveal.in .idx svg{animation-play-state:running;}
+  .passos .passo:nth-child(2) .idx svg{animation-delay:.38s;}
+  .passos .passo:nth-child(3) .idx svg{animation-delay:.46s;}
+  .passos .passo:nth-child(4) .idx svg{animation-delay:.54s;}
+  @keyframes drawArrow{to{stroke-dashoffset:0;}}
+
+  /* micro-interacao: cards respondem ao hover no desktop, nada fica estatico */
+  @media (hover:hover){
+    .fato-card, .publico-card, .comunidade-card, .degrau{
+      transition:transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
+    }
+    .fato-card:hover, .publico-card:hover, .comunidade-card:hover, .degrau:hover{
+      transform:translateY(-4px); box-shadow:0 20px 40px -16px rgba(10,15,54,.28);
+    }
+    .passo{transition:background .25s ease, transform .25s cubic-bezier(.16,1,.3,1);}
+    .passo:hover{transform:translateY(-3px); background:rgba(255,255,255,.09);}
+  }
+
+  /* anel pulsando no cta final -- chama o olho pro clique sem ser intrusivo */
+  #cta-final .btn-primario{position:relative;}
+  #cta-final .btn-primario::after{
+    content:''; position:absolute; inset:0; border-radius:999px; pointer-events:none;
+    border:1.5px solid var(--verde); opacity:.55;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    #cta-final .btn-primario::after{animation:pulseRing 2.2s cubic-bezier(.16,1,.3,1) infinite;}
+  }
+  @keyframes pulseRing{0%{transform:scale(1); opacity:.55;} 100%{transform:scale(1.35); opacity:0;}}
+
   /* ---------- device switcher ---------- */
   #dev-switch{
     position:fixed; top:14px; right:16px; z-index:9999;
@@ -553,8 +599,8 @@
         <span class="eyebrow" style="color:var(--verde);">Escolha seu caminho</span>
         <h2>Dois jeitos de entrar, dois jeitos de pontuar.</h2>
       </div>
-      <div class="publicos-grid reveal">
-        <div class="publico-card">
+      <div class="publicos-grid">
+        <div class="publico-card reveal">
           <span class="publico-tag">Pra estudante</span>
           <h3>Você sobe fazendo a sua trilha</h3>
           <ul>
@@ -564,7 +610,7 @@
           </ul>
           <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Quero participar como estudante</a>
         </div>
-        <div class="publico-card">
+        <div class="publico-card reveal">
           <span class="publico-tag prof">Pra professor / educador</span>
           <h3>Você sobe mobilizando sua turma</h3>
           <ul>
@@ -584,23 +630,23 @@
         <span class="eyebrow" style="color:var(--verde);">O que você ganha</span>
         <h2>Prêmio de verdade, regra clara, reconhecimento real.</h2>
       </div>
-      <div class="fatos-grid reveal">
-        <div class="fato-card">
+      <div class="fatos-grid">
+        <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
           <h3>Smartphone pro vencedor do mês</h3>
           <p>Quem vence o GameShow Escalada leva um smartphone pra casa.</p>
         </div>
-        <div class="fato-card">
+        <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
           <h3>GameShow Escalada</h3>
           <p>Os 20 melhores do ranking disputam uma final ao vivo.</p>
         </div>
-        <div class="fato-card">
+        <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M6 21l6-4 6 4-2-7 6-4h-7l-3-7-3 7H2l6 4z"/></svg>
           <h3>Selo Escalada</h3>
           <p>Reconhecimento oficial de quem completa a jornada até o topo.</p>
         </div>
-        <div class="fato-card">
+        <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00F9FF" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>
           <h3>Gratuito, do começo ao fim</h3>
           <p>Sem mensalidade, sem pegadinha. Só o seu login e a sua trilha.</p>
@@ -686,11 +732,11 @@
         <span class="eyebrow">Como funciona</span>
         <h2>Do cadastro ao GameShow, em quatro passos.</h2>
       </div>
-      <div class="passos reveal">
-        <div class="passo"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
-        <div class="passo"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
-        <div class="passo"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
-        <div class="passo"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>04</div><h3>Concorra aos prêmios</h3><p>Mês Flash, vouchers e a final ao vivo do GameShow Escalada.</p></div>
+      <div class="passos">
+        <div class="passo reveal"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
+        <div class="passo reveal"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
+        <div class="passo reveal"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
+        <div class="passo reveal"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>04</div><h3>Concorra aos prêmios</h3><p>Mês Flash, vouchers e a final ao vivo do GameShow Escalada.</p></div>
       </div>
       <div class="quote-card reveal">
         <div class="qav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
@@ -709,13 +755,13 @@
         <h2>Trilha de conteúdo real, clube de gente real.</h2>
         <p>A pontuação é só a metade. A outra metade é quem está do seu lado enquanto você sobe.</p>
       </div>
-      <div class="comunidade-grid reveal">
-        <div class="comunidade-card">
+      <div class="comunidade-grid">
+        <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--azul);">As trilhas</span>
           <h3>Trilhas com nome e tema, não vídeo solto</h3>
           <p><strong>Começa por você</strong> e <strong>Modo protagonista</strong> passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, em módulos curtos que você conclui no seu tempo.</p>
         </div>
-        <div class="comunidade-card">
+        <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--magenta);">O clube da comunidade</span>
           <h3>Gente trocando ideia de verdade</h3>
           <p>Dentro da comunidade existem clubes regionais, onde participantes comentam e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários desde que entrou.</p>
@@ -1159,6 +1205,7 @@
     wrapper.classList.add('active');
     btnMobile.classList.add('active');
     btnDesktop.classList.remove('active');
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     sizeShell();
   }
@@ -1166,6 +1213,7 @@
     wrapper.classList.remove('active');
     btnDesktop.classList.add('active');
     btnMobile.classList.remove('active');
+    document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
   }
 
