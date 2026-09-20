@@ -136,17 +136,23 @@
   .ps-mission.done .chk{background:var(--verde); color:#052312;}
   .ps-mission.pend .chk{border:1.5px solid rgba(255,255,255,.3);}
 
-  /* mini leaderboard no mockup do hero */
-  .ps-lb-head{margin:0 16px 10px; display:flex; align-items:center; justify-content:space-between;}
-  .ps-lb-head .lbl{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55);}
-  .ps-lb-head .prize{font-family:var(--mono); font-size:9.5px; color:var(--verde-claro);}
-  .ps-lb{margin:0 16px; display:flex; flex-direction:column; gap:6px;}
+  /* mini leaderboard no mockup do hero - animado */
+  .ps-lb-head{margin:0 16px 10px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
+  .ps-lb-head .lbl{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); transition:opacity .3s ease;}
+  .ps-lb-head .prize{font-family:var(--mono); font-size:9.5px; color:var(--verde-claro); transition:opacity .3s ease;}
+  .ps-lb-viewport{
+    margin:0 16px; height:198px; overflow:hidden; position:relative;
+    -webkit-mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
+    mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
+  }
+  .ps-lb-track{display:flex; flex-direction:column; gap:6px; will-change:transform;}
   .ps-lb-row{
     display:grid; grid-template-columns:20px 24px 1fr auto; gap:8px; align-items:center;
     padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.045);
+    flex:none; transition:background .4s ease, border-color .4s ease;
   }
   .ps-lb-row.me{background:rgba(0,217,92,.16); border:1px solid rgba(0,217,92,.4);}
-  .ps-lb-row .pos{font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.5); text-align:center;}
+  .ps-lb-row .pos{font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums;}
   .ps-lb-row.p1 .pos{color:#FFD84D;}
   .ps-lb-row .av{
     width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -154,8 +160,18 @@
     background:linear-gradient(135deg,var(--azul),var(--ciano));
   }
   .ps-lb-row.me .av{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
-  .ps-lb-row .nm{font-size:11.5px; color:rgba(255,255,255,.88); font-weight:600;}
-  .ps-lb-row .pt{font-family:var(--mono); font-size:10.5px; color:rgba(255,255,255,.6);}
+  .ps-lb-row .nm{font-size:11.5px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .ps-lb-row .pt{font-family:var(--mono); font-size:10.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums;}
+
+  .ps-lb-badge{
+    position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px; text-align:center;
+    background:linear-gradient(180deg, rgba(10,13,36,.4) 0%, rgba(10,13,36,.92) 55%);
+    opacity:0; transform:scale(.9); pointer-events:none;
+  }
+  .ps-lb-badge.show{opacity:1; transform:scale(1); transition:opacity .5s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.34,1.56,.64,1);}
+  .ps-lb-badge .num{font-family:var(--display); font-size:64px; font-weight:700; color:var(--verde-claro); line-height:1; text-shadow:0 0 40px rgba(0,255,133,.5);}
+  .ps-lb-badge .txt{font-size:13px; color:#fff; font-weight:600; max-width:200px; line-height:1.35;}
 
   /* ---------- secoes claras ---------- */
   section{padding:72px 0;}
@@ -216,6 +232,15 @@
   .integridade-box .ico{flex:none; width:22px; height:22px; margin-top:2px;}
   .integridade-box p{margin:0; font-size:14px; color:var(--ink-soft);}
   .integridade-box strong{color:var(--ink);}
+
+  /* comunidade */
+  .comunidade-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+  @media (min-width:760px){ .comunidade-grid{grid-template-columns:1fr 1fr;} }
+  .comunidade-card{background:var(--papel-raised); border-radius:20px; padding:26px 24px; box-shadow:var(--shadow);}
+  .comunidade-card .eyebrow{display:block; margin-bottom:12px;}
+  .comunidade-card h3{font-size:18px; margin-bottom:10px;}
+  .comunidade-card p{font-size:14.5px; color:var(--ink-soft); margin:0;}
+  .comunidade-card strong{color:var(--ink);}
 
   /* prova / mecanica */
   #mecanica{background:var(--navy); color:#fff;}
@@ -330,6 +355,7 @@
     <nav class="primary nav-desktop-only">
       <a href="#jornada">A jornada</a>
       <a href="#pontuacao">Pontuação</a>
+      <a href="#comunidade">Comunidade</a>
       <a href="/faq/">FAQ</a>
       <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
     </nav>
@@ -347,8 +373,8 @@
     <div class="wrap">
       <div class="reveal">
         <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · ranking mensal aberto</div>
-        <h1>Todo mês, alguém do topo do ranking leva um <em>smartphone pra casa</em>. Podia ser você.</h1>
-        <p class="sub">Não é sorte, é esforço que conta ponto por ponto: trilha concluída, missão cumprida, sequência de dias mantida. O sistema audita contra fraude, então quem sobe, sobe porque trabalhou. Gratuito, pra estudante a partir de 14 anos.</p>
+        <h1 id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h1>
+        <p class="sub" id="hero-sub">Os 20 melhores do mês disputam a final ao vivo, e quem vence leva um smartphone pra casa. Não é sorte: é esforço que conta ponto por ponto, trilha concluída, missão cumprida, sequência de dias mantida, e o sistema audita contra fraude. Gratuito, pra estudante a partir de 14 anos.</p>
         <div class="hero-ctas">
           <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
         </div>
@@ -365,17 +391,34 @@
               <span class="rank">Ranking · Mês Flash</span>
               <span class="streak">🔥 12 dias</span>
             </div>
-            <div class="ps-lb-head"><span class="lbl">Top da temporada</span><span class="prize">🏆 smartphone pro 1º</span></div>
-            <div class="ps-lb">
-              <div class="ps-lb-row p1"><span class="pos">1º</span><span class="av">JM</span><span class="nm">J. Martins</span><span class="pt">2.180</span></div>
-              <div class="ps-lb-row"><span class="pos">2º</span><span class="av">AC</span><span class="nm">Ana C.</span><span class="pt">1.940</span></div>
-              <div class="ps-lb-row me"><span class="pos">3º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">1.680</span></div>
-              <div class="ps-lb-row"><span class="pos">4º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">1.520</span></div>
+            <div class="ps-lb-head">
+              <span class="lbl" id="lb-lbl">Top da temporada</span>
+              <span class="prize" id="lb-prize">🏆 vaga no GameShow</span>
             </div>
-            <div class="ps-card" style="margin-top:12px;">
-              <div class="lbl">Transformador</div>
-              <div class="val">1.680 pts</div>
-              <div class="ps-bar"><i style="width:57%;"></i></div>
+            <div class="ps-lb-viewport" id="lb-viewport">
+              <div class="ps-lb-track" id="lb-track">
+                <div class="ps-lb-row p1"><span class="pos">1º</span><span class="av">JM</span><span class="nm">J. Martins</span><span class="pt">2.840</span></div>
+                <div class="ps-lb-row"><span class="pos">2º</span><span class="av">AC</span><span class="nm">Ana C.</span><span class="pt">2.615</span></div>
+                <div class="ps-lb-row me"><span class="pos">3º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">2.480</span></div>
+                <div class="ps-lb-row"><span class="pos">4º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">2.310</span></div>
+                <div class="ps-lb-row"><span class="pos">5º</span><span class="av">BS</span><span class="nm">Bia S.</span><span class="pt">2.190</span></div>
+                <div class="ps-lb-row"><span class="pos">6º</span><span class="av">LF</span><span class="nm">Lucas F.</span><span class="pt">2.050</span></div>
+                <div class="ps-lb-row"><span class="pos">7º</span><span class="av">MT</span><span class="nm">Marina T.</span><span class="pt">1.980</span></div>
+                <div class="ps-lb-row"><span class="pos">8º</span><span class="av">RO</span><span class="nm">Rafael O.</span><span class="pt">1.920</span></div>
+                <div class="ps-lb-row"><span class="pos">9º</span><span class="av">DM</span><span class="nm">Duda M.</span><span class="pt">1.860</span></div>
+                <div class="ps-lb-row"><span class="pos">10º</span><span class="av">TB</span><span class="nm">Théo B.</span><span class="pt">1.790</span></div>
+                <div class="ps-lb-row"><span class="pos">11º</span><span class="av">SR</span><span class="nm">Sofia R.</span><span class="pt">1.720</span></div>
+                <div class="ps-lb-row"><span class="pos">12º</span><span class="av">EP</span><span class="nm">Enzo P.</span><span class="pt">1.650</span></div>
+                <div class="ps-lb-row"><span class="pos">13º</span><span class="av">AN</span><span class="nm">Alice N.</span><span class="pt">1.590</span></div>
+                <div class="ps-lb-row"><span class="pos">14º</span><span class="av">MA</span><span class="nm">Miguel A.</span><span class="pt">1.530</span></div>
+                <div class="ps-lb-row"><span class="pos">15º</span><span class="av">LV</span><span class="nm">Laura V.</span><span class="pt">1.470</span></div>
+                <div class="ps-lb-row"><span class="pos">16º</span><span class="av">DC</span><span class="nm">Davi C.</span><span class="pt">1.410</span></div>
+                <div class="ps-lb-row"><span class="pos">17º</span><span class="av">IG</span><span class="nm">Isabela G.</span><span class="pt">1.350</span></div>
+                <div class="ps-lb-row"><span class="pos">18º</span><span class="av">GS</span><span class="nm">Gabriel S.</span><span class="pt">1.290</span></div>
+                <div class="ps-lb-row"><span class="pos">19º</span><span class="av">MK</span><span class="nm">Manu K.</span><span class="pt">1.230</span></div>
+                <div class="ps-lb-row"><span class="pos">20º</span><span class="av">BH</span><span class="nm">Bento H.</span><span class="pt">1.180</span></div>
+              </div>
+              <div class="ps-lb-badge" id="lb-badge"><span class="num">20</span><span class="txt">vagas no GameShow Escalada deste mês</span></div>
             </div>
           </div>
         </div>
@@ -392,13 +435,13 @@
       <div class="fatos-grid reveal">
         <div class="fato-card">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-          <h3>Smartphone no topo do mês</h3>
-          <p>Quem lidera o ranking do Mês Flash leva um smartphone pra casa.</p>
+          <h3>Smartphone pro vencedor do mês</h3>
+          <p>Quem vence o GameShow Escalada leva um smartphone pra casa.</p>
         </div>
         <div class="fato-card">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
           <h3>GameShow Escalada</h3>
-          <p>Uma final ao vivo pra quem chega no topo da temporada.</p>
+          <p>Os 20 melhores do ranking disputam uma final ao vivo.</p>
         </div>
         <div class="fato-card">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M6 21l6-4 6 4-2-7 6-4h-7l-3-7-3 7H2l6 4z"/></svg>
@@ -486,6 +529,32 @@
     </div>
   </section>
 
+  <section id="comunidade">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" style="color:var(--magenta);">Você não faz sozinho</span>
+        <h2>Trilha de conteúdo real, clube de gente real.</h2>
+        <p>A pontuação é só a metade. A outra metade é quem está do seu lado enquanto você sobe.</p>
+      </div>
+      <div class="comunidade-grid reveal">
+        <div class="comunidade-card">
+          <span class="eyebrow" style="color:var(--azul);">As trilhas</span>
+          <h3>Não é vídeo solto, é jornada com nome</h3>
+          <p>Trilhas como <strong>Começa por você</strong> e <strong>Modo protagonista</strong> passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, tudo em módulos curtos que você conclui no seu tempo.</p>
+        </div>
+        <div class="comunidade-card">
+          <span class="eyebrow" style="color:var(--magenta);">O clube da sua região</span>
+          <h3>Cada estado tem o seu, e ele é ativo</h3>
+          <p>Dentro da comunidade, cada região tem um clube próprio onde participantes comentam, trocam ideia e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários na comunidade desde que entrou.</p>
+        </div>
+      </div>
+      <div class="integridade-box reveal" style="margin-top:16px;">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.8"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.97-4.03 9-9 9-1.6 0-3.1-.42-4.4-1.15L3 21l1.15-3.6A8.96 8.96 0 013 12c0-4.97 4.03-9 9-9s9 4.03 9 9z"/></svg>
+        <p><strong>Sua sequência também é social.</strong> Pra manter o streak, você comenta em duas publicações diferentes de colegas por dia, com pelo menos 20 caracteres cada. Ou seja: pontuar exige participar de verdade, não só assistir.</p>
+      </div>
+    </div>
+  </section>
+
   <section id="faq-resumo">
     <div class="wrap-narrow">
       <div class="section-head reveal">
@@ -495,7 +564,7 @@
       <div class="faq-list reveal">
         <details class="faq-item">
           <summary>Quais são os incentivos previstos no programa?<span></span></summary>
-          <div class="a">Smartphone pro vencedor do ciclo mensal (estudantes), vouchers financeiros mensais para multiplicadores, e reconhecimento nacional via Selo Escalada e Sebrae Jovens Mais Empreendedores.</div>
+          <div class="a">Os 20 melhores do ranking mensal disputam o GameShow Escalada ao vivo, e quem vence leva um smartphone pra casa. Há também vouchers financeiros mensais para multiplicadores, e reconhecimento nacional via Selo Escalada e Sebrae Jovens Mais Empreendedores.</div>
         </details>
         <details class="faq-item">
           <summary>Até quando posso me inscrever?<span></span></summary>
@@ -561,6 +630,94 @@
     els.forEach(function(el){ io.observe(el); });
   } else {
     els.forEach(function(el){ el.classList.add('in'); });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var track = document.getElementById('lb-track');
+  var viewport = document.getElementById('lb-viewport');
+  var badge = document.getElementById('lb-badge');
+  var lblEl = document.getElementById('lb-lbl');
+  var prizeEl = document.getElementById('lb-prize');
+  if(!track || !viewport) return;
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+
+  function animateTransform(el, fromY, toY, duration, easing, onDone){
+    var start = null;
+    function step(ts){
+      if(!start) start = ts;
+      var p = Math.min(1, (ts - start) / duration);
+      var y = fromY + (toY - fromY) * easing(p);
+      el.style.transform = 'translateY(' + y.toFixed(2) + 'px)';
+      if(p < 1){ requestAnimationFrame(step); }
+      else if(onDone){ onDone(); }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function crossfadeSwap(rowA, rowB){
+    var aHtml = rowA.innerHTML, bHtml = rowB.innerHTML;
+    var aMe = rowA.classList.contains('me'), bMe = rowB.classList.contains('me');
+    rowA.style.transition = 'opacity .22s ease';
+    rowB.style.transition = 'opacity .22s ease';
+    rowA.style.opacity = '0';
+    rowB.style.opacity = '0';
+    setTimeout(function(){
+      rowA.innerHTML = bHtml;
+      rowB.innerHTML = aHtml;
+      rowA.classList.toggle('me', bMe);
+      rowB.classList.toggle('me', aMe);
+      rowA.style.opacity = '1';
+      rowB.style.opacity = '1';
+    }, 220);
+  }
+
+  function fadeText(el, newText){
+    el.style.transition = 'opacity .3s ease';
+    el.style.opacity = '0';
+    setTimeout(function(){
+      el.textContent = newText;
+      el.style.opacity = '1';
+    }, 300);
+  }
+
+  function finalState(){
+    badge.classList.add('show');
+    fadeText(lblEl, 'Top 20 do mês');
+    fadeText(prizeEl, '🏆 vencedor leva o smartphone');
+  }
+
+  function run(){
+    if(reduced){ finalState(); return; }
+
+    var rows = track.children;
+    var rowH = rows[0].getBoundingClientRect().height;
+    var gap = 6;
+    var step = rowH + gap;
+
+    setTimeout(function(){ crossfadeSwap(rows[1], rows[2]); }, 650);
+
+    setTimeout(function(){
+      var targetY = -(step * (rows.length - 5));
+      animateTransform(track, 0, targetY, 2100, easeInOutCubic, function(){
+        setTimeout(finalState, 280);
+      });
+    }, 1650);
+  }
+
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ run(); io.disconnect(); } });
+    }, {threshold:.4});
+    io.observe(viewport);
+  } else {
+    run();
   }
 })();
 </script>
