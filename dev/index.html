@@ -76,6 +76,11 @@
     background:linear-gradient(160deg,#0A0F36 0%, #17235f 38%, #2A4FDA 72%, #8a1fd6 100%);
     padding:56px 0 72px;
   }
+  /* no mobile, 56px de respiro + o teaser inteiro + o card de ranking (5
+     linhas) + a barra fixa de CTA no rodape brigam pelo mesmo viewport
+     curto -- reduzido aqui pra sobrar espaco real pro card nao ficar atras
+     da barra fixa */
+  @media (max-width:959px){ #hero{padding-top:26px;} }
   #hero .arco{
     position:absolute; top:-120px; right:-160px; width:520px; height:520px;
     border-radius:50%; border:64px solid rgba(0,217,92,.5);
@@ -132,7 +137,7 @@
   #hero.settled .hero-copy{max-height:900px; opacity:1; visibility:visible;}
 
   .hero-rank-zone{
-    order:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    order:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:14px;
     min-height:calc(100svh - var(--hdr-h) - 220px);
     max-height:2000px; opacity:1; overflow:hidden;
     padding:8px 0 20px;
@@ -158,6 +163,11 @@
     font-family:var(--display); font-weight:700; font-size:16px; line-height:1.35; color:#fff;
     opacity:0; transform:translateY(8px);
   }
+  /* no mobile o card de ranking ja' e' a primeira coisa animada da pagina --
+     um segundo gancho retorico ("quer aparecer nesse ranking?") empilhado
+     logo acima dele so' repetia a pergunta do headline e empurrava o card
+     pra baixo o suficiente pra ficar atras da barra fixa de CTA no rodape */
+  #hero-hook-top{display:none;}
   .hero-hook.in{opacity:1; transform:translateY(0);}
   .hero-hook em{font-style:normal; color:var(--verde-claro);}
   @media (prefers-reduced-motion:no-preference){
@@ -168,7 +178,7 @@
     .hero-teaser{display:none;}
     .hero-copy{order:0; max-height:none!important; opacity:1!important; visibility:visible!important; overflow:visible;}
     .hero-rank-zone{
-      order:0; flex-direction:row; min-height:0!important; max-height:none!important;
+      order:0; flex-direction:row; justify-content:center; min-height:0!important; max-height:none!important;
       opacity:1!important; padding:0!important; pointer-events:auto!important; overflow:visible!important;
     }
     .hero-hook{display:none;}
@@ -647,7 +657,7 @@
           <ul>
             <li>Cada trilha, módulo e missão concluída soma pontos direto no seu ranking</li>
             <li>Prêmio: itens como smartphone e tablet pra quem vence o GameShow Escalada</li>
-            <li>A partir de 14 anos, vinculado a uma instituição de ensino</li>
+            <li>A partir de 14 anos, cadastro gratuito e rápido pelo celular</li>
           </ul>
           <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Quero participar como estudante</a>
         </div>
@@ -658,7 +668,7 @@
             <li>Trilha própria (com quizzes e artigos) pra você também evoluir</li>
             <li>Pontua por estudante ativo vinculado, por atividade válida deles e pela sua própria sequência diária</li>
             <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês, por até 3 meses seguidos, mantendo o engajamento mínimo exigido pelo programa (estudantes ativos, atividade na plataforma e participação quando convocado)</li>
-            <li>Professor, educador ou gestor vinculado a uma instituição de ensino</li>
+            <li>Professor, educador ou gestor disposto a mobilizar sua turma</li>
           </ul>
           <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-professores1">Quero participar como educador</a>
         </div>
@@ -851,7 +861,7 @@
         </details>
         <details class="faq-item">
           <summary>Quem pode participar como estudante?<span></span></summary>
-          <div class="a">Estudantes a partir de 14 anos, vinculados a uma instituição de ensino. Professores, educadores e gestores entram como multiplicadores.</div>
+          <div class="a">Estudantes a partir de 14 anos. Professores, educadores e gestores entram como multiplicadores.</div>
         </details>
       </div>
       <div style="text-align:center; margin-top:26px;">
