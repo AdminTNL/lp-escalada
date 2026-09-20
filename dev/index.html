@@ -257,16 +257,16 @@
   .ps-lb-head .prize{font-family:var(--mono); font-size:10px; color:var(--verde-claro); transition:opacity .3s ease;}
   .ps-lb-viewport{
     height:230px; overflow:hidden; position:relative;
-    -webkit-mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
-    mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
+    -webkit-mask-image:linear-gradient(180deg, #000 88%, transparent 100%);
+    mask-image:linear-gradient(180deg, #000 88%, transparent 100%);
   }
   /* enquanto a camera esta afastada do 1o lugar (Você subindo do 20o), o
      topo tambem esvanece -- sinaliza que aquilo e' uma janela dentro de uma
      lista maior, nao o topo real do ranking. Some de novo (volta pro fade
      so' embaixo) assim que ela chega ao 1o, pra nao cortar a propria linha */
   .ps-lb-viewport.panned{
-    -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent 100%);
-    mask-image:linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent 100%);
+    -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    mask-image:linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
   }
   .ps-lb-track{display:flex; flex-direction:column; gap:7px; will-change:transform;}
   @media (prefers-reduced-motion:no-preference){
@@ -1223,7 +1223,11 @@
     var rowH = meRow.offsetHeight;
     var vpH = viewport.clientHeight;
     var trackH = track.scrollHeight;
-    var anchor = vpH * 0.6;
+    // 0.5 (nao' 0.6) de proposito -- da' mais folga da linha ate' a mascara
+    // de desfoque do rodape do viewport (comeca em 88% da altura dele, ver
+    // .ps-lb-viewport), pra "Você" nunca aparecer meio apagada logo que
+    // entra no rank, mesmo vindo do 20o lugar (a linha mais perto do fundo)
+    var anchor = vpH * 0.5;
     var target = anchor - (rowTop + rowH / 2);
     var minShift = Math.min(0, vpH - trackH);
     target = Math.max(minShift, Math.min(0, target));
@@ -1714,12 +1718,13 @@
       return;
     }
 
-    if(hookTop) setTimeout(function(){ hookTop.classList.add('in'); }, 150);
-    if(hookBottom) setTimeout(function(){ hookBottom.classList.add('in'); }, 650);
-
     var rows = track.children;
     var pointsState = Array.prototype.map.call(rows, function(r){ return parsePt(r.querySelector('.pt').textContent); });
-    panCamera(); // "Você" comeca perto do 20o lugar -- centraliza a camera nela antes de tudo
+    // instant=true e' essencial aqui: sem isso a camera ANIMA (.55s) da
+    // posicao padrao (topo do rank) ate' a posicao de "Você" assim que a
+    // pagina carrega -- ela parece "subir vindo do fundo, desfocada" pela
+    // mascara em vez de ja' aparecer no lugar certo desde o 1o frame
+    panCamera(true); // "Você" comeca perto do 20o lugar -- centraliza a camera nela antes de tudo
 
     var skipped = false;
     var timers = [];
@@ -1739,25 +1744,35 @@
     var skipBtn = document.getElementById('hero-skip-anim');
     if(skipBtn) skipBtn.addEventListener('click', skip);
 
+    // fase 1, sozinha na tela: os dois ganchos ("e' um jogo" / "voce
+    // consegue chegar no topo?") aparecem, seguram por um instante e saem
+    // de novo -- so' DEPOIS deles sumirem de vez e' que a acao (blocos de
+    // atividade + subida no rank) comeca. Nunca sobrepoe os dois momentos.
+    if(hookTop) t(function(){ hookTop.classList.add('in'); }, 150);
+    if(hookBottom) t(function(){ hookBottom.classList.add('in'); }, 650);
     t(function(){
-      runNarrativa(pointsState, t, function(){
-        t(function(){
-          runRolagem(pointsState, t, function(){
-            burstConfetti();
-            t(function(){
-              fadeText(lblEl, 'Top 1 do ranking!');
-              fadeCaption('Chegou ao topo!');
-              showActivity('gameshow', t, function(){
-                t(function(){
-                  viewport.removeEventListener('click', skip);
-                  finalState();
-                }, 200);
-              });
-            }, 180);
-          });
-        }, 140);
-      });
-    }, 300);
+      if(hookTop) hookTop.classList.remove('in');
+      if(hookBottom) hookBottom.classList.remove('in');
+      t(function(){
+        runNarrativa(pointsState, t, function(){
+          t(function(){
+            runRolagem(pointsState, t, function(){
+              burstConfetti();
+              t(function(){
+                fadeText(lblEl, 'Top 1 do ranking!');
+                fadeCaption('Chegou ao topo!');
+                showActivity('gameshow', t, function(){
+                  t(function(){
+                    viewport.removeEventListener('click', skip);
+                    finalState();
+                  }, 200);
+                });
+              }, 180);
+            });
+          }, 140);
+        });
+      }, 470); // espera o fade-out dos ganchos terminar (.45s + folga)
+    }, 1650); // hookBottom aparece aos 650ms, segura 1s na tela -> soma 1650ms
   }
 
   if('IntersectionObserver' in window){
