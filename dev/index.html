@@ -145,8 +145,7 @@
   .hero-ctas{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:26px;}
   .hero-ctas .sec{color:rgba(255,255,255,.72); font-size:13.5px; text-decoration:underline; text-underline-offset:3px;}
   .hero-facts{display:flex; flex-wrap:wrap; gap:22px;}
-  .hero-fact{display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,.78);}
-  .hero-fact .ic{width:16px; height:16px; flex:none;}
+  .hero-fact{font-size:13px; color:rgba(255,255,255,.78);}
 
   #hero .wrap{display:flex; flex-direction:column;}
   @media (min-width:960px){ #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;} }
@@ -225,10 +224,6 @@
     .ps-lb-row .pt{font-size:13px;}
     .ps-lb-row .av{width:32px; height:32px; font-size:11px;}
   }
-
-  .rc-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
-  .rc-header .rank{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--verde-claro); text-transform:uppercase;}
-  .rc-header .streak{font-family:var(--mono); font-size:13px; color:#fff; display:flex; gap:5px; align-items:center;}
 
   .ps-lb-head{margin:0 0 10px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
   .ps-lb-head .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.85); transition:opacity .3s ease;}
@@ -517,10 +512,6 @@
   .quote-card .qname{font-size:13px; font-weight:700; color:var(--ink);}
   .quote-card .qtag{font-family:var(--mono); font-size:10.5px; color:var(--ink-faint);}
   .quote-card blockquote{margin:0; font-size:14.5px; line-height:1.5; color:var(--ink);}
-  #mecanica .quote-card, #hero .quote-card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);}
-  #mecanica .quote-card .qname, #hero .quote-card .qname{color:#fff;}
-  #mecanica .quote-card .qtag, #hero .quote-card .qtag{color:rgba(255,255,255,.5);}
-  #mecanica .quote-card blockquote, #hero .quote-card blockquote{color:rgba(255,255,255,.9);}
 
   /* comunidade -- lavagem de magenta, casa com o eyebrow da secao */
   #comunidade{background:#FAE1F5;}
@@ -752,20 +743,17 @@
             <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
           </div>
           <div class="hero-facts">
-            <span class="hero-fact"><span aria-hidden="true">✓</span> 100% gratuito</span>
-            <span class="hero-fact"><span aria-hidden="true">✓</span> direto do celular</span>
-            <span class="hero-fact"><span aria-hidden="true">✓</span> ranking recomeça todo mês</span>
+            <span class="hero-fact">100% gratuito</span>
+            <span class="hero-fact">direto do celular</span>
+            <span class="hero-fact">ranking recomeça todo mês</span>
           </div>
         </div>
       </div>
       <div class="hero-rank-zone">
         <p class="hero-hook" id="hero-hook-top">O <em>Escalada</em> é um jogo.</p>
         <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada.">
-          <div class="rc-header" aria-hidden="true">
-            <span class="rank">Ranking mensal · exemplo</span>
-          </div>
           <div class="ps-lb-head" aria-hidden="true">
-            <span class="lbl" id="lb-lbl">Top do mês</span>
+            <span class="lbl" id="lb-lbl">Top do mês · exemplo</span>
             <span class="prize" id="lb-prize"><span aria-hidden="true">🏆</span> vaga no GameShow</span>
           </div>
           <div class="ps-lb-viewport" id="lb-viewport" aria-hidden="true">
@@ -874,7 +862,7 @@
         </div>
         <div class="degrau" style="--i:4;">
           <div class="n">05</div>
-          <div><h3>Líder Escalada</h3><span class="faixa">2.200+ pontos</span><p>Topo da escada: o nível máximo da trilha, com certificação Líder Escalada.</p></div>
+          <div><h3>Líder Escalada</h3><span class="faixa">2.200+ pontos</span><p>Topo da escada: o nível máximo da trilha, com o Selo Escalada, o reconhecimento de quem completa a jornada.</p></div>
         </div>
       </div>
       <div class="quote-card reveal">
@@ -914,13 +902,6 @@
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
         <p><strong>O sistema audita contra manipulação de pontos.</strong> Clique repetido sem propósito, comportamento de robô e outras condutas vedadas são detectados e a pontuação pode ser revertida. Quem está no topo do ranking chegou lá fazendo a trilha.</p>
       </div>
-      <div class="quote-card reveal">
-        <div class="qav" style="background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;" aria-hidden="true">EE</div>
-        <div>
-          <div class="qhead"><span class="qname">Estudante Escalada</span><span class="qtag">· comentário na comunidade</span></div>
-          <blockquote>2.000 pontos já estão logo ali! Mas o mais importante é que cada ponto representa uma participação, uma interação e um aprendizado. Bora buscar essa conquista!</blockquote>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -935,14 +916,7 @@
         <div class="passo reveal"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido.</p></div>
         <div class="passo reveal"><div class="idx">02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender, no seu tempo.</p></div>
         <div class="passo reveal"><div class="idx">03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
-        <div class="passo reveal"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Desafios mensais e prêmios: a final ao vivo do GameShow pro estudante, o voucher mensal pro educador.</p></div>
-      </div>
-      <div class="quote-card reveal">
-        <div class="qav" style="background:linear-gradient(135deg,var(--magenta),var(--magenta-claro));" aria-hidden="true">EE</div>
-        <div>
-          <div class="qhead"><span class="qname">Estudante Escalada</span><span class="qtag">· comentário na comunidade</span></div>
-          <blockquote>A linha de chegada mudou, então não dá pra vacilar na base agora. É a hora de gastar toda a energia que restou pra garantir a vaga no pódio e fechar com chave de ouro no GameShow Escalada!</blockquote>
-        </div>
+        <div class="passo reveal"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Desafios mensais e prêmios: o GameShow mensal ao vivo pro estudante, o voucher mensal pro educador.</p></div>
       </div>
     </div>
   </section>
@@ -957,8 +931,8 @@
       <div class="comunidade-grid">
         <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--azul);">As trilhas</span>
-          <h3>Trilhas com nome e tema</h3>
-          <p><strong>Começa por você</strong> e <strong>Modo protagonista</strong> passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, em módulos curtos que você conclui no seu tempo.</p>
+          <h3>Começa por você e Modo protagonista</h3>
+          <p>As duas trilhas passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, em módulos curtos que você conclui no seu tempo.</p>
         </div>
         <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--magenta-texto);">O clube da comunidade</span>
@@ -1528,14 +1502,14 @@
   }
 
   function finalState(){
-    fadeText(lblEl, 'Top 20 do mês');
+    fadeText(lblEl, 'Top 20 do mês · exemplo');
     if(hero) hero.classList.add('settled');
   }
 
   function run(){
     if(reduced){
       resolverRankingFinal();
-      lblEl.textContent = 'Top 20 do mês';
+      lblEl.textContent = 'Top 20 do mês · exemplo';
       if(hookTop) hookTop.classList.add('in');
       if(hookBottom) hookBottom.classList.add('in');
       if(hero) hero.classList.add('settled');
@@ -1559,7 +1533,7 @@
       timers.forEach(clearTimeout);
       viewport.removeEventListener('click', skip);
       resolverRankingFinal(); // forca "Você" no 1o lugar de verdade, nao so' o texto ao redor
-      lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
+      lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês · exemplo';
       if(hero) hero.classList.add('settled');
     }
     viewport.addEventListener('click', skip);
