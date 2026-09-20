@@ -157,10 +157,12 @@
     margin:0; text-align:center; max-width:300px;
     font-family:var(--display); font-weight:700; font-size:16px; line-height:1.35; color:#fff;
     opacity:0; transform:translateY(8px);
-    transition:opacity .45s ease, transform .45s cubic-bezier(.16,1,.3,1);
   }
   .hero-hook.in{opacity:1; transform:translateY(0);}
   .hero-hook em{font-style:normal; color:var(--verde-claro);}
+  @media (prefers-reduced-motion:no-preference){
+    .hero-hook{transition:opacity .45s ease, transform .45s cubic-bezier(.16,1,.3,1);}
+  }
 
   @media (min-width:960px){
     .hero-teaser{display:none;}
@@ -292,7 +294,7 @@
      todas as cores, deixando o ultimo degrau sem cor nenhuma */
   /* verde e magenta sao claros demais pro branco manter 4.5:1 (WCAG) --
      esses dois badges usam texto escuro em vez de branco */
-  .degrau:nth-of-type(1) .n{background:linear-gradient(135deg,#8A8FB0,#4D5280);}
+  .degrau:nth-of-type(1) .n{background:linear-gradient(135deg,#6A6F90,#4D5280);}
   .degrau:nth-of-type(2) .n{background:linear-gradient(135deg,#2A4FDA,#1A3AAD);}
   .degrau:nth-of-type(3) .n{background:linear-gradient(135deg,#00D95C,#00FF85); color:var(--ink);}
   .degrau:nth-of-type(4) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF); color:var(--ink);}
@@ -427,8 +429,8 @@
   /* footer */
   footer{background:var(--navy); color:rgba(255,255,255,.55); padding:36px 0 100px; font-size:13px;}
   footer .wrap{display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:center;}
-  footer nav{display:flex; gap:18px;}
-  footer a{text-decoration:none; color:rgba(255,255,255,.65);}
+  footer nav{display:flex; gap:8px;}
+  footer a{text-decoration:none; color:rgba(255,255,255,.65); padding:10px 8px; display:inline-block;}
 
   /* cta sticky mobile */
   #sticky-cta{
@@ -598,10 +600,10 @@
         </div>
       </div>
       <div class="hero-rank-zone">
-        <p class="hero-hook" id="hero-hook-top">Você consegue se manter no rank?</p>
+        <p class="hero-hook" id="hero-hook-top">Quer aparecer nesse ranking?</p>
         <div class="rank-card" id="rank-card">
           <div class="rc-header">
-            <span class="rank">Ranking mensal</span>
+            <span class="rank">Ranking mensal · exemplo</span>
             <span class="streak">🔥 em andamento</span>
           </div>
           <div class="ps-lb-head">
@@ -1213,14 +1215,14 @@
 
   function finalState(){
     fadeText(lblEl, 'Top 20 do mês');
-    fadeText(prizeEl, '🏆 vaga garantida no GameShow');
+    fadeText(prizeEl, '🏆 vaga no GameShow');
     if(hero) hero.classList.add('settled');
   }
 
   function run(){
     if(reduced){
       lblEl.textContent = 'Top 20 do mês';
-      prizeEl.textContent = '🏆 vaga garantida no GameShow';
+      prizeEl.textContent = '🏆 vaga no GameShow';
       if(hookTop) hookTop.classList.add('in');
       if(hookBottom) hookBottom.classList.add('in');
       if(hero) hero.classList.add('settled');
@@ -1243,7 +1245,7 @@
       timers.forEach(clearTimeout);
       viewport.removeEventListener('click', skip);
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
-      prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vaga garantida no GameShow';
+      prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vaga no GameShow';
       if(hero) hero.classList.add('settled');
     }
     viewport.addEventListener('click', skip);
