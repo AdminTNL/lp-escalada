@@ -166,8 +166,13 @@
   /* no mobile o card de ranking ja' e' a primeira coisa animada da pagina --
      um segundo gancho retorico ("quer aparecer nesse ranking?") empilhado
      logo acima dele so' repetia a pergunta do headline e empurrava o card
-     pra baixo o suficiente pra ficar atras da barra fixa de CTA no rodape */
-  #hero-hook-top{display:none;}
+     pra baixo o suficiente pra ficar atras da barra fixa de CTA no rodape.
+     o gancho de fechamento (abaixo do card) tinha o mesmo problema -- a
+     ultima linha ficava atras da barra fixa (confirmado por medicao real,
+     ~22px de sobreposicao) -- e agora a secao "testa a mecanica" logo
+     depois do hero faz essa mesma promessa de forma concreta, entao o
+     texto ficou redundante alem de quebrado */
+  #hero-hook-top, #hero-hook-bottom{display:none;}
   .hero-hook.in{opacity:1; transform:translateY(0);}
   .hero-hook em{font-style:normal; color:var(--verde-claro);}
   @media (prefers-reduced-motion:no-preference){
@@ -247,6 +252,49 @@
   .section-head h2{font-size:clamp(26px,3.4vw,36px);}
   .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
 
+  /* teste jogavel -- prova concreta da mecanica antes de qualquer cadastro.
+     tom lavanda/indigo novo (nao repete verde/azul/magenta ja usados nas
+     outras lavagens), pra nao quebrar a alternancia clara/escura entre
+     secoes nem repetir uma cor ja vista */
+  #teste{background:#E9E7FB;}
+  #teste .section-head .eyebrow{color:var(--azul);}
+  .teste-card{
+    max-width:560px; margin:0 auto;
+    background:var(--papel-raised); border-radius:24px; padding:28px 26px 26px; box-shadow:var(--shadow);
+  }
+  .teste-progress{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint); margin-bottom:16px;
+  }
+  .teste-total strong{color:var(--verde-texto); font-size:14px;}
+  .teste-track{display:flex; gap:4px; margin-bottom:24px;}
+  .teste-track span{flex:1; height:4px; border-radius:2px; background:rgba(10,15,54,.1);}
+  .teste-track span.done{background:var(--verde);}
+  .teste-q h3{font-size:18.5px; line-height:1.4; margin-bottom:18px;}
+  .teste-opcoes{display:flex; flex-direction:column; gap:10px;}
+  .teste-opcao{
+    text-align:left; width:100%; padding:14px 16px; border-radius:14px;
+    border:1.5px solid rgba(10,15,54,.14); background:none;
+    font-family:var(--body); font-size:14.5px; color:var(--ink); line-height:1.4;
+    cursor:pointer;
+  }
+  .teste-opcao:disabled{cursor:default; opacity:.55;}
+  .teste-opcao.picked{border-color:var(--verde); background:rgba(0,217,92,.08); opacity:1;}
+  @media (hover:hover){
+    .teste-opcao{transition:border-color .2s ease, background .2s ease;}
+    .teste-opcao:hover:not(:disabled){border-color:var(--azul); background:rgba(42,79,218,.06);}
+  }
+  .teste-feedback{
+    display:flex; align-items:center; gap:8px; margin-top:16px;
+    font-size:13.5px; color:var(--verde-texto); font-weight:600;
+  }
+  .teste-final{text-align:center; padding:8px 0;}
+  .teste-final .pts-grande{
+    font-family:var(--mono); font-weight:700; color:var(--verde-texto);
+    font-size:44px; display:block; margin-bottom:6px;
+  }
+  .teste-final p{color:var(--ink-soft); font-size:14.5px; margin-bottom:20px;}
+
   /* estudante vs professor -- leve lavagem de verde pra sair do branco corrido */
   #publicos{background:#DFF6E9;}
   .publicos-grid{display:grid; grid-template-columns:1fr; gap:16px;}
@@ -293,6 +341,12 @@
     display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
     background:var(--papel-raised); border-radius:20px; padding:22px 24px; box-shadow:var(--shadow);
     position:relative;
+    /* resquicio de cascata mesmo no mobile (viewport estreito nao aguenta
+       os 28px/degrau do desktop sem risco de sobra horizontal apertada,
+       mas zero indentacao fazia a secao que literalmente se chama "a
+       escada" virar uma lista plana igual a qualquer outra, justo no
+       dispositivo do publico prioritario) */
+    margin-left:calc(var(--i, 0) * 10px);
   }
   .degrau .n{
     font-family:var(--display); font-size:15px; font-weight:700; color:#fff;
@@ -605,7 +659,7 @@
       </div>
       <div class="hero-rank-zone">
         <p class="hero-hook" id="hero-hook-top">Quer aparecer nesse ranking?</p>
-        <div class="rank-card" id="rank-card">
+        <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada. É assim que pontos reais movem sua posição de verdade.">
           <div class="rc-header">
             <span class="rank">Ranking mensal · exemplo</span>
             <span class="streak">🔥 em andamento</span>
@@ -640,6 +694,24 @@
           </div>
         </div>
         <p class="hero-hook" id="hero-hook-bottom">Ponto por ponto, sua posição <em>muda de verdade</em>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="teste">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Teste rápido · sem cadastro</span>
+        <h2>Antes de entrar, joga uma rodada.</h2>
+        <p>3 decisões rápidas. Pontos reais, na régua oficial do Escalada — só que sem compromisso nenhum.</p>
+      </div>
+      <div class="teste-card reveal" id="teste-card">
+        <div class="teste-progress">
+          <span id="teste-step-label">Missão 1 de 3</span>
+          <span class="teste-total" aria-live="polite">Seu placar: <strong id="teste-total-pt">0</strong> pts</span>
+        </div>
+        <div class="teste-track" id="teste-track" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div id="teste-body"></div>
       </div>
     </div>
   </section>
@@ -767,7 +839,7 @@
         <div class="pontos-item"><span class="ac">Cumprir missão especial</span><span class="pv">+15</span><span class="bar" style="width:25%;"></span></div>
         <div class="pontos-item"><span class="ac">Cumprir missão semanal</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
         <div class="pontos-item"><span class="ac">Indicar um novo membro</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
-        <div class="pontos-item"><span class="ac">Manter sequência diária<span style="color:var(--ink-faint); font-size:11px; display:block;">+ bônus a cada 7 dias</span></span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
+        <div class="pontos-item"><span class="ac">Manter sequência diária<span style="color:var(--ink-faint); font-size:11px; display:block;">2 comentários de 20+ caracteres em publicações distintas · bônus a cada 7 dias seguidos</span></span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
         <div class="pontos-item"><span class="ac">Fazer uma publicação na comunidade</span><span class="pv">+5</span><span class="bar" style="width:8.3%;"></span></div>
       </div>
       <div class="integridade-box reveal">
@@ -1475,6 +1547,125 @@
 
   btnMobile.addEventListener('click', showMobile);
   btnDesktop.addEventListener('click', showDesktop);
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var root = document.getElementById('teste-card');
+  if(!root) return;
+  var body = document.getElementById('teste-body');
+  var stepLbl = document.getElementById('teste-step-label');
+  var totalEl = document.getElementById('teste-total-pt');
+  var trackEl = document.getElementById('teste-track');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // pontos batem com a regua real (#pontuacao): quiz +15, missao +15, streak +10
+  var QUESTOES = [
+    {
+      texto: 'Sua ideia de negócio não está vendendo como esperado. Primeiro passo?',
+      opcoes: [
+        'Testo com 5 pessoas reais e ouço o feedback',
+        'Baixo o preço até alguém comprar',
+        'Insisto do jeito que já está, sem mudar nada'
+      ],
+      feedback: 'Testar antes de insistir é a base de qualquer trilha do Escalada.',
+      pts: 15
+    },
+    {
+      texto: 'Um colega da turma trava numa etapa da trilha. Você...?',
+      opcoes: [
+        'Mando uma dica no grupo da comunidade',
+        'Deixo que ele resolva sozinho',
+        'Faço por ele pra adiantar'
+      ],
+      feedback: 'Ajudar quem trava é o tipo de missão que mais soma na comunidade.',
+      pts: 15
+    },
+    {
+      texto: 'Você tem 10 minutos livres entre uma aula e outra. O que rende mais pro seu ranking?',
+      opcoes: [
+        'Completo um quiz rápido da trilha',
+        'Só dou uma olhada e deixo pra depois',
+        'Fico rolando o feed'
+      ],
+      feedback: 'Constância é o que mantém sua sequência diária viva.',
+      pts: 10
+    }
+  ];
+
+  var idx = 0;
+  var total = 0;
+  var answered = false;
+
+  function renderTrack(){
+    trackEl.innerHTML = '';
+    QUESTOES.forEach(function(_, i){
+      var s = document.createElement('span');
+      if(i < idx) s.className = 'done';
+      trackEl.appendChild(s);
+    });
+  }
+
+  function countTo(el, from, to, ms){
+    if(reduced){ el.textContent = to; return; }
+    var start = null;
+    function step(ts){
+      if(!start) start = ts;
+      var p = Math.min(1, (ts - start) / ms);
+      el.textContent = Math.round(from + (to - from) * p);
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function renderQuestion(){
+    answered = false;
+    stepLbl.textContent = 'Missão ' + (idx + 1) + ' de ' + QUESTOES.length;
+    renderTrack();
+    var q = QUESTOES[idx];
+    var html = '<div class="teste-q"><h3>' + q.texto + '</h3><div class="teste-opcoes" role="group" aria-label="Escolha uma resposta">';
+    q.opcoes.forEach(function(op, i){
+      html += '<button type="button" class="teste-opcao" data-i="' + i + '">' + op + '</button>';
+    });
+    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;">✓ ' + q.feedback + ' <strong>+' + q.pts + ' pts</strong></div></div>';
+    body.innerHTML = html;
+    Array.prototype.forEach.call(body.querySelectorAll('.teste-opcao'), function(btn){
+      btn.addEventListener('click', onPick);
+    });
+  }
+
+  function onPick(e){
+    if(answered) return;
+    answered = true;
+    var q = QUESTOES[idx];
+    Array.prototype.forEach.call(body.querySelectorAll('.teste-opcao'), function(b){ b.disabled = true; });
+    e.currentTarget.classList.add('picked');
+    var fb = document.getElementById('teste-feedback');
+    if(fb) fb.style.visibility = 'visible';
+    var newTotal = total + q.pts;
+    countTo(totalEl, total, newTotal, 500);
+    total = newTotal;
+    setTimeout(function(){
+      idx++;
+      if(idx < QUESTOES.length){ renderQuestion(); }
+      else { renderFinal(); }
+    }, reduced ? 250 : 1100);
+  }
+
+  function renderFinal(){
+    renderTrack();
+    stepLbl.textContent = 'Resultado';
+    body.innerHTML =
+      '<div class="teste-final">' +
+        '<span class="pts-grande">+' + total + '</span>' +
+        '<p>pontos reais, na régua oficial do Escalada — sem nenhum cadastro ainda.</p>' +
+        '<a class="btn btn-primario" href="#publicos">Continuar de verdade →</a>' +
+      '</div>';
+  }
+
+  renderQuestion();
 })();
 </script>
 
