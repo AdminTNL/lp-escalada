@@ -1068,37 +1068,41 @@
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    var originRect = (rankCard || viewport).getBoundingClientRect();
+    // ancora na linha do 1o lugar de verdade (nao so' no topo do card) --
+    // o burst nasce onde "Você" acabou de virar líder, nao de um ponto
+    // fixo qualquer do card
+    var firstRow = track.children[0];
+    var originRect = (firstRow || rankCard || viewport).getBoundingClientRect();
     var originX = originRect.left + originRect.width / 2;
-    var originY = originRect.top - 24;
+    var originY = originRect.top;
 
     var colors = ['#00D95C', '#00FF85', '#FF00FF', '#FF76FF', '#00F9FF', '#2A4FDA', '#FFD84D'];
     var particles = [];
-    var N = 90;
+    var N = 130;
     for(var i = 0; i < N; i++){
-      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.7;
-      var speed = 420 + Math.random() * 540; // px/s
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.8;
+      var speed = 480 + Math.random() * 620; // px/s
       particles.push({
-        x: originX + (Math.random() - 0.5) * 50,
+        x: originX + (Math.random() - 0.5) * Math.min(originRect.width, 220),
         y: originY,
         vx: Math.cos(a) * speed,
         vy: Math.sin(a) * speed,
-        size: 5 + Math.random() * 5,
+        size: 5 + Math.random() * 6,
         color: colors[(Math.random() * colors.length) | 0],
         rot: Math.random() * Math.PI * 2,
         vrot: (Math.random() - 0.5) * 3, // rad/s
         shape: Math.random() < 0.5 ? 'rect' : 'circle',
         life: 1,
-        decayPerSec: 0.42 + Math.random() * 0.42
+        decayPerSec: 0.32 + Math.random() * 0.32
       });
     }
-    var gravity = 1500; // px/s^2
-    var dragPerSec = 1.1; // fator exponencial de arrasto
+    var gravity = 1400; // px/s^2
+    var dragPerSec = 1.0; // fator exponencial de arrasto
 
     // burst rapido e contido tipo level-up -- teto de duracao em tempo REAL
     // (nao em frames) pra nunca virar uma garoa que atravessa a pagina
     // inteira, mesmo se a aba estiver com rAF throttled em segundo plano.
-    var MAX_DURATION = 2600;
+    var MAX_DURATION = 3200;
     var startTs = null, lastTs = null;
 
     function frame(ts){
@@ -1160,7 +1164,11 @@
       ptEl.textContent = formatPt(Math.round(fromVal + (toVal - fromVal) * p));
       if(p < 1){ requestAnimationFrame(step); }
       else {
-        setTimeout(function(){ row.classList.remove('ganhando'); if(onDone) onDone(); }, 160);
+        // o reorder dispara JA' no frame em que o numero final aparece --
+        // atrasar isso (mesmo so' pra tirar o glow) deixava uma janela
+        // real onde o numero ja' e' maior mas a linha ainda nao' subiu
+        if(onDone) onDone();
+        setTimeout(function(){ row.classList.remove('ganhando'); }, 160);
       }
     }
     requestAnimationFrame(step);
