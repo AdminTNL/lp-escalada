@@ -197,7 +197,7 @@
   .ps-lb-row.me{background:rgba(0,217,92,.16); border:1px solid rgba(0,217,92,.4);}
   .ps-lb-row.ganhando{background:rgba(0,255,133,.14);}
   .ps-lb-row.ganhando .pt{color:var(--verde-claro); text-shadow:0 0 10px rgba(0,255,133,.85); transition:color .15s ease, text-shadow .15s ease;}
-  .ps-lb-row .pos{font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums; transition:color .3s ease;}
+  .ps-lb-row .pos{font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.85); text-align:center; font-variant-numeric:tabular-nums; transition:color .3s ease;}
   .ps-lb-row.p1 .pos{color:#FFD84D;}
   .ps-lb-row .av{
     width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -206,7 +206,7 @@
   }
   .ps-lb-row.me .av{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
   .ps-lb-row .nm{font-size:13px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums; transition:color .3s ease, text-shadow .3s ease;}
+  .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.85); font-variant-numeric:tabular-nums; transition:color .3s ease, text-shadow .3s ease;}
 
   /* confete de clímax -- canvas full-viewport, so' desenha durante o burst */
   #confetti-canvas{position:fixed; inset:0; z-index:9500; pointer-events:none;}
@@ -270,11 +270,14 @@
     width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;
     flex:none;
   }
-  .degrau:nth-child(1) .n{background:linear-gradient(135deg,#8A8FB0,#4D5280);}
-  .degrau:nth-child(2) .n{background:linear-gradient(135deg,#2A4FDA,#00F9FF);}
-  .degrau:nth-child(3) .n{background:linear-gradient(135deg,#00D95C,#00FF85);}
-  .degrau:nth-child(4) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF);}
-  .degrau:nth-child(5) .n{background:linear-gradient(135deg,#0A0F36,#2A4FDA);}
+  /* nth-of-type (nao nth-child) porque o JS da trilha insere um <svg> como
+     primeiro filho de .escada -- nth-child contaria esse svg e desalinharia
+     todas as cores, deixando o ultimo degrau sem cor nenhuma */
+  .degrau:nth-of-type(1) .n{background:linear-gradient(135deg,#8A8FB0,#4D5280);}
+  .degrau:nth-of-type(2) .n{background:linear-gradient(135deg,#2A4FDA,#00F9FF);}
+  .degrau:nth-of-type(3) .n{background:linear-gradient(135deg,#00D95C,#00FF85);}
+  .degrau:nth-of-type(4) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF);}
+  .degrau:nth-of-type(5) .n{background:linear-gradient(135deg,#0A0F36,#2A4FDA);}
   .degrau h3{font-size:17px; margin-bottom:2px;}
   .degrau .faixa{font-family:var(--mono); font-size:11px; color:var(--ink-faint); display:block; margin-bottom:6px;}
   .degrau p{font-size:14px; color:var(--ink-soft); margin:0;}
@@ -682,15 +685,15 @@
         </div>
         <div class="degrau" style="--i:2;">
           <div class="n">03</div>
-          <div><h3>Protagonista</h3><span class="faixa">500 – 999 pontos</span><p>Webinares exclusivos e missões em grupo desbloqueados.</p></div>
+          <div><h3>Protagonista</h3><span class="faixa">500 – 999 pontos</span><p>Missões semanais e emblema de contribuição comunitária desbloqueados.</p></div>
         </div>
         <div class="degrau" style="--i:3;">
           <div class="n">04</div>
-          <div><h3>Transformador</h3><span class="faixa">1.000 – 2.199 pontos</span><p>Elegível a mentorias e aos desafios mensais com premiação.</p></div>
+          <div><h3>Transformador</h3><span class="faixa">1.000 – 2.199 pontos</span><p>Comunidade exclusiva com mentores e maior visibilidade nos rankings.</p></div>
         </div>
         <div class="degrau" style="--i:4;">
           <div class="n">05</div>
-          <div><h3>Líder Escalada</h3><span class="faixa">2.200+ pontos</span><p>Topo da escada: certificação e caminho pro GameShow.</p></div>
+          <div><h3>Líder Escalada</h3><span class="faixa">2.200+ pontos</span><p>Topo da escada: certificação Líder Escalada, o reconhecimento máximo da trilha.</p></div>
         </div>
       </div>
       <div class="quote-card reveal">
