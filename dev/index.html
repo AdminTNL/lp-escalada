@@ -1776,6 +1776,9 @@
     });
   }
 
+  var publicosSection = document.getElementById('publicos');
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function escolher(pub){
     var info = PUBLICOS[pub];
     if(!info) return;
@@ -1785,6 +1788,12 @@
     Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){
       btn.classList.toggle('ativo', btn.getAttribute('data-pub') === pub);
     });
+    // a escolha muda os cards de "Escolha seu caminho" (mais abaixo, depois
+    // do teste jogavel) -- sem rolar ate' la', a pessoa clica e nao ve nada
+    // acontecer na propria viewport, o que parece um botao quebrado
+    if(publicosSection){
+      publicosSection.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+    }
   }
 
   function montarPicker(){
