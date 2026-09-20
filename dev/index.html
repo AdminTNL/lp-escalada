@@ -229,7 +229,7 @@
   .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
 
   /* estudante vs professor -- leve lavagem de verde pra sair do branco corrido */
-  #publicos{background:#F1FAF5;}
+  #publicos{background:#DFF6E9;}
   .publicos-grid{display:grid; grid-template-columns:1fr; gap:16px;}
   @media (min-width:760px){ .publicos-grid{grid-template-columns:1fr 1fr;} }
   .publico-card{
@@ -267,7 +267,7 @@
   .fato-card p{font-size:14px; color:var(--ink-soft); margin:0;}
 
   /* escada de ranks - elemento assinatura */
-  #jornada{background:#F0F3FC;}
+  #jornada{background:#DCE7FA;}
   .escada{position:relative; display:flex; flex-direction:column; gap:14px; margin-top:36px;}
   .escada-trilha{position:absolute; top:0; left:0; z-index:0; pointer-events:none;}
   .degrau{
@@ -326,8 +326,6 @@
   .pontos-item:nth-child(8) .bar{transition-delay:.44s;}
   .pontos-item:nth-child(9) .bar{transition-delay:.50s;}
   .pontos-item:nth-child(10) .bar{transition-delay:.56s;}
-  .pontos-item:nth-child(11) .bar{transition-delay:.62s;}
-  .pontos-item:nth-child(12) .bar{transition-delay:.68s;}
   .integridade-box{
     display:flex; gap:14px; align-items:flex-start; margin-top:24px; padding:20px 22px;
     background:var(--papel); border-radius:16px;
@@ -357,7 +355,7 @@
   #mecanica .quote-card blockquote, #hero .quote-card blockquote{color:rgba(255,255,255,.9);}
 
   /* comunidade -- lavagem de magenta, casa com o eyebrow da secao */
-  #comunidade{background:#FBF1FA;}
+  #comunidade{background:#FAE1F5;}
   .comunidade-grid{display:grid; grid-template-columns:1fr; gap:16px;}
   @media (min-width:760px){ .comunidade-grid{grid-template-columns:1fr 1fr;} }
   .comunidade-card{background:var(--papel-raised); border-radius:20px; padding:26px 24px; box-shadow:var(--shadow);}
@@ -436,6 +434,10 @@
   @media (prefers-reduced-motion:no-preference){
     .reveal{opacity:0; transform:translateY(14px); animation:rise .7s cubic-bezier(.16,1,.3,1) forwards; animation-play-state:paused;}
     .reveal.in{animation-play-state:running;}
+    /* solta a animacao assim que ela termina -- senao o "forwards" prende
+       a propriedade transform pra sempre e nenhum :hover{transform:...}
+       consegue fazer efeito depois */
+    .reveal.reveal-settled{animation:none;}
   }
   @keyframes rise{to{opacity:1; transform:translateY(0);}}
 
@@ -578,7 +580,7 @@
         <div class="hero-teaser">
           <div class="eyebrow hero-eyebrow"><span class="dot"></span>Escalada Sebrae · grátis · 14+ e professores</div>
           <h2 class="hero-teaser-h1">Quer concorrer a um <em>prêmio incrível</em>?</h2>
-          <p class="hero-teaser-sub">Os melhores do mês disputam o GameShow Escalada ao vivo, com prêmios como smartphone. É só entrar e disputar.</p>
+          <p class="hero-teaser-sub">Cumpra trilhas e missões, suba no ranking e dispute o GameShow Escalada ao vivo — com prêmios como smartphone pra quem vence.</p>
         </div>
       </div>
       <div class="hero-rank-zone">
@@ -645,7 +647,7 @@
           <ul>
             <li>Trilha própria (com quizzes e artigos) pra você também evoluir</li>
             <li>Pontua por estudante ativo vinculado, por atividade válida deles e pela sua própria sequência diária</li>
-            <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês — e repete o prêmio se continuar em 1º, por até 3 meses seguidos</li>
+            <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês, por até 3 meses seguidos — basta manter pelo menos 10 estudantes ativos e atividade na plataforma no período</li>
             <li>Professor, educador ou gestor vinculado a uma instituição de ensino</li>
           </ul>
           <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-professores1">Quero participar como educador</a>
@@ -669,7 +671,7 @@
         <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FFD84D" stroke-width="1.6" aria-hidden="true"><path d="M2 9a3 3 0 010 6v2a2 2 0 002 2h16a2 2 0 002-2v-2a3 3 0 010-6V7a2 2 0 00-2-2H4a2 2 0 00-2 2v2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
           <h3>Voucher pro educador destaque</h3>
-          <p>O educador de maior pontuação do mês leva R$1.000, e repete por até 3 meses seguidos em 1º.</p>
+          <p>O educador de maior pontuação do mês leva R$1.000, por até 3 meses seguidos, mantendo pelo menos 10 estudantes ativos.</p>
         </div>
         <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
@@ -734,7 +736,7 @@
       <div class="section-head reveal">
         <span class="eyebrow" style="color:var(--verde-texto);">Esforço, não sorte</span>
         <h2>Cada ponto tem uma ação real por trás.</h2>
-        <p>Esta é a régua completa, pra estudante e pra professor. Nada de caixa-preta.</p>
+        <p>Esta é a régua completa do estudante. Nada de caixa-preta.</p>
       </div>
       <div class="pontos-grid reveal">
         <div class="pontos-item"><span class="ac">Finalizar uma trilha completa</span><span class="pv">+60</span><span class="bar" style="width:100%;"></span></div>
@@ -747,8 +749,10 @@
         <div class="pontos-item"><span class="ac">Indicar um novo membro</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
         <div class="pontos-item"><span class="ac">Manter sequência diária</span><span class="pv">+10 <span style="color:var(--ink-faint);">(+ bônus a cada 7 dias)</span></span><span class="bar" style="width:16.7%;"></span></div>
         <div class="pontos-item"><span class="ac">Fazer uma publicação na comunidade</span><span class="pv">+5</span><span class="bar" style="width:8.3%;"></span></div>
-        <div class="pontos-item"><span class="ac">Professor: cada estudante ativo vinculado</span><span class="pv">+5</span><span class="bar" style="width:8.3%;"></span></div>
-        <div class="pontos-item"><span class="ac">Professor: cada atividade válida do estudante vinculado</span><span class="pv">+1</span><span class="bar" style="width:1.7%;"></span></div>
+      </div>
+      <div class="integridade-box reveal">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.8" aria-hidden="true"><path d="M2 9a3 3 0 010 6v2a2 2 0 002 2h16a2 2 0 002-2v-2a3 3 0 010-6V7a2 2 0 00-2-2H4a2 2 0 00-2 2v2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
+        <p><strong>Professor, seu placar soma pontos por um caminho diferente:</strong> +5 por estudante ativo vinculado, +1 por atividade válida que ele completa, e a mesma sequência diária acima (+10/dia). Sua trilha própria (com quizzes e artigos) é pra você evoluir — ela não entra nesse placar.</p>
       </div>
       <div class="integridade-box reveal">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
@@ -769,6 +773,7 @@
       <div class="section-head reveal">
         <span class="eyebrow">Como funciona</span>
         <h2>Do cadastro ao GameShow, em quatro passos.</h2>
+        <p>O Escalada Sebrae é um programa gratuito de educação empreendedora, com trilhas gamificadas, ranking mensal e prêmios reais.</p>
       </div>
       <div class="passos">
         <div class="passo reveal"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
@@ -893,13 +898,20 @@
 (function(){
   // reveals ao rolar
   var els = document.querySelectorAll('.reveal');
+  // a animacao de entrada (com forwards) prende a propriedade transform
+  // pra sempre depois que termina -- isso bloqueia qualquer :hover{transform:...}
+  // de fazer efeito nos cards. Assim que a animacao acaba, soltamos ela
+  // (animation:none) pra devolver o transform ao controle normal do CSS.
+  els.forEach(function(el){
+    el.addEventListener('animationend', function(){ el.classList.add('reveal-settled'); });
+  });
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
     }, {threshold:.15});
     els.forEach(function(el){ io.observe(el); });
   } else {
-    els.forEach(function(el){ el.classList.add('in'); });
+    els.forEach(function(el){ el.classList.add('in'); el.classList.add('reveal-settled'); });
   }
 })();
 </script>
@@ -1042,13 +1054,13 @@
 
     var originRect = (rankCard || viewport).getBoundingClientRect();
     var originX = originRect.left + originRect.width / 2;
-    var originY = originRect.top;
+    var originY = originRect.top - 24;
 
     var colors = ['#00D95C', '#00FF85', '#FF00FF', '#FF76FF', '#00F9FF', '#2A4FDA', '#FFD84D'];
     var particles = [];
-    var N = 70;
+    var N = 90;
     for(var i = 0; i < N; i++){
-      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.85;
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.7;
       var speed = 420 + Math.random() * 540; // px/s
       particles.push({
         x: originX + (Math.random() - 0.5) * 50,
