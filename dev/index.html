@@ -50,6 +50,16 @@
   .btn-ghost:hover{opacity:1;}
   .btn-sm{padding:13px 18px; font-size:13.5px;}
 
+  /* pula os 6 elementos focaveis do header (logo + 5 links de nav) antes de
+     qualquer conteudo real -- fica invisivel ate' ganhar foco de teclado */
+  .skip-link{
+    position:absolute; top:-48px; left:8px; z-index:100;
+    background:var(--verde); color:#052312; font-weight:700; font-size:14px;
+    padding:12px 18px; border-radius:10px; text-decoration:none;
+    transition:top .15s ease;
+  }
+  .skip-link:focus{top:8px;}
+
   /* ---------- header ---------- */
   #site-header{
     position:sticky; top:0; z-index:40; height:var(--hdr-h);
@@ -615,6 +625,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#page-content">Pular para o conteúdo</a>
+
 <header id="site-header">
   <div class="wrap">
     <a class="logo" href="/" aria-label="Escalada Sebrae"><img src="https://assets-tnl.org/Escalada-Verde.webp" alt="Escalada Sebrae"></a>
@@ -646,9 +658,9 @@
             <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
           </div>
           <div class="hero-facts">
-            <span class="hero-fact">✓ 100% gratuito</span>
-            <span class="hero-fact">✓ direto do celular</span>
-            <span class="hero-fact">✓ ranking recomeça todo mês</span>
+            <span class="hero-fact"><span aria-hidden="true">✓</span> 100% gratuito</span>
+            <span class="hero-fact"><span aria-hidden="true">✓</span> direto do celular</span>
+            <span class="hero-fact"><span aria-hidden="true">✓</span> ranking recomeça todo mês</span>
           </div>
         </div>
         <div class="hero-teaser">
@@ -662,11 +674,11 @@
         <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada. É assim que pontos reais movem sua posição de verdade.">
           <div class="rc-header">
             <span class="rank">Ranking mensal · exemplo</span>
-            <span class="streak">🔥 em andamento</span>
+            <span class="streak" id="rc-countdown"><span aria-hidden="true">🔥</span> em andamento</span>
           </div>
           <div class="ps-lb-head">
             <span class="lbl" id="lb-lbl">Top do mês</span>
-            <span class="prize" id="lb-prize">🏆 vaga no GameShow</span>
+            <span class="prize" id="lb-prize"><span aria-hidden="true">🏆</span> vaga no GameShow</span>
           </div>
           <div class="ps-lb-viewport" id="lb-viewport">
             <div class="ps-lb-track" id="lb-track">
@@ -740,6 +752,7 @@
             <li>Trilha própria (com quizzes e artigos) pra você também evoluir</li>
             <li>Pontua por estudante ativo vinculado, por atividade válida deles e pela sua própria sequência diária</li>
             <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês, por até 3 meses seguidos, mantendo o engajamento mínimo exigido pelo programa (estudantes ativos, atividade na plataforma e participação quando convocado)</li>
+            <li>Ranking e prêmio próprios — o GameShow ao vivo é a disputa dos estudantes; você concorre no seu placar de educador</li>
             <li>Professor, educador ou gestor disposto a mobilizar sua turma</li>
           </ul>
           <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-professores1">Quero participar como educador</a>
@@ -789,7 +802,7 @@
       <div class="section-head reveal">
         <span class="eyebrow" style="color:#1A3AAD;">A escada</span>
         <h2>Cinco degraus. Cada um com a pontuação exata pra chegar lá.</h2>
-        <p>É o mesmo nível que aparece no seu perfil dentro da plataforma, sem enfeite. Esses pontos se acumulam a jornada toda e não zeram — já o ranking mensal (ali do lado) é outra contagem, que recomeça todo mês.</p>
+        <p>É o mesmo nível que aparece no seu perfil dentro da plataforma, sem enfeite. Esses pontos se acumulam a jornada toda e não zeram — já o ranking mensal (ali do lado) é outra contagem, que recomeça todo mês. Essa escada de 5 níveis é da trilha do estudante; o professor tem placar e prêmio próprios, sem passar por ela (veja mais abaixo).</p>
       </div>
       <div class="escada reveal">
         <div class="degrau" style="--i:0;">
@@ -944,7 +957,7 @@
 
   <section id="cta-final">
     <div class="wrap-narrow">
-      <div class="prazo-pill">🔥 o ranking deste mês já está rodando</div>
+      <div class="prazo-pill" id="cta-countdown"><span aria-hidden="true">🔥</span> o ranking deste mês já está rodando</div>
       <h2>A trilha para o sucesso está aberta. Falta você dar o primeiro passo.</h2>
       <p>Cadastro gratuito, direto do celular. Comece hoje e entre na disputa deste ciclo.</p>
       <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
@@ -1395,14 +1408,15 @@
     });
   }
 
+  var DISPUTA_SEQ = [{idx:2, ganho:200}, {idx:4, ganho:160}, {idx:1, ganho:280}];
+
   // 3 disputas encadeadas, sempre justificadas por um ganho real de pontos
   // -- termina com "Você" assumindo a lideranca, momento de clímax
   function runDisputas(pointsState, gapMs, countMs, swapMs, onAllDone){
-    var seq = [{idx:2, ganho:200}, {idx:4, ganho:160}, {idx:1, ganho:280}];
     var i = 0;
     function next(){
-      if(i >= seq.length){ onAllDone(); return; }
-      var d = seq[i++];
+      if(i >= DISPUTA_SEQ.length){ onAllDone(); return; }
+      var d = DISPUTA_SEQ[i++];
       disputa(pointsState, d.idx, d.ganho, countMs, swapMs, function(){
         setTimeout(next, gapMs);
       });
@@ -1410,25 +1424,49 @@
     next();
   }
 
-  function fadeText(el, newText){
+  // aplica a MESMA sequencia de disputas, sem nenhuma animacao -- usada so'
+  // com prefers-reduced-motion, a partir do estado inicial limpo (garantido
+  // porque roda antes de qualquer disputa animada comecar). Sem isso, quem
+  // usa reduced-motion via texto/leitura visual (nao leitor de tela -- esse
+  // ja' tem o aria-label correto) via o texto ao redor falando como se
+  // "Você" ja' tivesse vencido, mas a linha continuava parada no 3o lugar
+  function resolverRankingInstantaneo(){
+    var pointsState = Array.prototype.map.call(track.children, function(r){ return parsePt(r.querySelector('.pt').textContent); });
+    DISPUTA_SEQ.forEach(function(d){
+      var novo = pointsState[d.idx] + d.ganho;
+      pointsState[d.idx] = novo;
+      track.children[d.idx].querySelector('.pt').textContent = formatPt(novo);
+      var i = d.idx;
+      while(i > 0 && pointsState[i] > pointsState[i - 1]){
+        var rows = track.children;
+        rows[i - 1].parentNode.insertBefore(rows[i], rows[i - 1]);
+        var tmp = pointsState[i - 1]; pointsState[i - 1] = pointsState[i]; pointsState[i] = tmp;
+        i--;
+      }
+    });
+    updatePosLabels();
+  }
+
+  function fadeText(el, newHtml){
     el.style.transition = 'opacity .3s ease';
     el.style.opacity = '0';
     setTimeout(function(){
-      el.textContent = newText;
+      el.innerHTML = newHtml;
       el.style.opacity = '1';
     }, 300);
   }
 
   function finalState(){
     fadeText(lblEl, 'Top 20 do mês');
-    fadeText(prizeEl, '🏆 vaga no GameShow');
+    fadeText(prizeEl, '<span aria-hidden="true">🏆</span> vaga no GameShow');
     if(hero) hero.classList.add('settled');
   }
 
   function run(){
     if(reduced){
+      resolverRankingInstantaneo();
       lblEl.textContent = 'Top 20 do mês';
-      prizeEl.textContent = '🏆 vaga no GameShow';
+      prizeEl.innerHTML = '<span aria-hidden="true">🏆</span> vaga no GameShow';
       if(hookTop) hookTop.classList.add('in');
       if(hookBottom) hookBottom.classList.add('in');
       if(hero) hero.classList.add('settled');
@@ -1451,7 +1489,7 @@
       timers.forEach(clearTimeout);
       viewport.removeEventListener('click', skip);
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
-      prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vaga no GameShow';
+      prizeEl.style.opacity = '1'; prizeEl.innerHTML = '<span aria-hidden="true">🏆</span> vaga no GameShow';
       if(hero) hero.classList.add('settled');
     }
     viewport.addEventListener('click', skip);
@@ -1629,7 +1667,7 @@
     q.opcoes.forEach(function(op, i){
       html += '<button type="button" class="teste-opcao" data-i="' + i + '">' + op + '</button>';
     });
-    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;">✓ ' + q.feedback + ' <strong>+' + q.pts + ' pts</strong></div></div>';
+    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;"><span aria-hidden="true">✓</span> ' + q.feedback + ' <strong>+' + q.pts + ' pts</strong></div></div>';
     body.innerHTML = html;
     Array.prototype.forEach.call(body.querySelectorAll('.teste-opcao'), function(btn){
       btn.addEventListener('click', onPick);
@@ -1666,6 +1704,31 @@
   }
 
   renderQuestion();
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  // ranking mensal fecha no fim de cada mes -- countdown real calculado a
+  // partir da data local do visitante, nunca um texto estatico tipo "em
+  // andamento" (que nao diz nada) nem um numero inventado
+  function diasRestantesNoCiclo(){
+    var hoje = new Date();
+    var hojeMeiaNoite = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    var ultimoDiaDoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    var msPorDia = 24 * 60 * 60 * 1000;
+    return Math.round((ultimoDiaDoMes - hojeMeiaNoite) / msPorDia);
+  }
+
+  var dias = diasRestantesNoCiclo();
+  var curto = dias <= 0 ? 'último dia do ranking deste mês' : (dias === 1 ? 'falta 1 dia pro ranking fechar' : 'faltam ' + dias + ' dias pro ranking fechar');
+  var longo = dias <= 0 ? 'hoje é o último dia do ranking deste mês' : (dias === 1 ? 'falta 1 dia pro ranking deste mês fechar' : 'faltam ' + dias + ' dias pro ranking deste mês fechar');
+
+  var rc = document.getElementById('rc-countdown');
+  if(rc) rc.innerHTML = '<span aria-hidden="true">🔥</span> ' + curto;
+  var cta = document.getElementById('cta-countdown');
+  if(cta) cta.innerHTML = '<span aria-hidden="true">🔥</span> ' + longo;
 })();
 </script>
 
