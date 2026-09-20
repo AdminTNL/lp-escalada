@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Escalada Sebrae — A trilha para o sucesso está aberta</title>
+<meta name="description" content="Trilhas, missões e um ranking que te leva de Aprendiz a Líder Escalada. Gratuito, para estudantes a partir de 14 anos. Inscrições até 15 de maio de 2026.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="https://assets-tnl.org/cropped-Escalada-SEBRAE-7-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --verde:#00D95C; --verde-claro:#00FF85;
+    --magenta:#FF00FF; --magenta-claro:#FF76FF;
+    --ciano:#00F9FF; --azul:#2A4FDA; --navy:#0A0F36;
+    --papel:#FAF9F5; --papel-raised:#FFFFFF;
+    --ink:#12163A; --ink-soft:#4D5280; --ink-faint:#8A8FB0;
+    --line:#E7E4DA;
+    --shadow: 0 1px 2px rgba(10,15,54,.05), 0 16px 32px -18px rgba(10,15,54,.22);
+    --shadow-dark: 0 1px 0 rgba(255,255,255,.06) inset, 0 20px 40px -18px rgba(0,0,0,.5);
+    --display:'Space Grotesk', system-ui, sans-serif;
+    --body:'Figtree', system-ui, sans-serif;
+    --mono:'JetBrains Mono','SF Mono', monospace;
+    --hdr-h: 68px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:var(--papel); color:var(--ink); font-family:var(--body); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  img{max-width:100%; display:block;}
+  a{color:inherit;}
+  [hidden]{display:none!important;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px;}
+  .wrap-narrow{max-width:760px; margin:0 auto; padding:0 20px;}
+  h1,h2,h3{font-family:var(--display); font-weight:700; letter-spacing:-.01em; text-wrap:balance; margin:0;}
+  p{margin:0 0 14px;}
+  strong{font-weight:700;}
+  .eyebrow{font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    font-family:var(--body); font-weight:700; font-size:15.5px; text-decoration:none;
+    padding:15px 26px; border-radius:999px; border:none; cursor:pointer;
+    transition:transform .18s cubic-bezier(.16,1,.3,1), filter .18s ease, box-shadow .18s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primario{background:var(--verde); color:#052312; box-shadow:0 10px 24px -8px rgba(0,217,92,.55);}
+  .btn-primario:hover{filter:brightness(1.06); transform:translateY(-1px);}
+  .btn-ghost{background:transparent; color:inherit; border:1.5px solid currentColor; opacity:.85;}
+  .btn-ghost:hover{opacity:1;}
+  .btn-sm{padding:9px 16px; font-size:13.5px;}
+
+  /* ---------- header ---------- */
+  #site-header{
+    position:sticky; top:0; z-index:40; height:var(--hdr-h);
+    display:flex; align-items:center;
+    background:rgba(10,15,54,.72); backdrop-filter:blur(16px) saturate(1.2);
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  #site-header .wrap{display:flex; align-items:center; justify-content:space-between; width:100%;}
+  .logo img{height:26px; width:auto;}
+  .nav-desktop-only{display:none; align-items:center; gap:28px;}
+  .nav-desktop-only a{color:#fff; text-decoration:none; font-size:14.5px; font-weight:600; opacity:.82;}
+  .nav-desktop-only a:hover{opacity:1;}
+  .hdr-actions{display:flex; align-items:center; gap:14px;}
+  .hdr-cta{display:none;}
+  @media (min-width:860px){
+    .nav-desktop-only{display:flex;}
+    .hdr-cta{display:inline-flex;}
+    body.has-dev-switch #site-header .wrap{padding-right:132px;}
+  }
+
+  /* ---------- hero ---------- */
+  #hero{
+    position:relative; overflow:hidden; color:#fff;
+    background:linear-gradient(160deg,#0A0F36 0%, #17235f 38%, #2A4FDA 72%, #8a1fd6 100%);
+    padding:56px 0 72px;
+  }
+  #hero .arco{
+    position:absolute; top:-120px; right:-160px; width:520px; height:520px;
+    border-radius:50%; border:64px solid rgba(0,217,92,.5);
+    filter:blur(.3px);
+  }
+  #hero .arco2{
+    position:absolute; bottom:-200px; left:-180px; width:420px; height:420px;
+    border-radius:50%; border:46px solid rgba(255,0,255,.28);
+  }
+  #hero .wrap{position:relative; display:grid; grid-template-columns:1fr; gap:40px; align-items:center;}
+  @media (min-width:960px){ #hero .wrap{grid-template-columns:1.05fr .95fr; gap:32px;} }
+  .hero-eyebrow{color:var(--verde-claro); display:flex; align-items:center; gap:8px; margin-bottom:18px;}
+  .hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--verde-claro); box-shadow:0 0 0 4px rgba(0,255,133,.18);}
+  #hero h1{font-size:clamp(32px,5.2vw,52px); line-height:1.06; max-width:14ch;}
+  #hero h1 em{font-style:normal; color:var(--verde-claro);}
+  #hero .sub{font-size:17px; color:rgba(255,255,255,.82); max-width:46ch; margin:20px 0 28px;}
+  #hero .sub b{color:#fff;}
+  .hero-ctas{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:26px;}
+  .hero-ctas .sec{color:rgba(255,255,255,.72); font-size:13.5px; text-decoration:underline; text-underline-offset:3px;}
+  .hero-facts{display:flex; flex-wrap:wrap; gap:22px;}
+  .hero-fact{display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,.78);}
+  .hero-fact .ic{width:16px; height:16px; flex:none;}
+
+  /* mockup de telefone */
+  .phone-mock{
+    position:relative; margin:0 auto; width:min(300px, 78vw);
+    border-radius:44px; background:linear-gradient(160deg,#1b2040,#0a0d24);
+    padding:14px; box-shadow:var(--shadow-dark);
+  }
+  .phone-mock::before{
+    content:''; position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:84px; height:22px; border-radius:14px; background:#05060f; z-index:3;
+  }
+  .phone-screen{
+    position:relative; border-radius:32px; overflow:hidden; background:var(--navy);
+    aspect-ratio:390/730;
+  }
+  .phone-screen .ps-header{
+    padding:34px 18px 14px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .phone-screen .ps-header .rank{font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--verde-claro); text-transform:uppercase;}
+  .phone-screen .ps-header .streak{font-family:var(--mono); font-size:12px; color:#fff; display:flex; gap:5px; align-items:center;}
+  .ps-card{
+    margin:0 16px 12px; padding:16px; border-radius:18px;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
+    backdrop-filter:blur(10px);
+  }
+  .ps-card .lbl{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55);}
+  .ps-card .val{font-family:var(--display); font-size:26px; color:#fff; margin:4px 0 2px;}
+  .ps-bar{height:6px; border-radius:4px; background:rgba(255,255,255,.14); overflow:hidden; margin-top:10px;}
+  .ps-bar i{display:block; height:100%; background:linear-gradient(90deg,var(--verde),var(--verde-claro)); border-radius:4px;}
+  .ps-missions{margin:0 16px; display:flex; flex-direction:column; gap:8px;}
+  .ps-mission{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
+    background:rgba(255,255,255,.05); font-size:11.5px; color:rgba(255,255,255,.85);
+  }
+  .ps-mission .chk{width:16px; height:16px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:9px;}
+  .ps-mission.done .chk{background:var(--verde); color:#052312;}
+  .ps-mission.pend .chk{border:1.5px solid rgba(255,255,255,.3);}
+
+  /* ---------- secoes claras ---------- */
+  section{padding:72px 0;}
+  .section-head{max-width:640px; margin-bottom:36px;}
+  .section-head .eyebrow{color:var(--verde); display:block; margin-bottom:12px;}
+  .section-head h2{font-size:clamp(26px,3.4vw,36px);}
+  .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
+
+  /* fatos */
+  .fatos-grid{display:grid; grid-template-columns:1fr; gap:14px;}
+  @media (min-width:700px){ .fatos-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (min-width:1040px){ .fatos-grid{grid-template-columns:repeat(4,1fr);} }
+  .fato-card{
+    background:var(--papel-raised); border-radius:20px; padding:24px 22px; box-shadow:var(--shadow);
+  }
+  .fato-card .ic{width:34px; height:34px; margin-bottom:16px;}
+  .fato-card h3{font-family:var(--body); font-size:16px; margin-bottom:6px;}
+  .fato-card p{font-size:14px; color:var(--ink-soft); margin:0;}
+
+  /* escada de ranks - elemento assinatura */
+  #jornada{background:var(--papel);}
+  .escada{display:flex; flex-direction:column; gap:14px; margin-top:36px;}
+  .degrau{
+    display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
+    background:var(--papel-raised); border-radius:20px; padding:22px 24px; box-shadow:var(--shadow);
+    position:relative;
+  }
+  .degrau .n{
+    font-family:var(--display); font-size:15px; font-weight:700; color:#fff;
+    width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    flex:none;
+  }
+  .degrau:nth-child(1) .n{background:linear-gradient(135deg,#2A4FDA,#00F9FF);}
+  .degrau:nth-child(2) .n{background:linear-gradient(135deg,#00D95C,#00FF85);}
+  .degrau:nth-child(3) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF);}
+  .degrau:nth-child(4) .n{background:linear-gradient(135deg,#0A0F36,#2A4FDA);}
+  .degrau h3{font-size:17px; margin-bottom:4px;}
+  .degrau p{font-size:14px; color:var(--ink-soft); margin:0;}
+  @media (min-width:700px){
+    .escada{gap:0;}
+    .degrau{margin-left:calc(var(--i, 0) * 36px); margin-bottom:14px;}
+  }
+
+  /* prova / mecanica */
+  #mecanica{background:var(--navy); color:#fff;}
+  #mecanica .section-head .eyebrow{color:var(--verde-claro);}
+  #mecanica .section-head h2{color:#fff;}
+  #mecanica .section-head p{color:rgba(255,255,255,.72);}
+  .passos{display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px;}
+  @media (min-width:760px){ .passos{grid-template-columns:repeat(4,1fr);} }
+  .passo{
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+    border-radius:18px; padding:22px 20px; backdrop-filter:blur(8px);
+  }
+  .passo .idx{font-family:var(--mono); font-size:12px; color:var(--verde-claro); margin-bottom:10px;}
+  .passo h3{font-size:15.5px; color:#fff; margin-bottom:6px;}
+  .passo p{font-size:13.5px; color:rgba(255,255,255,.68); margin:0;}
+
+  /* faq resumido */
+  .faq-list{display:flex; flex-direction:column; gap:10px; margin-top:8px;}
+  details.faq-item{
+    background:var(--papel-raised); border-radius:16px; padding:4px 20px; box-shadow:var(--shadow);
+  }
+  details.faq-item summary{
+    padding:16px 0; cursor:pointer; font-weight:700; font-size:15px; list-style:none;
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  details.faq-item summary::-webkit-details-marker{display:none;}
+  details.faq-item summary::after{content:'+'; font-family:var(--display); font-size:20px; color:var(--verde); flex:none;}
+  details.faq-item[open] summary::after{content:'–';}
+  details.faq-item .a{padding:0 0 18px; font-size:14.5px; color:var(--ink-soft);}
+
+  /* cta final */
+  #cta-final{
+    background:linear-gradient(135deg,#0A0F36,#2A4FDA 60%,#FF00FF 130%);
+    color:#fff; text-align:center; padding:80px 0;
+  }
+  #cta-final h2{font-size:clamp(28px,4vw,40px); max-width:18ch; margin:0 auto 16px;}
+  #cta-final p{color:rgba(255,255,255,.8); max-width:48ch; margin:0 auto 30px; font-size:16px;}
+  .prazo-pill{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px;
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); padding:8px 16px;
+    border-radius:999px; margin-bottom:26px;
+  }
+
+  /* footer */
+  footer{background:var(--navy); color:rgba(255,255,255,.55); padding:36px 0 100px; font-size:13px;}
+  footer .wrap{display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:center;}
+  footer nav{display:flex; gap:18px;}
+  footer a{text-decoration:none; color:rgba(255,255,255,.65);}
+
+  /* cta sticky mobile */
+  #sticky-cta{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+    background:rgba(10,15,54,.9); backdrop-filter:blur(14px);
+    border-top:1px solid rgba(255,255,255,.1);
+    display:flex; gap:10px; align-items:center;
+  }
+  #sticky-cta .txt{flex:1; color:#fff; font-size:12.5px; line-height:1.3;}
+  #sticky-cta .txt b{display:block; font-size:13.5px;}
+  @media (min-width:860px){ #sticky-cta{display:none;} }
+
+  @media (prefers-reduced-motion:no-preference){
+    .reveal{opacity:0; transform:translateY(14px); animation:rise .7s cubic-bezier(.16,1,.3,1) forwards; animation-play-state:paused;}
+    .reveal.in{animation-play-state:running;}
+  }
+  @keyframes rise{to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- device switcher ---------- */
+  #dev-switch{
+    position:fixed; top:14px; right:16px; z-index:9999;
+    display:flex; background:rgba(10,15,54,.9); backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:3px;
+    box-shadow:0 10px 26px -10px rgba(0,0,0,.5);
+  }
+  #dev-switch button{
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
+    padding:7px 14px; border-radius:999px; border:none; background:transparent; color:rgba(255,255,255,.6);
+    cursor:pointer; transition:background .16s ease, color .16s ease;
+  }
+  #dev-switch button.active{background:var(--verde); color:#052312;}
+
+  #mobile-frame-wrapper{
+    position:fixed; inset:0; z-index:9000; background:#e7e5db;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    padding:70px 16px 24px;
+  }
+  #mobile-frame-wrapper.active{display:flex;}
+  .iphone-shell{
+    position:relative; width:393px; max-width:92vw; flex:1; min-height:0;
+    background:#0b0b0f; border-radius:56px; padding:14px;
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
+  }
+  .iphone-shell .side-btn{position:absolute; right:-3px; top:150px; width:3px; height:60px; background:#1c1c22; border-radius:2px;}
+  .iphone-screen{
+    width:100%; height:100%; border-radius:42px; overflow:hidden; background:#fff;
+    display:flex; flex-direction:column;
+  }
+  .iphone-statusbar{
+    position:relative; flex:none; height:38px; background:#0b0b0f;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .iphone-statusbar .island{width:112px; height:30px; background:#000; border-radius:16px;}
+  .iphone-screen iframe{width:100%; flex:1; min-height:0; border:0; display:block;}
+  .frame-caption{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); text-align:center;}
+</style>
+</head>
+<body>
+
+<header id="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="Escalada Sebrae"><img src="https://assets-tnl.org/Escalada-Verde.webp" alt="Escalada Sebrae"></a>
+    <nav class="primary nav-desktop-only">
+      <a href="#jornada">A jornada</a>
+      <a href="#mecanica">Como funciona</a>
+      <a href="/faq/">FAQ</a>
+      <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
+    </nav>
+    <div class="hdr-actions">
+      <a class="btn btn-primario btn-sm hdr-cta" href="https://escalada.me/lpescalada-estudantes1">Quero entrar no Escalada</a>
+    </div>
+  </div>
+</header>
+
+<main id="page-content">
+
+  <section id="hero">
+    <div class="arco" aria-hidden="true"></div>
+    <div class="arco2" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="reveal">
+        <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · inscrições abertas</div>
+        <h1>Sua ideia vira jornada. Sua jornada vira <em>prêmio de verdade</em>.</h1>
+        <p class="sub">Trilhas, missões e um ranking que te leva de <b>Aprendiz</b> a <b>Líder Escalada</b>. No caminho: smartphone pro topo do mês, vouchers e um GameShow ao vivo. Gratuito, pra estudante a partir de 14 anos.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero entrar no Escalada</a>
+          <a class="sec" href="#educadores">sou educador ou professor</a>
+        </div>
+        <div class="hero-facts">
+          <span class="hero-fact">✓ 100% gratuito</span>
+          <span class="hero-fact">✓ direto do celular</span>
+          <span class="hero-fact">✓ inscrições até 15 de maio de 2026</span>
+        </div>
+      </div>
+      <div class="reveal" style="animation-delay:.1s;">
+        <div class="phone-mock">
+          <div class="phone-screen">
+            <div class="ps-header">
+              <span class="rank">Rank atual</span>
+              <span class="streak">🔥 12 dias</span>
+            </div>
+            <div class="ps-card">
+              <div class="lbl">Protagonista</div>
+              <div class="val">2.480 pts</div>
+              <div class="ps-bar"><i style="width:64%;"></i></div>
+            </div>
+            <div class="ps-missions">
+              <div class="ps-mission done"><span class="chk">✓</span>Missão: seu primeiro plano de ideia</div>
+              <div class="ps-mission done"><span class="chk">✓</span>Trilha: validando com o público</div>
+              <div class="ps-mission pend"><span class="chk"></span>Mês Flash: desafio de setembro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fatos">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" style="color:var(--verde);">O que você ganha</span>
+        <h2>Não é só motivação. Tem prêmio, prazo e regra clara.</h2>
+      </div>
+      <div class="fatos-grid reveal">
+        <div class="fato-card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          <h3>Smartphone no topo do mês</h3>
+          <p>Quem lidera o ranking do Mês Flash leva um smartphone pra casa.</p>
+        </div>
+        <div class="fato-card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.6"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
+          <h3>GameShow Escalada</h3>
+          <p>Uma final ao vivo pra quem chega no topo da temporada.</p>
+        </div>
+        <div class="fato-card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.6"><circle cx="12" cy="8" r="5"/><path d="M6 21l6-4 6 4-2-7 6-4h-7l-3-7-3 7H2l6 4z"/></svg>
+          <h3>Reconhecimento nacional</h3>
+          <p>Selo Escalada abre caminho pro Sebrae Jovens Mais Empreendedores.</p>
+        </div>
+        <div class="fato-card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00F9FF" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>
+          <h3>Gratuito, do começo ao fim</h3>
+          <p>Sem mensalidade, sem pegadinha. Só o seu login e a sua trilha.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="jornada">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">A escada</span>
+        <h2>Quatro degraus. Cada um com o que ele desbloqueia de verdade.</h2>
+        <p>Não é nível por nível vazio. Cada rank abre algo concreto na comunidade e na plataforma.</p>
+      </div>
+      <div class="escada reveal">
+        <div class="degrau" style="--i:0;">
+          <div class="n">01</div>
+          <div><h3>Aprendiz Empreendedor</h3><p>Primeiras trilhas, primeiras missões, acesso à comunidade Escalada.</p></div>
+        </div>
+        <div class="degrau" style="--i:1;">
+          <div class="n">02</div>
+          <div><h3>Protagonista</h3><p>Desbloqueia webinares exclusivos e missões em grupo.</p></div>
+        </div>
+        <div class="degrau" style="--i:2;">
+          <div class="n">03</div>
+          <div><h3>Transformador</h3><p>Elegível a mentorias e aos desafios do Mês Flash com premiação.</p></div>
+        </div>
+        <div class="degrau" style="--i:3;">
+          <div class="n">04</div>
+          <div><h3>Líder Escalada</h3><p>Certificação, elegibilidade a Embaixador e vaga na final do GameShow.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="mecanica">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Como funciona</span>
+        <h2>Do cadastro ao GameShow, em quatro passos.</h2>
+      </div>
+      <div class="passos reveal">
+        <div class="passo"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
+        <div class="passo"><div class="idx">02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
+        <div class="passo"><div class="idx">03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
+        <div class="passo"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Mês Flash, vouchers e a final ao vivo do GameShow Escalada.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq-resumo">
+    <div class="wrap-narrow">
+      <div class="section-head reveal">
+        <span class="eyebrow" style="color:var(--verde);">Perguntas rápidas</span>
+        <h2>O que mais perguntam antes de entrar</h2>
+      </div>
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary>Quais são os incentivos previstos no programa?<span></span></summary>
+          <div class="a">Smartphone pro vencedor do ciclo mensal (estudantes), vouchers financeiros mensais para multiplicadores, e reconhecimento nacional via Selo Escalada e Sebrae Jovens Mais Empreendedores.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Até quando posso me inscrever?<span></span></summary>
+          <div class="a">As inscrições para o Reconhecimento Sebrae Jovens Mais Empreendedores 2026 vão de 2 de março a 15 de maio de 2026. O cadastro na plataforma Escalada em si é contínuo.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Quem pode participar como estudante?<span></span></summary>
+          <div class="a">Estudantes a partir de 14 anos, vinculados a uma instituição de ensino. Professores, educadores e gestores entram como multiplicadores.</div>
+        </details>
+      </div>
+      <div style="text-align:center; margin-top:26px;">
+        <a class="btn btn-ghost btn-sm" href="/faq/">Ver todas as perguntas</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="educadores" style="background:var(--papel-raised); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+    <div class="wrap-narrow" style="text-align:center;">
+      <span class="eyebrow" style="color:var(--azul);">Para quem educa</span>
+      <h2 style="margin:14px 0 12px; font-size:24px;">Professor, educador ou gestor escolar?</h2>
+      <p style="color:var(--ink-soft); max-width:52ch; margin:0 auto 22px;">Como multiplicador, você guia seus alunos pela trilha e concorre a vouchers mensais próprios. O caminho de inscrição é outro.</p>
+      <a class="btn btn-ghost" href="https://escalada.me/lpescalada-multiplicadores1">Quero entrar como educador</a>
+    </div>
+  </section>
+
+  <section id="cta-final">
+    <div class="wrap-narrow">
+      <div class="prazo-pill">⏳ Inscrições até 15 de maio de 2026</div>
+      <h2>A trilha para o sucesso está aberta. Falta você dar o primeiro passo.</h2>
+      <p>Cadastro gratuito, direto do celular. Comece hoje e chegue no GameShow Escalada.</p>
+      <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero entrar no Escalada</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Escalada Sebrae, 2026. Todos os direitos reservados.</span>
+    <nav>
+      <a href="#jornada">A jornada</a>
+      <a href="/faq/">FAQ</a>
+      <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
+    </nav>
+  </div>
+</footer>
+
+<div id="sticky-cta">
+  <div class="txt"><b>Inscrições até 15/05</b>gratuito, direto do celular</div>
+  <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Entrar</a>
+</div>
+
+<div id="mobile-frame-wrapper">
+  <div class="iphone-shell">
+    <div class="side-btn"></div>
+    <div class="iphone-screen">
+      <div class="iphone-statusbar"><div class="island"></div></div>
+      <iframe id="mobile-preview-frame" title="Pré-visualização mobile"></iframe>
+    </div>
+  </div>
+  <span class="frame-caption">iPhone 15 · 393px · clique fora ou em Desktop pra sair</span>
+</div>
+
+<script>
+(function(){
+  // reveals ao rolar
+  var els = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {threshold:.15});
+    els.forEach(function(el){ io.observe(el); });
+  } else {
+    els.forEach(function(el){ el.classList.add('in'); });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var isEmbedded = window.self !== window.top || params.get('embed') === '1';
+  if(isEmbedded) return;
+
+  var bar = document.createElement('div');
+  bar.id = 'dev-switch';
+  bar.innerHTML = '<button type="button" data-mode="desktop" class="active">Desktop</button><button type="button" data-mode="mobile">Mobile</button>';
+  document.body.appendChild(bar);
+  document.body.classList.add('has-dev-switch');
+
+  var wrapper = document.getElementById('mobile-frame-wrapper');
+  var frame = document.getElementById('mobile-preview-frame');
+  var btnDesktop = bar.querySelector('[data-mode="desktop"]');
+  var btnMobile = bar.querySelector('[data-mode="mobile"]');
+
+  function embedUrl(){
+    var p = new URLSearchParams(location.search);
+    p.set('embed', '1');
+    p.set('no_track', '1');
+    return location.pathname + '?' + p.toString();
+  }
+
+  function showMobile(){
+    if(!frame.getAttribute('src')) frame.setAttribute('src', embedUrl());
+    wrapper.classList.add('active');
+    btnMobile.classList.add('active');
+    btnDesktop.classList.remove('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function showDesktop(){
+    wrapper.classList.remove('active');
+    btnDesktop.classList.add('active');
+    btnMobile.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  btnMobile.addEventListener('click', showMobile);
+  btnDesktop.addEventListener('click', showDesktop);
+})();
+</script>
+
+</body>
+</html>
