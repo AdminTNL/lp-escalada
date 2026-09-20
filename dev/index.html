@@ -764,7 +764,7 @@
       <div class="section-head reveal">
         <span class="eyebrow">Teste rápido · sem cadastro</span>
         <h2>Antes de entrar, joga uma rodada.</h2>
-        <p>3 perguntas sem certo ou errado — é sobre te conhecer, não uma prova. Complete as 3 e leve pontos reais, na régua oficial do Escalada.</p>
+        <p>3 perguntas sem certo ou errado — é sobre te conhecer, não uma prova. Complete as 3 e veja seu perfil, com pontos reais na régua oficial do Escalada.</p>
         <p class="nota-publico" id="teste-nota-professor" hidden>Esse teste mostra a trilha do <strong>estudante</strong> — sua trilha de educador pontua de um jeito diferente (veja mais abaixo).</p>
       </div>
       <div class="teste-card reveal" id="teste-card">
@@ -1637,40 +1637,51 @@
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Fiel ao mecanismo real: quiz da plataforma nao tem resposta certa/errada
-  // (e' sobre autoconhecimento) e os pontos sao dados por COMPLETAR, nao por
-  // pergunta nem por qual opcao foi escolhida -- por isso todas as opcoes
-  // abaixo sao validas e cada uma tem seu proprio feedback, sem nenhuma
-  // sendo "a resposta boa"; a pontuacao so aparece uma vez no final, com o
-  // mesmo valor da regua real (#pontuacao: "Completar um quiz" = +15).
+  // (e' sobre autoconhecimento) e o feedback nao e' por pergunta -- e' uma
+  // leitura geral do PADRAO das 3 respostas, tipo os fluxos de feedback
+  // personalizado que ja existiram no n8n pra outros quizes. Aqui, bem mais
+  // simples por ser um unico quiz: cada opcao carrega um perfil (testador /
+  // estrategista / comunitario) e o perfil dominante so' aparece no final.
+  // Pontuacao tambem so' aparece no final, com o mesmo valor da regua real
+  // (#pontuacao: "Completar um quiz" = +15) -- por completar, nao por
+  // acertar nada.
   var QUESTOES = [
     {
       texto: 'Sua ideia de negócio não está vendendo como esperado. O que soa mais com você?',
       opcoes: [
-        { texto: 'Busco 5 pessoas reais pra ouvir o que não está funcionando', feedback: 'Você aprende ouvindo antes de agir — validação é uma das competências centrais da trilha.' },
-        { texto: 'Revejo o preço e a proposta antes de qualquer mudança grande', feedback: 'Você repensa a estratégia antes de agir — planejamento também é competência empreendedora.' },
-        { texto: 'Sigo apostando na ideia, mas mudo como comunico ela', feedback: 'Você aposta na ideia e ajusta a comunicação — persistência com adaptação é outro jeito de empreender.' }
+        { texto: 'Busco 5 pessoas reais pra ouvir o que não está funcionando', perfil: 'testador' },
+        { texto: 'Revejo o preço e a proposta antes de qualquer mudança grande', perfil: 'estrategista' },
+        { texto: 'Chamo alguém de confiança pra pensar comigo antes de decidir', perfil: 'comunitario' }
       ]
     },
     {
       texto: 'Um colega da turma trava numa etapa da trilha. Você...?',
       opcoes: [
-        { texto: 'Mando uma dica no grupo da comunidade', feedback: 'Você fortalece a rede antes de tudo — perfil comunitário da trilha.' },
-        { texto: 'Deixo ele tentar mais um pouco, do jeito dele', feedback: 'Você confia no processo de cada um — dar espaço também ensina.' },
-        { texto: 'Chamo pra gente resolver junto, passo a passo', feedback: 'Você prefere resolver lado a lado — perfil mentor da trilha.' }
+        { texto: 'Sugiro ele tentar de outro jeito, na prática, e ver se resolve', perfil: 'testador' },
+        { texto: 'Ajudo a identificar exatamente onde ele travou, com calma', perfil: 'estrategista' },
+        { texto: 'Mando uma dica no grupo da comunidade, pra mais gente ajudar', perfil: 'comunitario' }
       ]
     },
     {
       texto: 'Você tem 10 minutos livres entre uma aula e outra. O que você faz?',
       opcoes: [
-        { texto: 'Completo um quiz rápido da trilha', feedback: 'Você usa o tempinho livre pra avançar — bate com a régua de completar quizzes.' },
-        { texto: 'Dou uma olhada rápida e volto com calma depois', feedback: 'Você prefere revisar com calma antes de agir — também mantém o ritmo.' },
-        { texto: 'Aproveito os minutos sem me conectar a nada disso', feedback: 'Tudo bem descansar — a régua conta quando você voltar, não exige o tempo todo.' }
+        { texto: 'Completo um quiz rápido da trilha, já colocando em prática', perfil: 'testador' },
+        { texto: 'Dou uma olhada rápida e volto com mais calma depois', perfil: 'estrategista' },
+        { texto: 'Vejo o que a galera andou comentando na comunidade', perfil: 'comunitario' }
       ]
     }
   ];
 
+  var PERFIS = {
+    testador: { nome: 'Testador', texto: 'você aprende fazendo — prefere colocar a mão na massa, testar na prática e ajustar pelo que vê de verdade acontecer.' },
+    estrategista: { nome: 'Estrategista', texto: 'você para pra pensar antes de agir — mapeia o problema, avalia caminhos e só então decide.' },
+    comunitario: { nome: 'Comunitário', texto: 'você conta com gente — busca rede, divide o problema e constrói junto.' },
+    misto: { nome: 'Combinado', texto: 'você mistura um pouco de cada jeito — testa na prática, pensa estratégico e conta com gente, dependendo da situação. É comum: as trilhas do Escalada trabalham essas competências juntas.' }
+  };
+
   var idx = 0;
   var answered = false;
+  var respostas = [];
 
   function renderTrack(){
     trackEl.innerHTML = '';
@@ -1690,7 +1701,7 @@
     q.opcoes.forEach(function(op, i){
       html += '<button type="button" class="teste-opcao" data-i="' + i + '">' + op.texto + '</button>';
     });
-    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;"><span aria-hidden="true">✓</span> <span id="teste-feedback-txt"></span></div></div>';
+    html += '</div><div class="teste-feedback" id="teste-feedback" aria-live="polite" style="visibility:hidden;"><span aria-hidden="true">✓</span> Resposta registrada.</div></div>';
     body.innerHTML = html;
     Array.prototype.forEach.call(body.querySelectorAll('.teste-opcao'), function(btn){
       btn.addEventListener('click', onPick);
@@ -1702,26 +1713,35 @@
     answered = true;
     var q = QUESTOES[idx];
     var op = q.opcoes[parseInt(e.currentTarget.getAttribute('data-i'), 10)];
+    respostas.push(op.perfil);
     Array.prototype.forEach.call(body.querySelectorAll('.teste-opcao'), function(b){ b.disabled = true; });
     e.currentTarget.classList.add('picked');
     var fb = document.getElementById('teste-feedback');
-    var fbTxt = document.getElementById('teste-feedback-txt');
-    if(fbTxt) fbTxt.textContent = op.feedback;
     if(fb) fb.style.visibility = 'visible';
     setTimeout(function(){
       idx++;
       if(idx < QUESTOES.length){ renderQuestion(); }
       else { renderFinal(); }
-    }, reduced ? 250 : 1100);
+    }, reduced ? 150 : 550);
+  }
+
+  function calcularPerfil(){
+    var contagem = { testador: 0, estrategista: 0, comunitario: 0 };
+    respostas.forEach(function(p){ contagem[p]++; });
+    var max = Math.max(contagem.testador, contagem.estrategista, contagem.comunitario);
+    var vencedores = Object.keys(contagem).filter(function(k){ return contagem[k] === max; });
+    return vencedores.length === 1 ? PERFIS[vencedores[0]] : PERFIS.misto;
   }
 
   function renderFinal(){
     renderTrack();
-    stepLbl.textContent = 'Resultado';
+    stepLbl.textContent = 'Seu perfil';
+    var perfil = calcularPerfil();
     body.innerHTML =
       '<div class="teste-final">' +
         '<span class="pts-grande">+15</span>' +
-        '<p>Foi só um teste, mas a régua é a mesma do Escalada oficial: completar um quiz vale +15, sem importar a resposta. Quer começar a valer pra sua conta?</p>' +
+        '<p><strong>' + perfil.nome + '.</strong> Pelas suas respostas, ' + perfil.texto + '</p>' +
+        '<p>Isso não veio de acertar nada — veio de completar o quiz, igual na régua oficial do Escalada. Quer começar a valer pra sua conta?</p>' +
         '<a class="btn btn-primario" href="#publicos">Quero participar →</a>' +
       '</div>';
   }
