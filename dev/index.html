@@ -124,8 +124,6 @@
   @media (min-width:960px){
     #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;}
   }
-  .hero-eyebrow{color:var(--verde-claro); display:flex; align-items:center; gap:8px; margin-bottom:16px;}
-  .hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--verde-claro); box-shadow:0 0 0 4px rgba(0,255,133,.18);}
   #hero h1, #hero h2.hero-h1{font-size:clamp(34px,5.8vw,58px); line-height:1.04; max-width:13.5ch;}
   #hero h1 em, #hero h2.hero-h1 em{font-style:normal; color:var(--verde-claro);}
   #hero .sub{font-size:17px; color:rgba(255,255,255,.82); max-width:46ch; margin:20px 0 28px;}
@@ -140,27 +138,10 @@
   @media (min-width:960px){ #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;} }
   .hero-left{order:0; display:flex; flex-direction:column;}
 
-  /* teaser: pergunta provocativa, SEMPRE visivel, e' a primeira coisa que
-     aparece -- a pesquisa de atencao mobile (~7s de orcamento real, decisao
-     de ficar em <5s) manda nao esconder a oferta atras da animacao */
-  .hero-teaser{
-    margin-bottom:22px; overflow:hidden; max-height:400px; opacity:1; visibility:visible;
-  }
-  /* no mobile, quando o rank assenta, o teaser tambem some -- so' o texto
-     padrao (.hero-copy) fica, sem duas manchetes empilhadas ao mesmo tempo.
-     visibility (nao so' opacity) tira o CTA escondido da ordem de tab e da
-     arvore de acessibilidade -- sem isso, um leitor de tela ou usuario de
-     teclado ainda alcancava um link com opacity:0 */
-  #hero.settled .hero-teaser{max-height:0; opacity:0; margin-bottom:0; visibility:hidden;}
-  .hero-teaser-h1{
-    font-family:var(--display); font-weight:700; color:#fff;
-    font-size:clamp(28px,7.5vw,40px); line-height:1.1; max-width:15ch; margin:0;
-  }
-  .hero-teaser-h1 em{font-style:normal; color:var(--verde-claro);}
-  .hero-teaser-sub{font-size:15.5px; color:rgba(255,255,255,.8); margin:10px 0 0; max-width:38ch;}
-
-  /* resto do copy (aprofundamento + CTA) some no mobile ate' a animacao
-     assentar -- mas o essencial (teaser acima) ja foi dito de cara */
+  /* no mobile, o copy padrao fica escondido ate' a animacao do rank assentar
+     -- o rank em movimento e' o CENTRO da experiencia inicial, com so' os
+     dois ganchos curtos (.hero-hook) de acompanhamento; o copy completo
+     (headline, premio, CTA) so' aparece quando a animacao termina */
   .hero-copy{
     order:2; overflow:hidden; max-height:0; opacity:0; visibility:hidden;
   }
@@ -174,12 +155,10 @@
   }
   #hero.settled .hero-rank-zone{min-height:0; max-height:0; opacity:0; padding:0; pointer-events:none;}
 
-  /* transicoes do colapso hero-teaser/hero-copy/hero-rank-zone -- so' com
-     movimento, senao troca instantanea (sem isso, o "settled" ainda mexia
-     layout por ate 850ms mesmo com reduced-motion ligado) */
+  /* transicoes do colapso hero-copy/hero-rank-zone -- so' com movimento,
+     senao troca instantanea (sem isso, o "settled" ainda mexia layout por
+     ate 850ms mesmo com reduced-motion ligado) */
   @media (prefers-reduced-motion:no-preference){
-    .hero-teaser{transition:max-height .5s cubic-bezier(.16,1,.3,1) .1s, opacity .3s ease, margin-bottom .5s ease .1s, visibility 0s linear;}
-    #hero.settled .hero-teaser{transition:max-height .4s cubic-bezier(.16,1,.3,1), opacity .25s ease, margin-bottom .4s ease, visibility 0s linear .4s;}
     .hero-copy{transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .5s ease, visibility 0s linear .85s;}
     #hero.settled .hero-copy{transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .6s ease .15s, visibility 0s linear;}
     .hero-rank-zone{
@@ -193,16 +172,9 @@
     font-family:var(--display); font-weight:700; font-size:16px; line-height:1.35; color:#fff;
     opacity:0; transform:translateY(8px);
   }
-  /* no mobile o card de ranking ja' e' a primeira coisa animada da pagina --
-     um segundo gancho retorico ("quer aparecer nesse ranking?") empilhado
-     logo acima dele so' repetia a pergunta do headline e empurrava o card
-     pra baixo o suficiente pra ficar atras da barra fixa de CTA no rodape.
-     o gancho de fechamento (abaixo do card) tinha o mesmo problema -- a
-     ultima linha ficava atras da barra fixa (confirmado por medicao real,
-     ~22px de sobreposicao) -- e agora a secao "testa a mecanica" logo
-     depois do hero faz essa mesma promessa de forma concreta, entao o
-     texto ficou redundante alem de quebrado */
-  #hero-hook-top, #hero-hook-bottom{display:none;}
+  /* no mobile, o rank em movimento e' o centro da experiencia inicial --
+     so' dois ganchos curtos acompanham (acima e abaixo do card), sem
+     nenhum texto pesado competindo pela atencao com a animacao */
   .hero-hook.in{opacity:1; transform:translateY(0);}
   .hero-hook em{font-style:normal; color:var(--verde-claro);}
   @media (prefers-reduced-motion:no-preference){
@@ -210,7 +182,6 @@
   }
 
   @media (min-width:960px){
-    .hero-teaser{display:none;}
     .hero-copy{order:0; max-height:none!important; opacity:1!important; visibility:visible!important; overflow:visible;}
     .hero-rank-zone{
       order:0; flex-direction:row; justify-content:center; min-height:0!important; max-height:none!important;
@@ -338,6 +309,31 @@
     .teste-final .pts-grande{ animation:none; }
   }
   .teste-final p{color:var(--ink-soft); font-size:14.5px; margin-bottom:20px;}
+
+  /* efeito de foco: ao centralizar o card do publico escolhido na tela,
+     tudo ao redor borra (fade-in 1s) e depois volta ao normal (fade-out
+     1s) -- como uma camera puxando o foco, pra deixar obvio onde olhar
+     antes de liberar o resto da pagina. So' o elemento-alvo (o card
+     .publico-match) fica nitido o tempo todo. Desligado com
+     prefers-reduced-motion (o proprio scroll ja vira "auto" nesse caso). */
+  @media (prefers-reduced-motion: no-preference){
+    #site-header,
+    main > section:not(#publicos),
+    #publicos .section-head,
+    #publicos .publico-card:not(.publico-match),
+    footer,
+    #sticky-cta{
+      transition:filter 1s ease;
+    }
+    body.foco-ativo #site-header,
+    body.foco-ativo main > section:not(#publicos),
+    body.foco-ativo #publicos .section-head,
+    body.foco-ativo #publicos .publico-card:not(.publico-match),
+    body.foco-ativo footer,
+    body.foco-ativo #sticky-cta{
+      filter:blur(6px);
+    }
+  }
 
   /* estudante vs professor -- leve lavagem de verde pra sair do branco corrido */
   #publicos{background:#DFF6E9;}
@@ -701,8 +697,8 @@
     <div class="wrap">
       <div class="hero-left">
         <div class="hero-copy">
-          <h1 class="hero-h1" id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h1>
-          <p class="sub" id="hero-sub">Programa de educação empreendedora em formato de jogo: até os 20 melhores do mês disputam a final ao vivo, e quem vence leva pra casa prêmios como smartphone e tablet. Esforço que conta ponto por ponto: trilha concluída, missão cumprida, sequência de dias mantida.</p>
+          <h1 class="hero-h1" id="hero-h1">Prêmios reais pra quem sobe no <em>ranking</em>.</h1>
+          <p class="sub" id="hero-sub">Complete trilhas sobre comportamento empreendedor e oportunidades de negócio, suba de nível e dispute prêmios como smartphone e tablet no GameShow Escalada ao vivo.</p>
           <div class="hero-ctas" id="hero-ctas">
             <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
           </div>
@@ -712,14 +708,9 @@
             <span class="hero-fact"><span aria-hidden="true">✓</span> ranking recomeça todo mês</span>
           </div>
         </div>
-        <div class="hero-teaser">
-          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Grátis · 14+ e professores</div>
-          <h2 class="hero-teaser-h1">Quer concorrer a um <em>prêmio incrível</em>?</h2>
-          <p class="hero-teaser-sub">Programa de educação empreendedora em formato de jogo. Cumpra trilhas e missões, suba no ranking e dispute o GameShow Escalada ao vivo — com prêmios como smartphone e tablet pra quem vence.</p>
-        </div>
       </div>
       <div class="hero-rank-zone">
-        <p class="hero-hook" id="hero-hook-top">Quer aparecer nesse ranking?</p>
+        <p class="hero-hook" id="hero-hook-top">O <em>Escalada</em> é um jogo.</p>
         <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você começa em 3º lugar e, conforme ganha pontos ao completar trilhas, módulos e missões, ultrapassa os colocados acima até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada. É assim que pontos reais movem sua posição.">
           <div class="rc-header">
             <span class="rank">Ranking mensal · exemplo</span>
@@ -754,7 +745,7 @@
             </div>
           </div>
         </div>
-        <p class="hero-hook" id="hero-hook-bottom">Ponto por ponto, sua posição <em>muda de verdade</em>.</p>
+        <p class="hero-hook" id="hero-hook-bottom">Você consegue ficar entre os <em>melhores</em>?</p>
       </div>
     </div>
   </section>
@@ -1510,7 +1501,7 @@
     }
 
     if(hookTop) setTimeout(function(){ hookTop.classList.add('in'); }, 250);
-    if(hookBottom) setTimeout(function(){ hookBottom.classList.add('in'); }, 600);
+    if(hookBottom) setTimeout(function(){ hookBottom.classList.add('in'); }, 1250);
 
     var rows = track.children;
     var pointsState = Array.prototype.map.call(rows, function(r){ return parsePt(r.querySelector('.pt').textContent); });
@@ -1813,6 +1804,28 @@
     document.getElementById('mecanica-nota-professor')
   ];
 
+  // rola ate' centralizar o elemento na tela e, so' entao, dispara o efeito
+  // de foco (tudo ao redor borra e volta ao normal) -- scrollend e' o sinal
+  // mais preciso de "a rolagem realmente terminou", mas nem todo navegador
+  // suporta; o setTimeout e' rede de seguranca (cobre navegador sem suporte
+  // e o caso em que o elemento ja' estava centralizado, sem rolagem nenhuma
+  // pra disparar o evento)
+  function centralizarComFoco(el){
+    if(!el) return;
+    el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+    if(reducedMotion) return;
+    var disparado = false;
+    function disparar(){
+      if(disparado) return;
+      disparado = true;
+      window.removeEventListener('scrollend', disparar);
+      document.body.classList.add('foco-ativo');
+      setTimeout(function(){ document.body.classList.remove('foco-ativo'); }, 1000);
+    }
+    window.addEventListener('scrollend', disparar);
+    setTimeout(disparar, 900);
+  }
+
   function escolher(pub){
     var info = PUBLICOS[pub];
     if(!info) return;
@@ -1839,10 +1852,11 @@
     if(anuncio) anuncio.textContent = 'Modo ' + (pub === 'estudante' ? 'estudante' : 'professor/educador') + ' selecionado. Botões de participar atualizados em toda a página.';
     // a escolha muda os cards de "Escolha seu caminho" (mais abaixo, depois
     // do teste jogavel) -- sem rolar ate' la', a pessoa clica e nao ve nada
-    // acontecer na propria viewport, o que parece um botao quebrado
-    if(publicosSection){
-      publicosSection.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
-    }
+    // acontecer na propria viewport, o que parece um botao quebrado. Rola
+    // ate' CENTRALIZAR o card escolhido (nao so' o topo da secao), senao o
+    // card do outro publico ainda ocupa quase todo o centro da tela
+    var cardEscolhido = document.querySelector('.publico-card.publico-match');
+    centralizarComFoco(cardEscolhido || publicosSection);
   }
 
   var CTA_PADRAO = { href:'https://escalada.me/lpescalada-estudantes1', label:'Quero participar', curto:'Participar' };
