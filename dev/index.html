@@ -111,6 +111,21 @@
      curto -- reduzido aqui pra sobrar espaco real pro card nao ficar atras
      da barra fixa */
   @media (max-width:959px){ #hero{padding-top:26px;} }
+  /* modal imersivo no mobile: enquanto a animacao do rank roda (ainda nao
+     "settled"), o hero vira uma camada fixa cobrindo a TELA INTEIRA --
+     cabecalho, barra fixa de CTA e qualquer espiada da proxima secao
+     desaparecem por tras dela -- em vez de so' mais uma secao no meio do
+     scroll normal. So' entra em vigor com JS rodando de verdade (marcador
+     html.js-hero, ligado pelo proprio script da animacao): sem JS, cai de
+     volta pro layout antigo em vez de travar a pagina inteira sem CTA. */
+  @media (max-width:959px){
+    html.js-hero #hero:not(.settled){
+      position:fixed; inset:0; z-index:250; height:100svh; padding:0;
+      display:flex; flex-direction:column; justify-content:center;
+    }
+    html.js-hero #hero:not(.settled) .hero-rank-zone{ min-height:0; max-height:none; padding:20px 0; }
+    html.js-hero body:has(#hero:not(.settled)){ overflow:hidden; }
+  }
   #hero .arco{
     position:absolute; top:-120px; right:-160px; width:520px; height:520px;
     border-radius:50%; border:64px solid rgba(0,217,92,.5);
@@ -126,7 +141,10 @@
      sem isso, quem usa teclado/leitor de tela fica sem NADA focavel no hero
      por varios segundos, e o skip() so' escuta clique/toque. Esse botao da'
      um jeito imediato de pular, visivel so' quando ganha foco de teclado
-     (mesmo padrao do .skip-link) */
+     (mesmo padrao do .skip-link) -- por isso e' filho DIRETO de #hero
+     (que tem overflow:hidden), nunca de .wrap (que tambem e' position:
+     relative): dentro de .wrap, o "top:-48px" ficava relativo a' box
+     errada e sobrava alguns pixels visiveis o tempo todo, mesmo sem foco */
   .hero-skip-anim{
     position:absolute; top:-48px; left:8px; z-index:20;
     background:var(--verde); color:#052312; font-weight:700; font-size:13px;
@@ -268,13 +286,15 @@
   /* card lateral de atividade: aparece por cima do card do ranking, um
      momento de cada vez (nunca junto com outro elemento competindo pela
      atencao), sempre com pan + rotacao leve na entrada -- so' transform e
-     opacity, os dois unicos jeitos GPU de animar isso */
+     opacity, os dois unicos jeitos GPU de animar isso. Cada momento
+     (.ra-comente/.ra-aula/.ra-trilhas/.ra-gameshow) tem seu PROPRIO canto,
+     tamanho e angulo -- nunca o mesmo popup reciclado no mesmo lugar,
+     pra parecer uma sequencia de eventos acontecendo ao redor do card */
   .rank-activity{
-    position:absolute; z-index:6; top:9%; right:-30px; width:200px; max-width:58%;
+    position:absolute; z-index:6; max-width:64%;
     opacity:0; visibility:hidden; pointer-events:none;
-    transform:translate(50px,-16px) rotate(11deg);
   }
-  .rank-activity.show{ opacity:1; visibility:visible; transform:translate(0,0) rotate(-3deg); }
+  .rank-activity.show{ opacity:1; visibility:visible; }
   @media (prefers-reduced-motion:no-preference){
     .rank-activity{transition:opacity .4s ease, transform .5s cubic-bezier(.16,1,.3,1), visibility 0s linear .4s;}
     .rank-activity.show{transition:opacity .4s ease, transform .5s cubic-bezier(.34,1.56,.64,1), visibility 0s linear;}
@@ -282,12 +302,26 @@
   @media (prefers-reduced-motion:reduce){
     .rank-activity{display:none;}
   }
+  .rank-activity.ra-comente{ top:4%; right:-15%; width:196px; transform:translate(48px,-20px) rotate(11deg); }
+  .rank-activity.ra-comente.show{ transform:translate(0,0) rotate(-4deg); }
+  .rank-activity.ra-aula{ bottom:2%; left:-16%; width:150px; transform:translate(-42px,22px) rotate(-9deg); }
+  .rank-activity.ra-aula.show{ transform:translate(0,0) rotate(3deg); }
+  .rank-activity.ra-trilhas{ top:-10%; left:-11%; width:236px; transform:translate(-32px,-30px) rotate(-7deg); }
+  .rank-activity.ra-trilhas.show{ transform:translate(0,0) rotate(2deg); }
+  .rank-activity.ra-gameshow{ bottom:-8%; right:-9%; width:214px; transform:translate(32px,36px) rotate(8deg); }
+  .rank-activity.ra-gameshow.show{ transform:translate(0,0) rotate(-2deg); }
   @media (max-width:959px){
-    .rank-activity{top:-16px; right:8px; width:176px; transform:translate(0,36px) rotate(6deg);}
-    .rank-activity.show{transform:translate(0,0) rotate(-2deg);}
+    .rank-activity.ra-comente{ top:-14px; right:2px; width:168px; transform:translate(0,32px) rotate(6deg); }
+    .rank-activity.ra-comente.show{ transform:translate(0,0) rotate(-2deg); }
+    .rank-activity.ra-aula{ bottom:-14px; left:2px; width:136px; transform:translate(0,-28px) rotate(-6deg); }
+    .rank-activity.ra-aula.show{ transform:translate(0,0) rotate(2deg); }
+    .rank-activity.ra-trilhas{ top:-20px; left:0; width:198px; transform:translate(0,32px) rotate(-4deg); }
+    .rank-activity.ra-trilhas.show{ transform:translate(0,0) rotate(1deg); }
+    .rank-activity.ra-gameshow{ bottom:-20px; right:0; width:188px; transform:translate(0,-32px) rotate(5deg); }
+    .rank-activity.ra-gameshow.show{ transform:translate(0,0) rotate(-1deg); }
   }
   .ra-card{
-    background:rgba(6,10,34,.86); border:1px solid rgba(255,255,255,.18);
+    background:rgba(6,10,34,.88); border:1px solid rgba(255,255,255,.18);
     backdrop-filter:blur(14px) saturate(1.3); border-radius:16px; padding:12px 13px;
     box-shadow:0 16px 30px -12px rgba(0,0,0,.55);
   }
@@ -296,23 +330,49 @@
     color:var(--verde-claro); background:rgba(0,217,92,.18); padding:3px 8px; border-radius:999px; margin-bottom:7px;
   }
   .ra-tag-gold{color:#FFD84D; background:rgba(255,216,77,.18);}
-  .ra-post-head{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
-  .ra-post-head b{font-size:11.5px; color:#fff; font-weight:700;}
-  .ra-post-head .ra-club{font-family:var(--mono); font-size:8.5px; color:rgba(255,255,255,.55); margin-left:auto; white-space:nowrap;}
+  .ra-post-head{display:flex; align-items:center; gap:7px; margin-bottom:7px;}
+  .ra-post-who{display:flex; flex-direction:column; line-height:1.25;}
+  .ra-post-who b{font-size:11.5px; color:#fff; font-weight:700;}
+  .ra-post-who span{font-family:var(--mono); font-size:8px; color:rgba(255,255,255,.55);}
   .ra-av{
-    width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
+    width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
     font-family:var(--mono); font-size:8px; font-weight:700; color:#fff;
     background:linear-gradient(135deg,#2A4FDA,#1A3AAD);
   }
   .ra-av.me{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
   .ra-post-txt{font-size:11.5px; color:rgba(255,255,255,.85); line-height:1.4; margin:0 0 8px;}
-  .ra-post-reply{display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--verde-claro); font-weight:600;}
+  .ra-post-meta{display:flex; gap:10px; font-size:10px; color:rgba(255,255,255,.5); margin-bottom:9px;}
+  .ra-post-reply{display:flex; align-items:center; gap:7px;}
+  .ra-post-input{
+    flex:1; font-size:10.5px; color:rgba(255,255,255,.9); background:rgba(255,255,255,.08);
+    border:1px solid rgba(0,217,92,.4); border-radius:999px; padding:6px 10px;
+  }
+  .ra-lesson{display:flex; flex-direction:column; gap:9px; padding:9px;}
+  .ra-lesson-thumb{
+    position:relative; height:52px; border-radius:11px;
+    background:linear-gradient(135deg,var(--azul),var(--magenta) 70%);
+  }
+  .ra-lesson-thumb .ra-tag{position:absolute; top:6px; left:6px; margin:0;}
+  .ra-lesson-body{padding:0 2px;}
   .ra-lesson-title{font-size:13px; color:#fff; font-weight:700; margin:0 0 4px; line-height:1.3;}
   .ra-lesson-trilha{font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.6);}
-  .ra-trilha-item{display:flex; align-items:center; gap:8px;}
-  .ra-trilha-item + .ra-trilha-item{margin-top:7px;}
-  .ra-thumb{width:26px; height:26px; border-radius:7px; flex:none; background:linear-gradient(135deg,var(--magenta),var(--azul));}
-  .ra-trilha-item span:last-child{font-size:11.5px; color:#fff; font-weight:600;}
+  .ra-materials-row{display:flex; gap:5px; margin-top:8px;}
+  .ra-mat{
+    font-family:var(--mono); font-size:8px; text-transform:uppercase; letter-spacing:.04em;
+    color:rgba(255,255,255,.75); background:rgba(255,255,255,.08); border-radius:6px; padding:3px 6px;
+  }
+  .ra-trilhas-filtros{display:flex; gap:5px; margin-bottom:9px;}
+  .ra-filtro{
+    font-family:var(--mono); font-size:8px; color:rgba(255,255,255,.55);
+    background:rgba(255,255,255,.06); border-radius:999px; padding:3px 8px;
+  }
+  .ra-filtro.on{color:#052312; background:var(--verde-claro); font-weight:700;}
+  .ra-trilha-item{display:flex; align-items:center; gap:9px;}
+  .ra-trilha-item + .ra-trilha-item{margin-top:8px;}
+  .ra-thumb{width:30px; height:30px; border-radius:8px; flex:none; background:linear-gradient(135deg,var(--magenta),var(--azul));}
+  .ra-thumb-alt{background:linear-gradient(135deg,var(--verde),#00A8E8);}
+  .ra-trilha-nome{font-size:11.5px; color:#fff; font-weight:600;}
+  .ra-premios{display:flex; gap:8px; margin-top:9px; font-size:10.5px; color:rgba(255,255,255,.85);}
 
   /* confete de clímax -- canvas full-viewport, so' desenha durante o burst */
   /* abaixo do #mobile-frame-wrapper (9000) de proposito -- assim, quando o
@@ -708,8 +768,8 @@
   <section id="hero">
     <div class="arco" aria-hidden="true"></div>
     <div class="arco2" aria-hidden="true"></div>
+    <button type="button" class="hero-skip-anim" id="hero-skip-anim">Pular animação do ranking</button>
     <div class="wrap">
-      <button type="button" class="hero-skip-anim" id="hero-skip-anim">Pular animação do ranking</button>
       <div class="hero-left">
         <div class="hero-copy">
           <h1 class="hero-h1" id="hero-h1">Prêmios reais pra quem sobe no <em>ranking</em>.</h1>
@@ -953,6 +1013,7 @@
 <script>
 (function(){
   'use strict';
+  document.documentElement.classList.add('js-hero'); // liga o modal imersivo mobile (ver CSS) -- so' com JS de verdade rodando
   var hero = document.getElementById('hero');
   var track = document.getElementById('lb-track');
   var viewport = document.getElementById('lb-viewport');
@@ -1278,27 +1339,50 @@
 
   var ACTIVITY_HTML = {
     comente:
-      '<div class="ra-card ra-post"><div class="ra-post-head"><span class="ra-av">DM</span><b>Duda M.</b><span class="ra-club">Clube de idiomas</span></div>' +
-      '<p class="ra-post-txt">"Terminei o módulo de hoje, alguém mais on?"</p>' +
-      '<div class="ra-post-reply"><span class="ra-av me">EU</span><span>Você comentou</span></div></div>',
+      '<div class="ra-card ra-post">' +
+        '<div class="ra-post-head"><span class="ra-av">DM</span><div class="ra-post-who"><b>Duda M.</b><span>Clube de idiomas · agora</span></div></div>' +
+        '<p class="ra-post-txt">"Terminei o módulo de hoje, alguém mais on?"</p>' +
+        '<div class="ra-post-meta"><span>❤ 4</span><span>💬 2</span></div>' +
+        '<div class="ra-post-reply"><span class="ra-av me">EU</span><span class="ra-post-input">Eu! bora trocar ideia 👋</span></div>' +
+      '</div>',
     aula:
-      '<div class="ra-card ra-lesson"><span class="ra-tag">Visto</span>' +
-      '<p class="ra-lesson-title">Quem sou eu?</p>' +
-      '<span class="ra-lesson-trilha">Começa por você</span></div>',
+      '<div class="ra-card ra-lesson">' +
+        '<div class="ra-lesson-thumb"><span class="ra-tag">Visto</span></div>' +
+        '<div class="ra-lesson-body">' +
+          '<p class="ra-lesson-title">Quem sou eu?</p>' +
+          '<span class="ra-lesson-trilha">Começa por você</span>' +
+          '<div class="ra-materials-row"><span class="ra-mat">artigo</span><span class="ra-mat">ebook</span><span class="ra-mat">quiz</span></div>' +
+        '</div>' +
+      '</div>',
     trilhas:
       '<div class="ra-card ra-trilhas">' +
-      '<div class="ra-trilha-item"><span class="ra-thumb" aria-hidden="true"></span><span>Começa por você</span></div>' +
-      '<div class="ra-trilha-item"><span class="ra-thumb" aria-hidden="true"></span><span>Modo protagonista</span></div></div>',
+        '<div class="ra-trilhas-filtros"><span class="ra-filtro on">Todas</span><span class="ra-filtro">Não vistas</span><span class="ra-filtro">Vistas</span></div>' +
+        '<div class="ra-trilha-item"><span class="ra-thumb" aria-hidden="true"></span><span class="ra-trilha-nome">Começa por você</span></div>' +
+        '<div class="ra-trilha-item"><span class="ra-thumb ra-thumb-alt" aria-hidden="true"></span><span class="ra-trilha-nome">Modo protagonista</span></div>' +
+      '</div>',
     gameshow:
-      '<div class="ra-card ra-gameshow"><span class="ra-tag ra-tag-gold">🏆 Você é Top 1</span>' +
-      '<p class="ra-lesson-title">Desafio final: GameShow Escalada</p></div>'
+      '<div class="ra-card ra-gameshow">' +
+        '<span class="ra-tag ra-tag-gold">🏆 Você é Top 1</span>' +
+        '<p class="ra-lesson-title">Desafio final: GameShow Escalada</p>' +
+        '<div class="ra-premios"><span>📱 smartphone</span><span>💻 tablet</span></div>' +
+      '</div>'
   };
 
   function showActivity(kind, t, onDone){
     var box = document.getElementById('rank-activity');
     if(!box){ onDone(); return; }
     box.innerHTML = ACTIVITY_HTML[kind];
-    box.className = 'rank-activity show ra-' + kind;
+    // cada .ra-{kind} tem sua PROPRIA posicao/tamanho "fora da tela" (nunca
+    // o mesmo canto reciclado) -- por isso precisa assentar nessa classe
+    // ANTES de "show", senao e' a primeira vez que .ra-{kind} existe nesse
+    // elemento e o navegador nao tem um estado anterior de onde animar a
+    // entrada (mesmo motivo do "void el.offsetHeight" em flipSwap)
+    box.className = 'rank-activity ra-' + kind;
+    void box.offsetWidth;
+    requestAnimationFrame(function(){
+      if(!animacaoAtiva) return;
+      box.classList.add('show');
+    });
     t(function(){
       if(!animacaoAtiva) return;
       box.classList.remove('show');
@@ -1335,6 +1419,16 @@
     });
     linhas.forEach(function(el, i){
       el.querySelector('.pt').textContent = formatPt(pointsState[i]);
+      // limpa qualquer resto de um flipSwap cortado no meio do voo -- se
+      // skip() caiu bem no instante entre o inicio do flipSwap e seu rAF
+      // seguinte, aquele rAF ve' animacaoAtiva ja' false e retorna ANTES de
+      // zerar transform/transition/z-index/.lifting daquela linha, deixando
+      // ela visualmente deslocada (translateY antigo) por cima da ordem
+      // certa que acabamos de forcar no DOM
+      el.style.transform = '';
+      el.style.transition = '';
+      el.style.zIndex = '';
+      el.classList.remove('lifting', 'ganhando');
       track.appendChild(el); // idempotente: reordena pro final certo nao' importa a ordem atual
     });
     updatePosLabels();
