@@ -85,8 +85,10 @@
     position:absolute; bottom:-200px; left:-180px; width:420px; height:420px;
     border-radius:50%; border:46px solid rgba(255,0,255,.28);
   }
-  #hero .wrap{position:relative; display:grid; grid-template-columns:1fr; gap:40px; align-items:center;}
-  @media (min-width:960px){ #hero .wrap{grid-template-columns:1.05fr .95fr; gap:32px;} }
+  #hero .wrap{position:relative; display:flex; flex-direction:column;}
+  @media (min-width:960px){
+    #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;}
+  }
   .hero-eyebrow{color:var(--verde-claro); display:flex; align-items:center; gap:8px; margin-bottom:18px;}
   .hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--verde-claro); box-shadow:0 0 0 4px rgba(0,255,133,.18);}
   #hero h1{font-size:clamp(34px,5.8vw,58px); line-height:1.04; max-width:13.5ch;}
@@ -99,79 +101,86 @@
   .hero-fact{display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,.78);}
   .hero-fact .ic{width:16px; height:16px; flex:none;}
 
-  /* mockup de telefone */
-  .phone-mock{
-    position:relative; margin:0 auto; width:min(300px, 78vw);
-    border-radius:44px; background:linear-gradient(160deg,#1b2040,#0a0d24);
-    padding:14px; box-shadow:var(--shadow-dark);
+  /* copy do hero: comeca escondido no mobile, o ranking domina a abertura */
+  .hero-copy{
+    order:2; overflow:hidden; max-height:0; opacity:0;
+    transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .5s ease;
   }
-  .phone-mock::before{
-    content:''; position:absolute; top:14px; left:50%; transform:translateX(-50%);
-    width:84px; height:22px; border-radius:14px; background:#05060f; z-index:3;
-  }
-  .phone-screen{
-    position:relative; border-radius:32px; overflow:hidden; background:var(--navy);
-    aspect-ratio:390/730;
-  }
-  .phone-screen .ps-header{
-    padding:34px 18px 14px; display:flex; align-items:center; justify-content:space-between;
-  }
-  .phone-screen .ps-header .rank{font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--verde-claro); text-transform:uppercase;}
-  .phone-screen .ps-header .streak{font-family:var(--mono); font-size:12px; color:#fff; display:flex; gap:5px; align-items:center;}
-  .ps-card{
-    margin:0 16px 12px; padding:16px; border-radius:18px;
-    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
-    backdrop-filter:blur(10px);
-  }
-  .ps-card .lbl{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55);}
-  .ps-card .val{font-family:var(--display); font-size:26px; color:#fff; margin:4px 0 2px;}
-  .ps-bar{height:6px; border-radius:4px; background:rgba(255,255,255,.14); overflow:hidden; margin-top:10px;}
-  .ps-bar i{display:block; height:100%; background:linear-gradient(90deg,var(--verde),var(--verde-claro)); border-radius:4px;}
-  .ps-missions{margin:0 16px; display:flex; flex-direction:column; gap:8px;}
-  .ps-mission{
-    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
-    background:rgba(255,255,255,.05); font-size:11.5px; color:rgba(255,255,255,.85);
-  }
-  .ps-mission .chk{width:16px; height:16px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:9px;}
-  .ps-mission.done .chk{background:var(--verde); color:#052312;}
-  .ps-mission.pend .chk{border:1.5px solid rgba(255,255,255,.3);}
+  #hero.settled .hero-copy{max-height:900px; opacity:1; transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .6s ease .15s;}
 
-  /* mini leaderboard no mockup do hero - animado */
-  .ps-lb-head{margin:0 16px 10px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
-  .ps-lb-head .lbl{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); transition:opacity .3s ease;}
-  .ps-lb-head .prize{font-family:var(--mono); font-size:9.5px; color:var(--verde-claro); transition:opacity .3s ease;}
+  .hero-rank-zone{
+    order:1; display:flex; align-items:center; justify-content:center;
+    min-height:calc(100svh - var(--hdr-h) - 32px);
+    transition:min-height .85s cubic-bezier(.16,1,.3,1);
+    padding:8px 0 28px;
+  }
+  #hero.settled .hero-rank-zone{min-height:0; padding:0;}
+
+  @media (min-width:960px){
+    .hero-copy{order:0; max-height:none!important; opacity:1!important; overflow:visible;}
+    .hero-rank-zone{order:0; min-height:0!important; padding:0;}
+  }
+
+  /* rank-card: sem moldura de celular, cartao de vidro flutuando */
+  .rank-card{
+    position:relative; width:100%; max-width:380px;
+    background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.14);
+    backdrop-filter:blur(18px) saturate(1.2); border-radius:26px;
+    padding:22px 18px 24px; box-shadow:var(--shadow-dark);
+    transform:scale(1.14);
+    transition:transform .85s cubic-bezier(.16,1,.3,1), padding .85s cubic-bezier(.16,1,.3,1);
+  }
+  #hero.settled .rank-card{transform:scale(1); padding:14px 16px 16px;}
+  @media (min-width:960px){ .rank-card{transform:none!important; padding:22px 18px 24px!important;} }
+
+  .rc-header{
+    display:flex; align-items:center; justify-content:space-between;
+    max-height:40px; opacity:1; overflow:hidden; margin-bottom:16px;
+    transition:max-height .6s ease, opacity .4s ease, margin .6s ease;
+  }
+  .rc-header .rank{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--verde-claro); text-transform:uppercase;}
+  .rc-header .streak{font-family:var(--mono); font-size:13px; color:#fff; display:flex; gap:5px; align-items:center;}
+  #hero.settled .rc-header{max-height:0; opacity:0; margin-bottom:0;}
+  @media (min-width:960px){ #hero.settled .rc-header{max-height:40px!important; opacity:1!important; margin-bottom:16px!important;} }
+
+  .ps-lb-head{margin:0 0 10px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
+  .ps-lb-head .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.55); transition:opacity .3s ease;}
+  .ps-lb-head .prize{font-family:var(--mono); font-size:10px; color:var(--verde-claro); transition:opacity .3s ease;}
   .ps-lb-viewport{
-    margin:0 16px; height:198px; overflow:hidden; position:relative;
+    height:230px; overflow:hidden; position:relative;
+    transition:height .85s cubic-bezier(.16,1,.3,1);
     -webkit-mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
     mask-image:linear-gradient(180deg, #000 82%, transparent 100%);
   }
-  .ps-lb-track{display:flex; flex-direction:column; gap:6px; will-change:transform;}
+  #hero.settled .ps-lb-viewport{height:142px;}
+  @media (min-width:960px){ #hero.settled .ps-lb-viewport{height:230px!important;} }
+  .ps-lb-track{display:flex; flex-direction:column; gap:7px; will-change:transform;}
   .ps-lb-row{
-    display:grid; grid-template-columns:20px 24px 1fr auto; gap:8px; align-items:center;
-    padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.045);
+    display:grid; grid-template-columns:22px 28px 1fr auto; gap:9px; align-items:center;
+    padding:9px 11px; border-radius:11px; background:rgba(255,255,255,.045);
     flex:none; transition:background .4s ease, border-color .4s ease;
   }
   .ps-lb-row.me{background:rgba(0,217,92,.16); border:1px solid rgba(0,217,92,.4);}
-  .ps-lb-row .pos{font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums;}
+  .ps-lb-row .pos{font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums;}
   .ps-lb-row.p1 .pos{color:#FFD84D;}
   .ps-lb-row .av{
-    width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-family:var(--mono); font-size:9px; font-weight:600; color:#fff;
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:10px; font-weight:600; color:#fff;
     background:linear-gradient(135deg,var(--azul),var(--ciano));
   }
   .ps-lb-row.me .av{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
-  .ps-lb-row .nm{font-size:11.5px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .ps-lb-row .pt{font-family:var(--mono); font-size:10.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums;}
+  .ps-lb-row .nm{font-size:13px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums;}
 
   .ps-lb-badge{
     position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:4px; text-align:center;
     background:linear-gradient(180deg, rgba(10,13,36,.4) 0%, rgba(10,13,36,.92) 55%);
-    opacity:0; transform:scale(.9); pointer-events:none;
+    opacity:0; transform:scale(.9); pointer-events:none; border-radius:14px;
   }
   .ps-lb-badge.show{opacity:1; transform:scale(1); transition:opacity .5s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.34,1.56,.64,1);}
-  .ps-lb-badge .num{font-family:var(--display); font-size:64px; font-weight:700; color:var(--verde-claro); line-height:1; text-shadow:0 0 40px rgba(0,255,133,.5);}
-  .ps-lb-badge .txt{font-size:13px; color:#fff; font-weight:600; max-width:200px; line-height:1.35;}
+  .ps-lb-badge .num{font-family:var(--display); font-size:68px; font-weight:700; color:var(--verde-claro); line-height:1; text-shadow:0 0 40px rgba(0,255,133,.5);}
+  .ps-lb-badge .txt{font-size:13.5px; color:#fff; font-weight:600; max-width:220px; line-height:1.35;}
 
   /* ---------- secoes claras ---------- */
   section{padding:72px 0;}
@@ -232,6 +241,18 @@
   .integridade-box .ico{flex:none; width:22px; height:22px; margin-top:2px;}
   .integridade-box p{margin:0; font-size:14px; color:var(--ink-soft);}
   .integridade-box strong{color:var(--ink);}
+
+  /* quote de comunidade real */
+  .quote-card{
+    max-width:640px; margin:28px auto 0; padding:24px 26px; border-radius:18px;
+    background:var(--papel); display:flex; gap:14px; align-items:flex-start;
+  }
+  .quote-card .qico{flex:none; width:22px; height:22px; margin-top:2px; opacity:.5;}
+  .quote-card blockquote{margin:0 0 8px; font-size:15px; line-height:1.5; color:var(--ink); font-style:italic;}
+  .quote-card cite{font-family:var(--mono); font-size:11px; font-style:normal; color:var(--ink-faint); letter-spacing:.02em;}
+  #mecanica .quote-card, #hero .quote-card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);}
+  #mecanica .quote-card blockquote{color:#fff;}
+  #mecanica .quote-card cite{color:rgba(255,255,255,.55);}
 
   /* comunidade */
   .comunidade-grid{display:grid; grid-template-columns:1fr; gap:16px;}
@@ -371,7 +392,7 @@
     <div class="arco" aria-hidden="true"></div>
     <div class="arco2" aria-hidden="true"></div>
     <div class="wrap">
-      <div class="reveal">
+      <div class="hero-copy">
         <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · ranking mensal aberto</div>
         <h1 id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h1>
         <p class="sub" id="hero-sub">Os 20 melhores do mês disputam a final ao vivo, e quem vence leva um smartphone pra casa. Não é sorte: é esforço que conta ponto por ponto, trilha concluída, missão cumprida, sequência de dias mantida, e o sistema audita contra fraude. Gratuito, pra estudante a partir de 14 anos.</p>
@@ -384,42 +405,40 @@
           <span class="hero-fact">✓ ranking recomeça todo mês</span>
         </div>
       </div>
-      <div class="reveal" style="animation-delay:.1s;">
-        <div class="phone-mock">
-          <div class="phone-screen">
-            <div class="ps-header">
-              <span class="rank">Ranking · Mês Flash</span>
-              <span class="streak">🔥 12 dias</span>
+      <div class="hero-rank-zone">
+        <div class="rank-card" id="rank-card">
+          <div class="rc-header">
+            <span class="rank">Ranking · Mês Flash</span>
+            <span class="streak">🔥 12 dias</span>
+          </div>
+          <div class="ps-lb-head">
+            <span class="lbl" id="lb-lbl">Top da temporada</span>
+            <span class="prize" id="lb-prize">🏆 vaga no GameShow</span>
+          </div>
+          <div class="ps-lb-viewport" id="lb-viewport">
+            <div class="ps-lb-track" id="lb-track">
+              <div class="ps-lb-row p1"><span class="pos">1º</span><span class="av">JM</span><span class="nm">J. Martins</span><span class="pt">2.840</span></div>
+              <div class="ps-lb-row"><span class="pos">2º</span><span class="av">AC</span><span class="nm">Ana C.</span><span class="pt">2.615</span></div>
+              <div class="ps-lb-row me"><span class="pos">3º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">2.480</span></div>
+              <div class="ps-lb-row"><span class="pos">4º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">2.310</span></div>
+              <div class="ps-lb-row"><span class="pos">5º</span><span class="av">BS</span><span class="nm">Bia S.</span><span class="pt">2.190</span></div>
+              <div class="ps-lb-row"><span class="pos">6º</span><span class="av">LF</span><span class="nm">Lucas F.</span><span class="pt">2.050</span></div>
+              <div class="ps-lb-row"><span class="pos">7º</span><span class="av">MT</span><span class="nm">Marina T.</span><span class="pt">1.980</span></div>
+              <div class="ps-lb-row"><span class="pos">8º</span><span class="av">RO</span><span class="nm">Rafael O.</span><span class="pt">1.920</span></div>
+              <div class="ps-lb-row"><span class="pos">9º</span><span class="av">DM</span><span class="nm">Duda M.</span><span class="pt">1.860</span></div>
+              <div class="ps-lb-row"><span class="pos">10º</span><span class="av">TB</span><span class="nm">Théo B.</span><span class="pt">1.790</span></div>
+              <div class="ps-lb-row"><span class="pos">11º</span><span class="av">SR</span><span class="nm">Sofia R.</span><span class="pt">1.720</span></div>
+              <div class="ps-lb-row"><span class="pos">12º</span><span class="av">EP</span><span class="nm">Enzo P.</span><span class="pt">1.650</span></div>
+              <div class="ps-lb-row"><span class="pos">13º</span><span class="av">AN</span><span class="nm">Alice N.</span><span class="pt">1.590</span></div>
+              <div class="ps-lb-row"><span class="pos">14º</span><span class="av">MA</span><span class="nm">Miguel A.</span><span class="pt">1.530</span></div>
+              <div class="ps-lb-row"><span class="pos">15º</span><span class="av">LV</span><span class="nm">Laura V.</span><span class="pt">1.470</span></div>
+              <div class="ps-lb-row"><span class="pos">16º</span><span class="av">DC</span><span class="nm">Davi C.</span><span class="pt">1.410</span></div>
+              <div class="ps-lb-row"><span class="pos">17º</span><span class="av">IG</span><span class="nm">Isabela G.</span><span class="pt">1.350</span></div>
+              <div class="ps-lb-row"><span class="pos">18º</span><span class="av">GS</span><span class="nm">Gabriel S.</span><span class="pt">1.290</span></div>
+              <div class="ps-lb-row"><span class="pos">19º</span><span class="av">MK</span><span class="nm">Manu K.</span><span class="pt">1.230</span></div>
+              <div class="ps-lb-row"><span class="pos">20º</span><span class="av">BH</span><span class="nm">Bento H.</span><span class="pt">1.180</span></div>
             </div>
-            <div class="ps-lb-head">
-              <span class="lbl" id="lb-lbl">Top da temporada</span>
-              <span class="prize" id="lb-prize">🏆 vaga no GameShow</span>
-            </div>
-            <div class="ps-lb-viewport" id="lb-viewport">
-              <div class="ps-lb-track" id="lb-track">
-                <div class="ps-lb-row p1"><span class="pos">1º</span><span class="av">JM</span><span class="nm">J. Martins</span><span class="pt">2.840</span></div>
-                <div class="ps-lb-row"><span class="pos">2º</span><span class="av">AC</span><span class="nm">Ana C.</span><span class="pt">2.615</span></div>
-                <div class="ps-lb-row me"><span class="pos">3º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">2.480</span></div>
-                <div class="ps-lb-row"><span class="pos">4º</span><span class="av">PL</span><span class="nm">Pedro L.</span><span class="pt">2.310</span></div>
-                <div class="ps-lb-row"><span class="pos">5º</span><span class="av">BS</span><span class="nm">Bia S.</span><span class="pt">2.190</span></div>
-                <div class="ps-lb-row"><span class="pos">6º</span><span class="av">LF</span><span class="nm">Lucas F.</span><span class="pt">2.050</span></div>
-                <div class="ps-lb-row"><span class="pos">7º</span><span class="av">MT</span><span class="nm">Marina T.</span><span class="pt">1.980</span></div>
-                <div class="ps-lb-row"><span class="pos">8º</span><span class="av">RO</span><span class="nm">Rafael O.</span><span class="pt">1.920</span></div>
-                <div class="ps-lb-row"><span class="pos">9º</span><span class="av">DM</span><span class="nm">Duda M.</span><span class="pt">1.860</span></div>
-                <div class="ps-lb-row"><span class="pos">10º</span><span class="av">TB</span><span class="nm">Théo B.</span><span class="pt">1.790</span></div>
-                <div class="ps-lb-row"><span class="pos">11º</span><span class="av">SR</span><span class="nm">Sofia R.</span><span class="pt">1.720</span></div>
-                <div class="ps-lb-row"><span class="pos">12º</span><span class="av">EP</span><span class="nm">Enzo P.</span><span class="pt">1.650</span></div>
-                <div class="ps-lb-row"><span class="pos">13º</span><span class="av">AN</span><span class="nm">Alice N.</span><span class="pt">1.590</span></div>
-                <div class="ps-lb-row"><span class="pos">14º</span><span class="av">MA</span><span class="nm">Miguel A.</span><span class="pt">1.530</span></div>
-                <div class="ps-lb-row"><span class="pos">15º</span><span class="av">LV</span><span class="nm">Laura V.</span><span class="pt">1.470</span></div>
-                <div class="ps-lb-row"><span class="pos">16º</span><span class="av">DC</span><span class="nm">Davi C.</span><span class="pt">1.410</span></div>
-                <div class="ps-lb-row"><span class="pos">17º</span><span class="av">IG</span><span class="nm">Isabela G.</span><span class="pt">1.350</span></div>
-                <div class="ps-lb-row"><span class="pos">18º</span><span class="av">GS</span><span class="nm">Gabriel S.</span><span class="pt">1.290</span></div>
-                <div class="ps-lb-row"><span class="pos">19º</span><span class="av">MK</span><span class="nm">Manu K.</span><span class="pt">1.230</span></div>
-                <div class="ps-lb-row"><span class="pos">20º</span><span class="av">BH</span><span class="nm">Bento H.</span><span class="pt">1.180</span></div>
-              </div>
-              <div class="ps-lb-badge" id="lb-badge"><span class="num">20</span><span class="txt">vagas no GameShow Escalada deste mês</span></div>
-            </div>
+            <div class="ps-lb-badge" id="lb-badge"><span class="num">20</span><span class="txt">vagas no GameShow Escalada deste mês</span></div>
           </div>
         </div>
       </div>
@@ -486,6 +505,13 @@
           <div><h3>Líder Escalada</h3><span class="faixa">2.200+ pontos</span><p>Topo da escada: certificação e caminho pro GameShow.</p></div>
         </div>
       </div>
+      <div class="quote-card reveal">
+        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div>
+          <blockquote>Empreender é subir um degrau de cada vez, testando rápido e aprendendo ainda mais rápido.</blockquote>
+          <cite>Um estudante, na comunidade Escalada</cite>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -511,6 +537,13 @@
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
         <p><strong>O sistema audita contra manipulação de pontos.</strong> Clique repetido sem propósito, comportamento de robô e outras condutas vedadas são detectados e a pontuação pode ser revertida. Quem está no topo do ranking chegou lá fazendo a trilha de verdade.</p>
       </div>
+      <div class="quote-card reveal">
+        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div>
+          <blockquote>2.000 pontos já estão logo ali! Mas o mais importante é que cada ponto representa uma participação, uma interação e um aprendizado. Bora buscar essa conquista!</blockquote>
+          <cite>Um estudante, comentando na comunidade Escalada</cite>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -525,6 +558,13 @@
         <div class="passo"><div class="idx">02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
         <div class="passo"><div class="idx">03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
         <div class="passo"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Mês Flash, vouchers e a final ao vivo do GameShow Escalada.</p></div>
+      </div>
+      <div class="quote-card reveal">
+        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div>
+          <blockquote>A linha de chegada mudou, então não dá pra vacilar na base agora. É a hora de gastar toda a energia que restou pra garantir a vaga no pódio e fechar com chave de ouro no GameShow Escalada!</blockquote>
+          <cite>Um estudante, comentando na comunidade Escalada</cite>
+        </div>
       </div>
     </div>
   </section>
@@ -551,6 +591,13 @@
       <div class="integridade-box reveal" style="margin-top:16px;">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.8"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.97-4.03 9-9 9-1.6 0-3.1-.42-4.4-1.15L3 21l1.15-3.6A8.96 8.96 0 013 12c0-4.97 4.03-9 9-9s9 4.03 9 9z"/></svg>
         <p><strong>Sua sequência também é social.</strong> Pra manter o streak, você comenta em duas publicações diferentes de colegas por dia, com pelo menos 20 caracteres cada. Ou seja: pontuar exige participar de verdade, não só assistir.</p>
+      </div>
+      <div class="quote-card reveal">
+        <svg class="qico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3zm10 0c-1.7 0-3 1.3-3 3 0 1.6 1.2 2.8 2.7 3-.1 2-1.2 3.3-2.9 4l.6 1.6c3-.9 4.6-3 4.6-6.3V10c0-1.7-1.3-3-3-3z"/></svg>
+        <div>
+          <blockquote>É exatamente isso! A Escalada fica ainda mais forte quando a gente transforma aprendizado em interação e troca.</blockquote>
+          <cite>Um estudante, comentando na comunidade Escalada</cite>
+        </div>
       </div>
     </div>
   </section>
@@ -637,6 +684,7 @@
 <script>
 (function(){
   'use strict';
+  var hero = document.getElementById('hero');
   var track = document.getElementById('lb-track');
   var viewport = document.getElementById('lb-viewport');
   var badge = document.getElementById('lb-badge');
@@ -661,11 +709,11 @@
     requestAnimationFrame(step);
   }
 
-  function crossfadeSwap(rowA, rowB){
+  function crossfadeSwap(rowA, rowB, onDone){
     var aHtml = rowA.innerHTML, bHtml = rowB.innerHTML;
     var aMe = rowA.classList.contains('me'), bMe = rowB.classList.contains('me');
-    rowA.style.transition = 'opacity .22s ease';
-    rowB.style.transition = 'opacity .22s ease';
+    rowA.style.transition = 'opacity .16s ease';
+    rowB.style.transition = 'opacity .16s ease';
     rowA.style.opacity = '0';
     rowB.style.opacity = '0';
     setTimeout(function(){
@@ -675,7 +723,22 @@
       rowB.classList.toggle('me', aMe);
       rowA.style.opacity = '1';
       rowB.style.opacity = '1';
-    }, 220);
+      if(onDone) onDone();
+    }, 160);
+  }
+
+  // varias trocas encadeadas entre as 5 primeiras posicoes -- sensacao de
+  // disputa acontecendo de verdade, nao so uma pessoa mudando de lugar
+  function shuffleSequence(rows, pairs, gapMs, onAllDone){
+    var i = 0;
+    function next(){
+      if(i >= pairs.length){ onAllDone(); return; }
+      var pair = pairs[i++];
+      crossfadeSwap(rows[pair[0]], rows[pair[1]], function(){
+        setTimeout(next, gapMs);
+      });
+    }
+    next();
   }
 
   function fadeText(el, newText){
@@ -691,24 +754,60 @@
     badge.classList.add('show');
     fadeText(lblEl, 'Top 20 do mês');
     fadeText(prizeEl, '🏆 vencedor leva o smartphone');
+    setTimeout(function(){
+      badge.classList.remove('show');
+      if(hero) hero.classList.add('settled');
+    }, 900);
   }
 
   function run(){
-    if(reduced){ finalState(); return; }
+    if(reduced){
+      lblEl.textContent = 'Top 20 do mês';
+      prizeEl.textContent = '🏆 vencedor leva o smartphone';
+      if(hero) hero.classList.add('settled');
+      return;
+    }
 
     var rows = track.children;
     var rowH = rows[0].getBoundingClientRect().height;
-    var gap = 6;
+    var gap = 7;
     var step = rowH + gap;
+    var targetY = -(step * (rows.length - 5));
 
-    setTimeout(function(){ crossfadeSwap(rows[1], rows[2]); }, 650);
+    // 6 trocas passando pelas 5 primeiras posicoes (0-4), cada uma participa
+    // de pelo menos uma disputa
+    var pairs = [[0,1],[3,4],[1,2],[2,3],[0,2],[3,4]];
 
-    setTimeout(function(){
-      var targetY = -(step * (rows.length - 5));
-      animateTransform(track, 0, targetY, 2100, easeInOutCubic, function(){
-        setTimeout(finalState, 280);
+    var skipped = false;
+    var timers = [];
+    function t(fn, ms){ timers.push(setTimeout(fn, ms)); }
+
+    function skip(){
+      if(skipped) return;
+      skipped = true;
+      timers.forEach(clearTimeout);
+      viewport.removeEventListener('click', skip);
+      track.style.transition = 'none';
+      track.style.transform = 'translateY(' + targetY + 'px)';
+      badge.classList.remove('show');
+      lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
+      prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vencedor leva o smartphone';
+      if(hero) hero.classList.add('settled');
+    }
+    viewport.addEventListener('click', skip);
+
+    t(function(){
+      shuffleSequence(rows, pairs, 85, function(){
+        t(function(){
+          animateTransform(track, 0, targetY, 1750, easeInOutCubic, function(){
+            t(function(){
+              viewport.removeEventListener('click', skip);
+              finalState();
+            }, 200);
+          });
+        }, 260);
       });
-    }, 1650);
+    }, 400);
   }
 
   if('IntersectionObserver' in window){
