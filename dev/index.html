@@ -31,7 +31,7 @@
   img{max-width:100%; display:block;}
   a{color:inherit;}
   [hidden]{display:none!important;}
-  .wrap{max-width:1180px; margin:0 auto; padding:0 20px;}
+  .wrap{max-width:1320px; margin:0 auto; padding:0 24px;}
   .wrap-narrow{max-width:760px; margin:0 auto; padding:0 20px;}
   h1,h2,h3{font-family:var(--display); font-weight:700; letter-spacing:-.01em; text-wrap:balance; margin:0;}
   p{margin:0 0 14px;}
@@ -67,7 +67,7 @@
   @media (min-width:860px){
     .nav-desktop-only{display:flex;}
     .hdr-cta{display:inline-flex;}
-    body.has-dev-switch #site-header .wrap{padding-right:132px;}
+    body.has-dev-switch #site-header .wrap{padding-right:150px;}
   }
 
   /* ---------- hero ---------- */
@@ -89,10 +89,10 @@
   @media (min-width:960px){
     #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;}
   }
-  .hero-eyebrow{color:var(--verde-claro); display:flex; align-items:center; gap:8px; margin-bottom:18px;}
+  .hero-eyebrow{color:var(--verde-claro); display:flex; align-items:center; gap:8px; margin-bottom:16px;}
   .hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--verde-claro); box-shadow:0 0 0 4px rgba(0,255,133,.18);}
-  #hero h1{font-size:clamp(34px,5.8vw,58px); line-height:1.04; max-width:13.5ch;}
-  #hero h1 em{font-style:normal; color:var(--verde-claro);}
+  #hero h1, #hero h2.hero-h1{font-size:clamp(34px,5.8vw,58px); line-height:1.04; max-width:13.5ch;}
+  #hero h1 em, #hero h2.hero-h1 em{font-style:normal; color:var(--verde-claro);}
   #hero .sub{font-size:17px; color:rgba(255,255,255,.82); max-width:46ch; margin:20px 0 28px;}
   #hero .sub b{color:#fff;}
   .hero-ctas{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:26px;}
@@ -101,7 +101,23 @@
   .hero-fact{display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,.78);}
   .hero-fact .ic{width:16px; height:16px; flex:none;}
 
-  /* copy do hero: comeca escondido no mobile, o ranking domina a abertura */
+  #hero .wrap{display:flex; flex-direction:column;}
+  @media (min-width:960px){ #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;} }
+  .hero-left{order:0; display:flex; flex-direction:column;}
+
+  /* teaser: pergunta provocativa, SEMPRE visivel, e' a primeira coisa que
+     aparece -- a pesquisa de atencao mobile (~7s de orcamento real, decisao
+     de ficar em <5s) manda nao esconder a oferta atras da animacao */
+  .hero-teaser{margin-bottom:22px;}
+  .hero-teaser-h1{
+    font-family:var(--display); font-weight:700; color:#fff;
+    font-size:clamp(28px,7.5vw,40px); line-height:1.1; max-width:15ch; margin:0;
+  }
+  .hero-teaser-h1 em{font-style:normal; color:var(--verde-claro);}
+  .hero-teaser-sub{font-size:15.5px; color:rgba(255,255,255,.8); margin:10px 0 0; max-width:38ch;}
+
+  /* resto do copy (aprofundamento + CTA) some no mobile ate' a animacao
+     assentar -- mas o essencial (teaser acima) ja foi dito de cara */
   .hero-copy{
     order:2; overflow:hidden; max-height:0; opacity:0;
     transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .5s ease;
@@ -109,25 +125,26 @@
   #hero.settled .hero-copy{max-height:900px; opacity:1; transition:max-height .85s cubic-bezier(.16,1,.3,1), opacity .6s ease .15s;}
 
   .hero-rank-zone{
-    order:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
-    min-height:calc(100svh - var(--hdr-h) - 32px);
+    order:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    min-height:calc(100svh - var(--hdr-h) - 220px);
     max-height:2000px; opacity:1; overflow:hidden;
     transition:min-height .85s cubic-bezier(.16,1,.3,1), max-height .6s cubic-bezier(.16,1,.3,1) .25s,
       opacity .5s ease .25s, padding .6s ease .25s;
-    padding:8px 0 28px;
+    padding:8px 0 20px;
   }
   #hero.settled .hero-rank-zone{min-height:0; max-height:0; opacity:0; padding:0; pointer-events:none;}
 
   .hero-hook{
     margin:0; text-align:center; max-width:300px;
-    font-family:var(--display); font-weight:700; font-size:17px; line-height:1.35; color:#fff;
-    opacity:0; transform:translateY(10px);
-    transition:opacity .6s ease, transform .6s cubic-bezier(.16,1,.3,1);
+    font-family:var(--display); font-weight:700; font-size:16px; line-height:1.35; color:#fff;
+    opacity:0; transform:translateY(8px);
+    transition:opacity .45s ease, transform .45s cubic-bezier(.16,1,.3,1);
   }
   .hero-hook.in{opacity:1; transform:translateY(0);}
   .hero-hook em{font-style:normal; color:var(--verde-claro);}
 
   @media (min-width:960px){
+    .hero-teaser{display:none;}
     .hero-copy{order:0; max-height:none!important; opacity:1!important; overflow:visible;}
     .hero-rank-zone{
       order:0; flex-direction:row; min-height:0!important; max-height:none!important;
@@ -142,6 +159,14 @@
     background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.14);
     backdrop-filter:blur(18px) saturate(1.2); border-radius:26px;
     padding:22px 18px 24px; box-shadow:var(--shadow-dark);
+  }
+  @media (min-width:960px){
+    .rank-card{max-width:480px; padding:30px 26px 32px;}
+    .ps-lb-viewport{height:290px;}
+    .ps-lb-row{padding:12px 14px;}
+    .ps-lb-row .nm{font-size:14.5px;}
+    .ps-lb-row .pt{font-size:13px;}
+    .ps-lb-row .av{width:32px; height:32px; font-size:11px;}
   }
 
   .rc-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
@@ -164,7 +189,9 @@
   }
   .ps-lb-row.lifting{box-shadow:0 10px 22px -8px rgba(0,0,0,.5); background:rgba(255,255,255,.09);}
   .ps-lb-row.me{background:rgba(0,217,92,.16); border:1px solid rgba(0,217,92,.4);}
-  .ps-lb-row .pos{font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums;}
+  .ps-lb-row.ganhando{background:rgba(0,255,133,.14);}
+  .ps-lb-row.ganhando .pt{color:var(--verde-claro); text-shadow:0 0 10px rgba(0,255,133,.85); transition:color .15s ease, text-shadow .15s ease;}
+  .ps-lb-row .pos{font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.5); text-align:center; font-variant-numeric:tabular-nums; transition:color .3s ease;}
   .ps-lb-row.p1 .pos{color:#FFD84D;}
   .ps-lb-row .av{
     width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -173,7 +200,7 @@
   }
   .ps-lb-row.me .av{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
   .ps-lb-row .nm{font-size:13px; color:rgba(255,255,255,.88); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums;}
+  .ps-lb-row .pt{font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums; transition:color .3s ease, text-shadow .3s ease;}
 
   .ps-lb-badge{
     position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
@@ -191,6 +218,25 @@
   .section-head .eyebrow{color:var(--verde); display:block; margin-bottom:12px;}
   .section-head h2{font-size:clamp(26px,3.4vw,36px);}
   .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
+
+  /* estudante vs professor */
+  .publicos-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+  @media (min-width:760px){ .publicos-grid{grid-template-columns:1fr 1fr;} }
+  .publico-card{
+    background:var(--papel-raised); border-radius:22px; padding:26px 26px 24px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .publico-tag{
+    display:inline-block; align-self:flex-start; font-family:var(--mono); font-size:11px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--verde); background:rgba(0,217,92,.12);
+    padding:5px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  .publico-tag.prof{color:var(--azul); background:rgba(42,79,218,.12);}
+  .publico-card h3{font-size:19px; margin-bottom:14px;}
+  .publico-card ul{margin:0 0 20px; padding:0 0 0 18px; list-style:disc;}
+  .publico-card li{font-size:14px; color:var(--ink-soft); margin-bottom:8px; line-height:1.45;}
+  .publico-card li::marker{color:var(--verde);}
+  .publico-card .btn{margin-top:auto; align-self:flex-start;}
 
   /* fatos */
   .fatos-grid{display:grid; grid-template-columns:1fr; gap:14px;}
@@ -383,18 +429,28 @@
 
   #mobile-frame-wrapper{
     position:fixed; inset:0; z-index:9000; background:#e7e5db;
-    display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px;
     padding:70px 16px 24px;
   }
   #mobile-frame-wrapper.active{display:flex;}
+  /* viewport disponivel pra moldura -- so' pra medir espaco, nao escala */
+  #iphone-viewport{position:relative; flex:1; min-height:0; width:100%;}
+  /* escalado via transform (JS) a partir do centro: o iframe la' dentro
+     sempre enxerga exatamente 393x852pt reais (iPhone 15), entao os media
+     queries batem 100% com um aparelho de verdade, mesmo que a MOLDURA
+     apareca reduzida pra caber num monitor menor */
+  .iphone-scaler{
+    position:absolute; top:50%; left:50%;
+    width:421px; height:880px; margin:-440px 0 0 -210.5px;
+  }
   .iphone-shell{
-    position:relative; width:393px; height:852px; max-width:92vw; flex:none;
+    position:relative; width:421px; height:880px;
     background:#0b0b0f; border-radius:56px; padding:14px;
     box-shadow:0 30px 70px -20px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06);
   }
   .iphone-shell .side-btn{position:absolute; right:-3px; top:150px; width:3px; height:60px; background:#1c1c22; border-radius:2px;}
   .iphone-screen{
-    width:100%; height:100%; border-radius:42px; overflow:hidden; background:#fff;
+    width:393px; height:852px; border-radius:42px; overflow:hidden; background:#fff;
     display:flex; flex-direction:column;
   }
   .iphone-statusbar{
@@ -430,20 +486,27 @@
     <div class="arco" aria-hidden="true"></div>
     <div class="arco2" aria-hidden="true"></div>
     <div class="wrap">
-      <div class="hero-copy">
-        <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · ranking mensal aberto</div>
-        <h1 id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h1>
-        <p class="sub" id="hero-sub">Os 20 melhores do mês disputam a final ao vivo, e quem vence leva um smartphone pra casa. Não é sorte: é esforço que conta ponto por ponto, trilha concluída, missão cumprida, sequência de dias mantida, e o sistema audita contra fraude. Gratuito, pra estudante a partir de 14 anos.</p>
-        <div class="hero-ctas">
-          <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
+      <div class="hero-left">
+        <div class="hero-teaser">
+          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · gratuito, 14+ anos</div>
+          <h1 class="hero-teaser-h1">Quer concorrer a um <em>prêmio incrível</em>?</h1>
+          <p class="hero-teaser-sub">Um smartphone espera no topo do ranking deste mês. É só entrar e disputar.</p>
         </div>
-        <div class="hero-facts">
-          <span class="hero-fact">✓ 100% gratuito</span>
-          <span class="hero-fact">✓ direto do celular</span>
-          <span class="hero-fact">✓ ranking recomeça todo mês</span>
+        <div class="hero-copy">
+          <h2 class="hero-h1" id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h2>
+          <p class="sub" id="hero-sub">Os 20 melhores do mês disputam a final ao vivo, e quem vence leva um smartphone pra casa. Esforço que conta ponto por ponto: trilha concluída, missão cumprida, sequência de dias mantida, e o sistema audita contra fraude.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
+          </div>
+          <div class="hero-facts">
+            <span class="hero-fact">✓ 100% gratuito</span>
+            <span class="hero-fact">✓ direto do celular</span>
+            <span class="hero-fact">✓ ranking recomeça todo mês</span>
+          </div>
         </div>
       </div>
       <div class="hero-rank-zone">
+        <p class="hero-hook" id="hero-hook-top">Você consegue se manter no rank?</p>
         <div class="rank-card" id="rank-card">
           <div class="rc-header">
             <span class="rank">Ranking · Mês Flash</span>
@@ -479,7 +542,38 @@
             <div class="ps-lb-badge" id="lb-badge"><span class="num">20</span><span class="txt">vagas no GameShow Escalada deste mês</span></div>
           </div>
         </div>
-        <p class="hero-hook" id="hero-hook">Disputa real, <em>prêmio real</em>: todo mês tem vencedor.</p>
+        <p class="hero-hook" id="hero-hook-bottom">Ponto por ponto, sua posição <em>muda de verdade</em>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="publicos">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow" style="color:var(--verde);">Escolha seu caminho</span>
+        <h2>Dois jeitos de entrar, dois jeitos de pontuar.</h2>
+      </div>
+      <div class="publicos-grid reveal">
+        <div class="publico-card">
+          <span class="publico-tag">Pra estudante</span>
+          <h3>Você sobe fazendo a sua trilha</h3>
+          <ul>
+            <li>Cada trilha, módulo e missão concluída soma pontos direto no seu ranking</li>
+            <li>Prêmio: smartphone pra quem vence o GameShow Escalada</li>
+            <li>A partir de 14 anos, vinculado a uma instituição de ensino</li>
+          </ul>
+          <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Quero participar como estudante</a>
+        </div>
+        <div class="publico-card">
+          <span class="publico-tag prof">Pra professor / educador</span>
+          <h3>Você sobe mobilizando sua turma</h3>
+          <ul>
+            <li>Trilha própria (módulos v3.5, com quizzes e artigos) pra você também evoluir</li>
+            <li>Pontua por cada estudante ativo que você vincula e mantém engajado</li>
+            <li>Prêmio: voucher de R$1.000 por mês, por até 3 meses</li>
+          </ul>
+          <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-multiplicadores1">Quero participar como educador</a>
+        </div>
       </div>
     </div>
   </section>
@@ -488,7 +582,7 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow" style="color:var(--verde);">O que você ganha</span>
-        <h2>Não é só motivação. Tem prêmio, regra clara e reconhecimento real.</h2>
+        <h2>Prêmio de verdade, regra clara, reconhecimento real.</h2>
       </div>
       <div class="fatos-grid reveal">
         <div class="fato-card">
@@ -618,18 +712,18 @@
       <div class="comunidade-grid reveal">
         <div class="comunidade-card">
           <span class="eyebrow" style="color:var(--azul);">As trilhas</span>
-          <h3>Não é vídeo solto, é jornada com nome</h3>
-          <p>Trilhas como <strong>Começa por você</strong> e <strong>Modo protagonista</strong> passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, tudo em módulos curtos que você conclui no seu tempo.</p>
+          <h3>Trilhas com nome e tema, não vídeo solto</h3>
+          <p><strong>Começa por você</strong> e <strong>Modo protagonista</strong> passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, em módulos curtos que você conclui no seu tempo.</p>
         </div>
         <div class="comunidade-card">
-          <span class="eyebrow" style="color:var(--magenta);">O clube da sua região</span>
-          <h3>Cada estado tem o seu, e ele é ativo</h3>
-          <p>Dentro da comunidade, cada região tem um clube próprio onde participantes comentam, trocam ideia e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários na comunidade desde que entrou.</p>
+          <span class="eyebrow" style="color:var(--magenta);">O clube da comunidade</span>
+          <h3>Gente trocando ideia de verdade</h3>
+          <p>Dentro da comunidade existem clubes regionais, onde participantes comentam e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários desde que entrou.</p>
         </div>
       </div>
       <div class="integridade-box reveal" style="margin-top:16px;">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.8"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.97-4.03 9-9 9-1.6 0-3.1-.42-4.4-1.15L3 21l1.15-3.6A8.96 8.96 0 013 12c0-4.97 4.03-9 9-9s9 4.03 9 9z"/></svg>
-        <p><strong>Sua sequência também é social.</strong> Pra manter o streak, você comenta em duas publicações diferentes de colegas por dia, com pelo menos 20 caracteres cada. Ou seja: pontuar exige participar de verdade, não só assistir.</p>
+        <p><strong>Receba pontos por interagir todo dia e acumule bônus.</strong> Comentar em duas publicações de colegas (com pelo menos 20 caracteres cada) já soma no seu streak diário, e a cada 7 dias seguidos vem um bônus extra em cima.</p>
       </div>
       <div class="quote-card reveal">
         <div class="qav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
@@ -695,14 +789,18 @@
 </div>
 
 <div id="mobile-frame-wrapper">
-  <div class="iphone-shell">
-    <div class="side-btn"></div>
-    <div class="iphone-screen">
-      <div class="iphone-statusbar"><div class="island"></div></div>
-      <iframe id="mobile-preview-frame" title="Pré-visualização mobile"></iframe>
+  <div id="iphone-viewport">
+    <div class="iphone-scaler" id="iphone-scaler">
+      <div class="iphone-shell">
+        <div class="side-btn"></div>
+        <div class="iphone-screen">
+          <div class="iphone-statusbar"><div class="island"></div></div>
+          <iframe id="mobile-preview-frame" title="Pré-visualização mobile"></iframe>
+        </div>
+      </div>
     </div>
   </div>
-  <span class="frame-caption">iPhone 15 · 393px · clique fora ou em Desktop pra sair</span>
+  <span class="frame-caption" id="frame-caption">iPhone 15 · 393×852pt reais · clique fora ou em Desktop pra sair</span>
 </div>
 
 <script>
@@ -799,7 +897,8 @@
   var badge = document.getElementById('lb-badge');
   var lblEl = document.getElementById('lb-lbl');
   var prizeEl = document.getElementById('lb-prize');
-  var hookEl = document.getElementById('hero-hook');
+  var hookTop = document.getElementById('hero-hook-top');
+  var hookBottom = document.getElementById('hero-hook-bottom');
   if(!track || !viewport) return;
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -855,15 +954,70 @@
     });
   }
 
-  // varias trocas encadeadas entre as 5 primeiras posicoes -- sensacao de
-  // disputa acontecendo de verdade, nao so uma pessoa mudando de lugar
-  function shuffleSequence(track, pairs, gapMs, swapMs, onAllDone){
+  function parsePt(text){ return parseInt(text.replace(/\./g, ''), 10); }
+  function formatPt(n){ return n.toLocaleString('pt-BR'); }
+
+  // recalcula 1o-20o pela ordem REAL do DOM -- nunca deixa um badge de
+  // posicao desalinhado com onde a linha realmente esta
+  function updatePosLabels(){
+    var rows = track.children;
+    for(var i = 0; i < rows.length; i++){
+      var pos = i + 1;
+      rows[i].querySelector('.pos').textContent = pos + 'º';
+      rows[i].classList.toggle('p1', pos === 1);
+    }
+  }
+
+  // conta os pontos subindo (com glow) -- a troca de posicao so acontece
+  // DEPOIS, e so' se o novo valor realmente ultrapassar quem esta acima
+  function countUpPoints(row, fromVal, toVal, duration, onDone){
+    var ptEl = row.querySelector('.pt');
+    row.classList.add('ganhando');
+    var start = null;
+    function step(ts){
+      if(!start) start = ts;
+      var p = Math.min(1, (ts - start) / duration);
+      ptEl.textContent = formatPt(Math.round(fromVal + (toVal - fromVal) * p));
+      if(p < 1){ requestAnimationFrame(step); }
+      else {
+        setTimeout(function(){ row.classList.remove('ganhando'); if(onDone) onDone(); }, 160);
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // depois do ganho de pontos, sobe (bubble) enquanto for maior que quem
+  // esta na posicao acima -- pode subir mais de uma posicao de uma vez
+  function bubbleUp(pointsState, idx, swapMs, onDone){
+    if(idx <= 0 || pointsState[idx] <= pointsState[idx - 1]){ onDone(); return; }
+    var rows = track.children;
+    flipSwap(rows[idx - 1], rows[idx], swapMs, function(){
+      var tmp = pointsState[idx - 1];
+      pointsState[idx - 1] = pointsState[idx];
+      pointsState[idx] = tmp;
+      updatePosLabels();
+      bubbleUp(pointsState, idx - 1, swapMs, onDone);
+    });
+  }
+
+  function disputa(pointsState, idx, ganho, countMs, swapMs, onDone){
+    var row = track.children[idx];
+    var novo = pointsState[idx] + ganho;
+    countUpPoints(row, pointsState[idx], novo, countMs, function(){
+      pointsState[idx] = novo;
+      bubbleUp(pointsState, idx, swapMs, onDone);
+    });
+  }
+
+  // 3 disputas encadeadas, sempre justificadas por um ganho real de pontos
+  // -- termina com "Você" assumindo a lideranca, momento de clímax
+  function runDisputas(pointsState, gapMs, countMs, swapMs, onAllDone){
+    var seq = [{idx:2, ganho:200}, {idx:4, ganho:160}, {idx:1, ganho:280}];
     var i = 0;
     function next(){
-      if(i >= pairs.length){ onAllDone(); return; }
-      var pair = pairs[i++];
-      var rows = track.children;
-      flipSwap(rows[pair[0]], rows[pair[1]], swapMs, function(){
+      if(i >= seq.length){ onAllDone(); return; }
+      var d = seq[i++];
+      disputa(pointsState, d.idx, d.ganho, countMs, swapMs, function(){
         setTimeout(next, gapMs);
       });
     }
@@ -897,17 +1051,15 @@
       return;
     }
 
-    if(hookEl) setTimeout(function(){ hookEl.classList.add('in'); }, 1500);
+    if(hookTop) setTimeout(function(){ hookTop.classList.add('in'); }, 250);
+    if(hookBottom) setTimeout(function(){ hookBottom.classList.add('in'); }, 600);
 
     var rows = track.children;
     var rowH = rows[0].getBoundingClientRect().height;
     var gap = 7;
     var step = rowH + gap;
     var targetY = -(step * (rows.length - 5));
-
-    // 5 trocas passando pelas 5 primeiras posicoes (0-4), cada uma participa
-    // de pelo menos uma disputa
-    var pairs = [[0,1],[3,4],[1,2],[2,3],[0,2]];
+    var pointsState = Array.prototype.map.call(rows, function(r){ return parsePt(r.querySelector('.pt').textContent); });
 
     var skipped = false;
     var timers = [];
@@ -928,17 +1080,17 @@
     viewport.addEventListener('click', skip);
 
     t(function(){
-      shuffleSequence(track, pairs, 80, 360, function(){
+      runDisputas(pointsState, 90, 420, 300, function(){
         t(function(){
-          animateTransform(track, 0, targetY, 1450, easeInOutCubic, function(){
+          animateTransform(track, 0, targetY, 1200, easeInOutCubic, function(){
             t(function(){
               viewport.removeEventListener('click', skip);
               finalState();
-            }, 180);
+            }, 150);
           });
-        }, 180);
+        }, 150);
       });
-    }, 300);
+    }, 250);
   }
 
   if('IntersectionObserver' in window){
@@ -966,7 +1118,9 @@
   document.body.classList.add('has-dev-switch');
 
   var wrapper = document.getElementById('mobile-frame-wrapper');
-  var shell = document.querySelector('.iphone-shell');
+  var scaler = document.getElementById('iphone-scaler');
+  var iphoneViewport = document.getElementById('iphone-viewport');
+  var frameCaption = document.getElementById('frame-caption');
   var frame = document.getElementById('mobile-preview-frame');
   var btnDesktop = bar.querySelector('[data-mode="desktop"]');
   var btnMobile = bar.querySelector('[data-mode="mobile"]');
@@ -974,21 +1128,22 @@
   // iPhone 15: 393x852pt reais (nao 15 Pro Max). Ajusta a moldura pro maior
   // tamanho que caiba no espaco disponivel SEM distorcer essa proporcao --
   // sem isso, flex:1 esticava a altura livre e a moldura virava "tablet".
-  var IPHONE_RATIO = 393 / 852;
+  // iPhone 15: 393x852pt reais (nao os 1179x2556px fisicos do painel --
+  // esses sao pixels de tela a 3x, o que o CSS/layout realmente usa e' o
+  // valor em pontos, que e' exatamente 1179/3 x 2556/3 = 393x852). O
+  // iframe SEMPRE fica fixo nesse tamanho real (garante que os media
+  // queries batem 100% com um aparelho de verdade); quem se adapta ao
+  // monitor de quem esta testando e' a MOLDURA inteira, via transform
+  // scale a partir do centro -- exatamente como o device toolbar do
+  // Chrome DevTools faz.
+  var SHELL_W = 421, SHELL_H = 880; // moldura (393x852 + 14px de borda)
   function sizeShell(){
     if(!wrapper.classList.contains('active')) return;
-    var padSides = 32, padVert = 94;
-    var availW = wrapper.clientWidth - padSides;
-    var availH = wrapper.clientHeight - padVert;
-    // a largura real de 393px e' o que ativa os media queries corretos la
-    // dentro -- nunca encolhe por causa de pouca altura de janela, so' pela
-    // largura da propria janela (telas realmente estreitas). A altura
-    // acompanha a proporcao real do iPhone 15 e, se nao couber inteira,
-    // e' cortada (o conteudo rola por dentro, como um celular de verdade).
-    var w = Math.min(393, availW);
-    var h = Math.min(w / IPHONE_RATIO, availH);
-    shell.style.width = Math.round(w) + 'px';
-    shell.style.height = Math.round(h) + 'px';
+    var scale = Math.min(iphoneViewport.clientWidth / SHELL_W, iphoneViewport.clientHeight / SHELL_H, 1);
+    scaler.style.transform = 'scale(' + scale.toFixed(4) + ')';
+    if(frameCaption){
+      frameCaption.textContent = 'iPhone 15 · 393×852pt reais · exibido a ' + Math.round(scale * 100) + '% · clique fora ou em Desktop pra sair';
+    }
   }
   window.addEventListener('resize', sizeShell);
 
