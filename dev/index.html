@@ -217,6 +217,15 @@
   @media (prefers-reduced-motion:no-preference){
     .hero-hook{transition:opacity .45s ease, transform .45s cubic-bezier(.16,1,.3,1);}
   }
+  /* legenda grande do que "Você" acabou de fazer -- fica PARADA numa
+     posicao fixa abaixo do card (nunca voa pelos cantos como os blocos de
+     atividade), porque os blocos somem rapido demais pra dar tempo de ler
+     qualquer coisa dentro deles. Essa e' a UNICA leitura de verdade que a
+     pessoa precisa fazer durante a animacao. */
+  .hero-caption{
+    font-size:20px; min-height:26px; color:var(--verde-claro);
+    text-shadow:0 0 18px rgba(0,255,133,.35);
+  }
 
   @media (min-width:960px){
     .hero-copy{order:0; max-height:none!important; opacity:1!important; visibility:visible!important; overflow:visible;}
@@ -303,88 +312,71 @@
   @media (prefers-reduced-motion:reduce){
     .rank-activity{display:none;}
   }
-  .rank-activity.ra-comente{ width:188px; transform:translateY(-22px) rotate(9deg) scale(.92); }
+  .rank-activity.ra-comente{ width:118px; transform:translateY(-22px) rotate(9deg) scale(.9); }
   .rank-activity.ra-comente.show{ transform:translateY(0) rotate(-3deg) scale(1); }
-  .rank-activity.ra-aula{ width:148px; transform:translateY(24px) rotate(-8deg) scale(.9); }
+  .rank-activity.ra-aula{ width:104px; transform:translateY(24px) rotate(-8deg) scale(.88); }
   .rank-activity.ra-aula.show{ transform:translateY(0) rotate(3deg) scale(1); }
-  .rank-activity.ra-trilhas{ width:214px; transform:translateY(-26px) rotate(-6deg) scale(.92); }
+  .rank-activity.ra-trilhas{ width:108px; transform:translateY(-26px) rotate(-6deg) scale(.9); }
   .rank-activity.ra-trilhas.show{ transform:translateY(0) rotate(2deg) scale(1); }
-  .rank-activity.ra-gameshow{ width:210px; transform:translateY(26px) rotate(7deg) scale(.9); }
+  .rank-activity.ra-gameshow{ width:126px; transform:translateY(26px) rotate(7deg) scale(.88); }
   .rank-activity.ra-gameshow.show{ transform:translateY(0) rotate(-2deg) scale(1); }
-  @media (max-width:959px){
-    .rank-activity.ra-comente{ width:172px; }
-    .rank-activity.ra-aula{ width:140px; }
-    .rank-activity.ra-trilhas{ width:190px; }
-    .rank-activity.ra-gameshow{ width:186px; }
-  }
   .ra-card{
     position:relative; background:rgba(6,10,34,.9); border:1px solid rgba(255,255,255,.18);
-    backdrop-filter:blur(14px) saturate(1.3); border-radius:16px; padding:12px 13px 12px 15px;
+    backdrop-filter:blur(14px) saturate(1.3); border-radius:16px; padding:14px 12px 12px;
     box-shadow:0 16px 30px -12px rgba(0,0,0,.6);
   }
-  /* selo-icone que "carimba" o tipo da acao no canto do card, antes mesmo
-     de ler o texto -- e' o que garante reconhecer de relance que um card
-     de comentario nunca e' igual a um de aula, que nunca e' igual a um de
-     trilha */
+  /* selo-icone que "carimba" o tipo da acao no canto do card -- junto com
+     a FORMA interna (bolha de chat, play, grade, trofeu), e' o que garante
+     reconhecer de relance o que aconteceu, sem precisar ler nada: o card
+     inteiro fica visivel menos de 1s, tempo curto demais pra qualquer
+     frase, entao o significado tem que estar 100% na forma/icone/cor. */
   .ra-icon{
-    position:absolute; top:-10px; left:-10px; width:27px; height:27px; border-radius:50%;
+    position:absolute; top:-10px; left:-10px; width:26px; height:26px; border-radius:50%;
     display:flex; align-items:center; justify-content:center; font-size:13px; line-height:1;
     background:linear-gradient(135deg,var(--verde),var(--verde-claro)); box-shadow:0 5px 12px -3px rgba(0,0,0,.55);
+    z-index:1;
   }
   .ra-gameshow .ra-icon{background:linear-gradient(135deg,#FFD84D,#FF9F0A);}
   .ra-check{
-    display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px;
+    display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px;
     border-radius:50%; background:var(--verde); color:#052312; font-size:9px; font-weight:900; flex:none;
   }
-  .ra-tag{
-    display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase;
-    color:var(--verde-claro); background:rgba(0,217,92,.18); padding:3px 8px; border-radius:999px; margin-bottom:7px;
-  }
-  .ra-tag-gold{color:#FFD84D; background:rgba(255,216,77,.18);}
-  .ra-post-head{display:flex; align-items:center; gap:7px; margin-bottom:7px;}
-  .ra-post-who{display:flex; flex-direction:column; line-height:1.25;}
-  .ra-post-who b{font-size:11.5px; color:#fff; font-weight:700;}
-  .ra-post-who span{font-family:var(--mono); font-size:8px; color:rgba(255,255,255,.55);}
+  /* comente: avatar de quem postou -> seta -> seu avatar com check, lido
+     num relance como "voce respondeu" sem nenhuma palavra */
+  .ra-post-visual{display:flex; align-items:center; justify-content:center; gap:6px; padding:6px 0;}
+  .ra-post-arrow{color:rgba(255,255,255,.4); font-size:13px;}
   .ra-av{
-    width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
-    font-family:var(--mono); font-size:8px; font-weight:700; color:#fff;
+    width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
+    font-family:var(--mono); font-size:9px; font-weight:700; color:#fff;
     background:linear-gradient(135deg,#2A4FDA,#1A3AAD);
   }
   .ra-av.me{background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:#052312;}
-  .ra-post-txt{font-size:11.5px; color:rgba(255,255,255,.85); line-height:1.4; margin:0 0 8px;}
-  .ra-post-meta{display:flex; gap:10px; font-size:10px; color:rgba(255,255,255,.5); margin-bottom:9px;}
-  .ra-post-reply{display:flex; align-items:center; gap:7px;}
-  .ra-post-input{
-    flex:1; display:flex; align-items:center; gap:5px; font-size:10.5px; color:rgba(255,255,255,.9);
-    background:rgba(0,217,92,.14); border:1px solid rgba(0,217,92,.45); border-radius:999px; padding:6px 10px;
-  }
-  .ra-lesson{display:flex; flex-direction:column; gap:9px; padding:9px;}
+  /* aula: play grande + barra de progresso 100% preenchida -- a leitura
+     universal de "video assistido ate' o fim", sem depender de nenhum
+     rotulo como "visto" pra fazer sentido */
   .ra-lesson-thumb{
-    position:relative; height:52px; border-radius:11px;
+    position:relative; height:56px; border-radius:11px; margin-bottom:8px;
     background:linear-gradient(135deg,var(--azul),var(--magenta) 70%);
+    display:flex; align-items:center; justify-content:center;
   }
-  .ra-lesson-thumb .ra-tag{position:absolute; top:6px; left:6px; margin:0; display:flex; align-items:center; gap:4px;}
-  .ra-lesson-body{padding:0 2px;}
-  .ra-lesson-title{font-size:13px; color:#fff; font-weight:700; margin:0 0 4px; line-height:1.3;}
-  .ra-lesson-trilha{font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.6);}
-  .ra-materials-row{display:flex; gap:5px; margin-top:8px;}
-  .ra-mat{
-    font-family:var(--mono); font-size:8px; text-transform:uppercase; letter-spacing:.04em;
-    color:rgba(255,255,255,.75); background:rgba(255,255,255,.08); border-radius:6px; padding:3px 6px;
+  .ra-play{
+    width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.94); color:var(--azul);
+    display:flex; align-items:center; justify-content:center; font-size:12px; padding-left:2px;
   }
-  .ra-trilhas-filtros{display:flex; gap:5px; margin-bottom:9px;}
-  .ra-filtro{
-    font-family:var(--mono); font-size:8px; color:rgba(255,255,255,.55);
-    background:rgba(255,255,255,.06); border-radius:999px; padding:3px 8px;
-  }
-  .ra-filtro.on{color:#052312; background:var(--verde-claro); font-weight:700;}
-  .ra-trilha-item{display:flex; align-items:center; gap:9px;}
-  .ra-trilha-item + .ra-trilha-item{margin-top:8px;}
-  .ra-thumb{position:relative; width:30px; height:30px; border-radius:8px; flex:none; background:linear-gradient(135deg,var(--magenta),var(--azul));}
+  .ra-progress{height:5px; border-radius:999px; background:rgba(255,255,255,.15); overflow:hidden;}
+  .ra-progress-fill{display:block; height:100%; width:100%; background:var(--verde-claro); border-radius:999px;}
+  /* trilhas: grade de 4 capas coloridas com uma marcada -- le' como "grade
+     de conteudo, um item concluido", igual a olhar uma prateleira real */
+  .ra-trilhas-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .ra-thumb{position:relative; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--magenta),var(--azul));}
   .ra-thumb-alt{background:linear-gradient(135deg,var(--verde),#00A8E8);}
-  .ra-thumb .ra-check{position:absolute; bottom:-4px; right:-4px; box-shadow:0 0 0 2px rgba(6,10,34,.9);}
-  .ra-trilha-nome{font-size:11.5px; color:#fff; font-weight:600;}
-  .ra-premios{display:flex; gap:8px; margin-top:9px; font-size:10.5px; color:rgba(255,255,255,.85);}
+  .ra-thumb-alt2{background:linear-gradient(135deg,#FFD84D,#FF9F0A);}
+  .ra-thumb-alt3{background:linear-gradient(135deg,#FF00FF,#8a1fd6);}
+  .ra-thumb .ra-check{position:absolute; bottom:-5px; right:-5px; box-shadow:0 0 0 2px rgba(6,10,34,.9);}
+  /* gameshow: trofeu grande + os dois premios -- a legenda grande ("Chegou
+     ao topo!") ja' carrega o texto, aqui e' so' o simbolo */
+  .ra-trophy{display:block; text-align:center; font-size:30px; line-height:1; margin:2px 0 8px;}
+  .ra-premios{display:flex; justify-content:center; gap:10px; font-size:16px;}
 
   /* burst de chips pequenos durante a rolagem final -- espalham pelos
      espacos vazios (nunca por cima do card), dao a nocao de "muita coisa
@@ -854,6 +846,7 @@
             </div>
           </div>
         </div>
+        <p class="hero-hook hero-caption" id="hero-caption" aria-hidden="true"></p>
         <p class="hero-hook" id="hero-hook-bottom">Você consegue ficar entre os <em>melhores</em>?</p>
       </div>
     </div>
@@ -1060,6 +1053,7 @@
   var lblEl = document.getElementById('lb-lbl');
   var hookTop = document.getElementById('hero-hook-top');
   var hookBottom = document.getElementById('hero-hook-bottom');
+  var captionEl = document.getElementById('hero-caption');
   var activityBox = document.getElementById('rank-activity');
   var flurryLayer = document.getElementById('rank-flurry');
   if(!track || !viewport) return;
@@ -1250,47 +1244,90 @@
 
   // mede o espaco VAZIO de verdade ao redor do card (acima e abaixo dele,
   // dentro de #hero) e devolve onde encaixar um elemento de w×h sem nunca
-  // sobrepor as linhas do ranking. #hero e' o ancestral posicionado (fixo
-  // full-bleed no mobile durante a animacao, relativo no normal) -- entao
-  // top/left aqui sao sempre relativos a ELE, nao ao card. Quando sobra
-  // pouco espaco vertical (tipico desktop, onde o card ja' ocupa quase
-  // toda a altura do hero), cai pro fallback lateral, ao lado do card.
+  // sobrepor as linhas do ranking NEM o texto dos ganchos/legenda -- por
+  // isso "acima" para' no topo do hero-hook-top (nao' no topo do card: tem
+  // texto entre os dois) e "abaixo" para' no topo da legenda/hero-hook-
+  // bottom (idem). #hero e' o ancestral posicionado (fixo full-bleed no
+  // mobile durante a animacao, relativo no normal) -- entao top/left aqui
+  // sao sempre relativos a ELE, nao ao card. Quando sobra pouco espaco
+  // vertical (tipico desktop), cai pro fallback lateral, ao lado do card.
   function medirEspacoVazio(){
     var hr = hero.getBoundingClientRect();
     var cr = rankCard.getBoundingClientRect();
+    var limiteAcima = hookTop ? hookTop.getBoundingClientRect().top : cr.top;
+    var abaixoRef = captionEl || hookBottom;
+    var limiteAbaixo = abaixoRef ? abaixoRef.getBoundingClientRect().top : hr.bottom;
     return {
       hr: hr, cr: cr,
-      acima: cr.top - hr.top,
-      abaixo: hr.bottom - cr.bottom
+      acima: limiteAcima - hr.top,
+      abaixo: limiteAbaixo - cr.bottom
     };
   }
 
-  function posicionarEl(el, ladoPreferido){
+  // rotate() nao muda offsetWidth/offsetHeight (essas so' medem a caixa de
+  // LAYOUT, sem transform) -- mas muda o que de fato pinta na tela. Uma
+  // caixa Wxh girada por um angulo A ocupa visualmente W*cos+H*sin de
+  // largura e W*sin+H*cos de altura, sempre MAIOR que a original. Ignorar
+  // isso e' a causa raiz de um card "certo" pelas contas cortar na borda
+  // de verdade: a margem de seguranca precisa caber essa caixa maior, nao
+  // a caixa sem rotacao. 10deg cobre a maior rotacao usada em qualquer
+  // estado (entrada ou repouso) de qualquer tipo de card.
+  var MAX_ROT_RAD = 10 * Math.PI / 180;
+  function folgaRotacao(w, h){
+    var c = Math.abs(Math.cos(MAX_ROT_RAD)), s = Math.abs(Math.sin(MAX_ROT_RAD));
+    var wRot = w * c + h * s, hRot = w * s + h * c;
+    return { w: (wRot - w) / 2 + 6, h: (hRot - h) / 2 + 6 };
+  }
+
+  // 4 REGIOES bem distintas (cima-esq/baixo-dir/cima-dir/baixo-esq) -- nunca
+  // dois tipos de card na mesma regiao, mas dentro da regiao a posicao
+  // exata e' sorteada a cada vez (nunca o mesmo pontinho fixo reciclado).
+  // Slot e' sempre "vertical-horizontal".
+  function posicionarEl(el, slot){
+    var partes = slot.split('-');
+    var vertical = partes[0], horizontal = partes[1];
     var m = medirEspacoVazio();
     var w = el.offsetWidth || 160;
     var h = el.offsetHeight || 90;
-    var margem = 12;
+    var folga = folgaRotacao(w, h);
     var top, left;
-    var sobraVertical = m.acima > h + 26 || m.abaixo > h + 26;
-    if(sobraVertical){
-      if(m.acima > h + 26 && (ladoPreferido === 'cima' || m.abaixo <= h + 26)){
-        top = margem;
+    var cabeCima = m.acima > h + 30;
+    var cabeBaixo = m.abaixo > h + 30;
+    if(cabeCima || cabeBaixo){
+      var usaCima;
+      if(cabeCima && cabeBaixo){ usaCima = (vertical === 'cima'); }
+      else { usaCima = cabeCima; }
+      // trava DENTRO da propria banda escolhida -- nunca vaza pro texto do
+      // gancho de cima nem pro da legenda/gancho de baixo, os dois limites
+      // que medirEspacoVazio() ja' calculou como o fim de cada banda
+      var minTop, maxTop;
+      if(usaCima){
+        minTop = folga.h;
+        maxTop = m.acima - folga.h;
       } else {
-        top = m.hr.height - h - margem;
+        minTop = (m.cr.bottom - m.hr.top) + folga.h;
+        maxTop = minTop + Math.max(0, m.abaixo - folga.h * 2);
       }
-      if(ladoPreferido === 'esq'){ left = margem; }
-      else if(ladoPreferido === 'dir'){ left = m.hr.width - w - margem; }
-      else { left = (m.hr.width - w) / 2; }
+      top = minTop + Math.random() * Math.max(0, maxTop - minTop);
+      top = Math.max(minTop, Math.min(top, maxTop));
+      var faixaLargura = Math.max(0, m.hr.width * 0.42 - w);
+      left = horizontal === 'esq'
+        ? folga.w + Math.random() * faixaLargura
+        : (m.hr.width * 0.58) + Math.random() * faixaLargura;
+      left = Math.max(folga.w, Math.min(left, m.hr.width - w - folga.w));
     } else {
       // pouca folga vertical -- usa a lateral do proprio card, que e' onde
-      // sobra espaco de verdade nesse caso (tipico desktop)
+      // sobra espaco de verdade nesse caso (tipico desktop), com um
+      // pequeno sorteio pra nao' cair sempre no mesmo pixel
       var cardLeft = m.cr.left - m.hr.left, cardRight = m.cr.right - m.hr.left;
       var cabeDireita = (m.hr.width - cardRight) > w * 0.55;
-      left = cabeDireita ? Math.min(m.hr.width - w - margem, cardRight - w * 0.2)
-                          : Math.max(margem, cardLeft - w * 0.8);
-      top = ladoPreferido === 'cima'
-        ? Math.max(margem, (m.cr.top - m.hr.top) - h * 0.25)
-        : Math.min(m.hr.height - h - margem, (m.cr.bottom - m.hr.top) - h * 0.75);
+      left = (cabeDireita ? (cardRight - w * 0.2) : (cardLeft - w * 0.8)) + (Math.random() * 24 - 12);
+      top = (vertical === 'cima'
+        ? (m.cr.top - m.hr.top) - h * 0.25
+        : (m.cr.bottom - m.hr.top) - h * 0.75) + (Math.random() * 24 - 12);
+      // trava final generica: nao' deixa sair dos limites reais de #hero
+      top = Math.max(folga.h, Math.min(top, m.hr.height - h - folga.h));
+      left = Math.max(folga.w, Math.min(left, m.hr.width - w - folga.w));
     }
     el.style.top = Math.round(top) + 'px';
     el.style.left = Math.round(left) + 'px';
@@ -1299,16 +1336,22 @@
   function posicionarChip(el){
     var m = medirEspacoVazio();
     var w = 118, h = 32, margem = 10;
-    var top;
+    var top, minTop, maxTop;
     var usaCima = m.acima > h + 20 && (m.abaixo <= h + 20 || Math.random() < 0.5);
     if(usaCima){
-      top = margem + Math.random() * Math.max(4, m.acima - h - margem * 2);
+      minTop = margem;
+      maxTop = margem + Math.max(4, m.acima - h - margem * 2);
     } else if(m.abaixo > h + 20){
-      top = (m.hr.height - m.abaixo) + margem + Math.random() * Math.max(4, m.abaixo - h - margem * 2);
+      minTop = (m.cr.bottom - m.hr.top) + margem;
+      maxTop = minTop + Math.max(4, m.abaixo - h - margem * 2);
     } else {
-      top = margem + Math.random() * Math.max(4, m.acima - h - margem);
+      minTop = margem;
+      maxTop = margem + Math.max(4, m.acima - h - margem);
     }
+    top = minTop + Math.random() * Math.max(0, maxTop - minTop);
+    top = Math.max(minTop, Math.min(top, maxTop));
     var left = margem + Math.random() * Math.max(4, m.hr.width - w - margem * 2);
+    left = Math.max(4, Math.min(left, m.hr.width - w - 4));
     el.style.top = Math.round(top) + 'px';
     el.style.left = Math.round(left) + 'px';
   }
@@ -1413,9 +1456,9 @@
   }
 
   var RANK_SEQ = [
-    {beat:'comente', label:'Comentou no clube'},
-    {beat:'aula', label:'Assistiu uma aula'},
-    {beat:'trilhas', label:'Explorou as trilhas'}
+    {beat:'comente', label:'Comentou no clube', caption:'Comentou no clube!'},
+    {beat:'aula', label:'Assistiu uma aula', caption:'Assistiu uma aula!'},
+    {beat:'trilhas', label:'Explorou as trilhas', caption:'Explorou as trilhas!'}
   ];
 
   // clímax: a "rolagem do rank" -- UM empurrao continuo (mesmo mecanismo de
@@ -1451,6 +1494,7 @@
       if(i >= RANK_SEQ.length){ onAllDone(); return; }
       var s = RANK_SEQ[i++];
       fadeText(lblEl, s.label);
+      fadeCaption(s.caption);
       showActivity(s.beat, t, function(){
         if(!animacaoAtiva) return;
         var idx = Array.prototype.indexOf.call(track.children, meRow);
@@ -1498,39 +1542,53 @@
   // interna -- post nunca se parece com aula, que nunca se parece com
   // trilhas -- e sempre um sinal claro de que a acao FOI CONCLUIDA (o
   // check verde), nao so' uma tela generica sendo mostrada
+  // os blocos ficam visiveis por menos de 1s -- tempo curto demais pra ler
+  // qualquer frase. Por isso o significado de cada um precisa se entender
+  // SO' DE OLHAR (icone, forma, cor, check de conclusao), nunca de ler um
+  // titulo ou uma legenda -- o texto de verdade fica todo na legenda
+  // grande e parada, embaixo do card (fadeCaption).
   var ACTIVITY_HTML = {
     comente:
       '<div class="ra-card ra-post">' +
         '<span class="ra-icon" aria-hidden="true">💬</span>' +
-        '<div class="ra-post-head"><span class="ra-av">DM</span><div class="ra-post-who"><b>Duda M.</b><span>Clube de idiomas · agora</span></div></div>' +
-        '<p class="ra-post-txt">"Terminei o módulo de hoje, alguém mais on?"</p>' +
-        '<div class="ra-post-meta"><span>❤ 4</span><span>💬 2</span></div>' +
-        '<div class="ra-post-reply"><span class="ra-av me">EU</span><span class="ra-post-input"><span class="ra-check" aria-hidden="true">✓</span> Eu! bora trocar ideia</span></div>' +
+        '<div class="ra-post-visual">' +
+          '<span class="ra-av">DM</span>' +
+          '<span class="ra-post-arrow" aria-hidden="true">→</span>' +
+          '<span class="ra-av me"><span class="ra-check" aria-hidden="true">✓</span></span>' +
+        '</div>' +
       '</div>',
     aula:
       '<div class="ra-card ra-lesson">' +
         '<span class="ra-icon" aria-hidden="true">🎬</span>' +
-        '<div class="ra-lesson-thumb"><span class="ra-tag"><span class="ra-check" aria-hidden="true">✓</span> Visto</span></div>' +
-        '<div class="ra-lesson-body">' +
-          '<p class="ra-lesson-title">Quem sou eu?</p>' +
-          '<span class="ra-lesson-trilha">Começa por você</span>' +
-          '<div class="ra-materials-row"><span class="ra-mat">artigo</span><span class="ra-mat">ebook</span><span class="ra-mat">quiz</span></div>' +
+        '<div class="ra-lesson-thumb">' +
+          '<span class="ra-play" aria-hidden="true">▶</span>' +
         '</div>' +
+        '<div class="ra-progress"><span class="ra-progress-fill"></span></div>' +
       '</div>',
     trilhas:
       '<div class="ra-card ra-trilhas">' +
         '<span class="ra-icon" aria-hidden="true">🧭</span>' +
-        '<div class="ra-trilhas-filtros"><span class="ra-filtro on">Todas</span><span class="ra-filtro">Não vistas</span><span class="ra-filtro">Vistas</span></div>' +
-        '<div class="ra-trilha-item"><span class="ra-thumb" aria-hidden="true"><span class="ra-check" aria-hidden="true">✓</span></span><span class="ra-trilha-nome">Começa por você</span></div>' +
-        '<div class="ra-trilha-item"><span class="ra-thumb ra-thumb-alt" aria-hidden="true"></span><span class="ra-trilha-nome">Modo protagonista</span></div>' +
+        '<div class="ra-trilhas-grid">' +
+          '<span class="ra-thumb"><span class="ra-check" aria-hidden="true">✓</span></span>' +
+          '<span class="ra-thumb ra-thumb-alt"></span>' +
+          '<span class="ra-thumb ra-thumb-alt2"></span>' +
+          '<span class="ra-thumb ra-thumb-alt3"></span>' +
+        '</div>' +
       '</div>',
     gameshow:
       '<div class="ra-card ra-gameshow">' +
         '<span class="ra-icon" aria-hidden="true">🎮</span>' +
-        '<span class="ra-tag ra-tag-gold">🏆 Você é Top 1</span>' +
-        '<p class="ra-lesson-title">Desafio final: GameShow Escalada</p>' +
-        '<div class="ra-premios"><span>📱 smartphone</span><span>💻 tablet</span></div>' +
+        '<span class="ra-trophy" aria-hidden="true">🏆</span>' +
+        '<div class="ra-premios"><span aria-hidden="true">📱</span><span aria-hidden="true">💻</span></div>' +
       '</div>'
+  };
+
+  // 4 cantos bem distintos, um por tipo -- nunca dois cards no mesmo lugar
+  var ATIVIDADE_SLOT = {
+    comente: 'cima-esq',
+    aula: 'baixo-dir',
+    trilhas: 'cima-dir',
+    gameshow: 'baixo-esq'
   };
 
   function showActivity(kind, t, onDone){
@@ -1543,7 +1601,7 @@
     // elemento e o navegador nao tem um estado anterior de onde animar a
     // entrada (mesmo motivo do "void el.offsetHeight" em flipSwap)
     box.className = 'rank-activity ra-' + kind;
-    posicionarEl(box, kind === 'aula' || kind === 'gameshow' ? 'baixo' : 'cima');
+    posicionarEl(box, ATIVIDADE_SLOT[kind]);
     void box.offsetWidth;
     requestAnimationFrame(function(){
       if(!animacaoAtiva) return;
@@ -1606,6 +1664,7 @@
     viewport.classList.remove('panned');
     if(activityBox) activityBox.classList.remove('show');
     if(flurryLayer) flurryLayer.innerHTML = ''; // corta qualquer chip de flurry que ainda estivesse em voo
+    if(captionEl) captionEl.classList.remove('in');
   }
 
   function fadeText(el, newHtml){
@@ -1615,6 +1674,16 @@
       el.innerHTML = newHtml;
       el.style.opacity = '1';
     }, 300);
+  }
+
+  // a legenda grande fica parada (nunca some de vez entre uma acao e outra,
+  // so' troca de texto) -- e' a UNICA coisa que a pessoa realmente precisa
+  // ler durante a animacao, entao nunca pode competir com o timing curto
+  // dos blocos que voam pelas regioes
+  function fadeCaption(texto){
+    if(!captionEl) return;
+    captionEl.classList.add('in');
+    fadeText(captionEl, texto);
   }
 
   function finalState(){
@@ -1664,6 +1733,7 @@
             burstConfetti();
             t(function(){
               fadeText(lblEl, 'Top 1 do ranking!');
+              fadeCaption('Chegou ao topo!');
               showActivity('gameshow', t, function(){
                 t(function(){
                   viewport.removeEventListener('click', skip);
