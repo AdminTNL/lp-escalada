@@ -382,8 +382,9 @@
   #mecanica .section-head .eyebrow{color:var(--verde-claro);}
   #mecanica .section-head h2{color:#fff;}
   #mecanica .section-head p{color:rgba(255,255,255,.72);}
-  .passos{display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px;}
-  @media (min-width:760px){ .passos{grid-template-columns:repeat(4,1fr); gap:0;} }
+  .passos{position:relative; display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px;}
+  @media (min-width:760px){ .passos{grid-template-columns:repeat(4,1fr); gap:0; padding-top:24px;} }
+  .passos-trilha{position:absolute; top:0; left:0; z-index:1; pointer-events:none;}
   .passo{
     position:relative; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
     border-radius:18px; padding:22px 20px; backdrop-filter:blur(8px);
@@ -394,8 +395,6 @@
     .passo:last-child{border-radius:0 18px 18px 0;}
   }
   .passo .idx{font-family:var(--mono); font-size:12px; color:var(--verde-claro); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
-  .passo .idx svg{width:13px; height:13px; opacity:.7; display:none;}
-  @media (min-width:760px){ .passo:not(:first-child) .idx svg{display:block;} }
   .passo h3{font-size:15.5px; color:#fff; margin-bottom:6px;}
   .passo p{font-size:13.5px; color:rgba(255,255,255,.68); margin:0;}
 
@@ -444,54 +443,49 @@
   #sticky-cta .txt b{display:block; font-size:13.5px;}
   @media (min-width:860px){ #sticky-cta{display:none;} }
 
+  /* transition (nao animation) de proposito: com @keyframes de um so' stop
+     ("to"), varias ferramentas de inspecao (getAnimations()) relatam o
+     easing como "linear" mesmo com cubic-bezier no CSS -- transition e'
+     inambiguo. Bonus: sem "forwards" prendendo a propriedade, o :hover
+     dos cards volta a funcionar sem precisar de nenhuma classe extra. */
   @media (prefers-reduced-motion:no-preference){
-    .reveal{opacity:0; transform:translateY(14px); animation:rise .7s cubic-bezier(.16,1,.3,1) forwards; animation-play-state:paused;}
-    .reveal.in{animation-play-state:running;}
-    /* solta a animacao assim que ela termina -- senao o "forwards" prende
-       a propriedade transform pra sempre e nenhum :hover{transform:...}
-       consegue fazer efeito depois */
-    /* sem isso, opacity:1 e transform:translateY(0) so' existiam dentro do
-       keyframe -- tirar a animation sem fixar o estado final de volta faz
-       o elemento saltar pro opacity:0/translateY(14px) inicial de novo */
-    .reveal.reveal-settled{animation:none; opacity:1; transform:translateY(0);}
+    .reveal{
+      opacity:0; transform:translateY(14px);
+      transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.in{opacity:1; transform:translateY(0);}
   }
-  @keyframes rise{to{opacity:1; transform:translateY(0);}}
 
   /* cascata: cada card de uma grade entra em sequencia, nao tudo de uma vez --
      mesmo padrao de delay ja usado nas barras de #pontuacao */
-  .fatos-grid .fato-card:nth-child(1){animation-delay:.02s;}
-  .fatos-grid .fato-card:nth-child(2){animation-delay:.10s;}
-  .fatos-grid .fato-card:nth-child(3){animation-delay:.18s;}
-  .fatos-grid .fato-card:nth-child(4){animation-delay:.26s;}
-  .fatos-grid .fato-card:nth-child(5){animation-delay:.34s;}
-  .publicos-grid .publico-card:nth-child(1){animation-delay:.02s;}
-  .publicos-grid .publico-card:nth-child(2){animation-delay:.14s;}
-  .passos .passo:nth-child(1){animation-delay:.02s;}
-  .passos .passo:nth-child(2){animation-delay:.10s;}
-  .passos .passo:nth-child(3){animation-delay:.18s;}
-  .passos .passo:nth-child(4){animation-delay:.26s;}
-  .comunidade-grid .comunidade-card:nth-child(1){animation-delay:.02s;}
-  .comunidade-grid .comunidade-card:nth-child(2){animation-delay:.14s;}
+  .fatos-grid .fato-card:nth-child(1){transition-delay:.02s;}
+  .fatos-grid .fato-card:nth-child(2){transition-delay:.10s;}
+  .fatos-grid .fato-card:nth-child(3){transition-delay:.18s;}
+  .fatos-grid .fato-card:nth-child(4){transition-delay:.26s;}
+  .fatos-grid .fato-card:nth-child(5){transition-delay:.34s;}
+  .publicos-grid .publico-card:nth-child(1){transition-delay:.02s;}
+  .publicos-grid .publico-card:nth-child(2){transition-delay:.14s;}
+  .passos .passo:nth-child(1){transition-delay:.02s;}
+  .passos .passo:nth-child(2){transition-delay:.10s;}
+  .passos .passo:nth-child(3){transition-delay:.18s;}
+  .passos .passo:nth-child(4){transition-delay:.26s;}
+  .comunidade-grid .comunidade-card:nth-child(1){transition-delay:.02s;}
+  .comunidade-grid .comunidade-card:nth-child(2){transition-delay:.14s;}
 
-  /* seta entre os passos "desenha" depois que o card ja assentou */
-  @media (prefers-reduced-motion:no-preference){
-    .passo .idx svg{stroke-dasharray:40; stroke-dashoffset:40; animation:drawArrow .5s cubic-bezier(.16,1,.3,1) forwards; animation-play-state:paused;}
-    .passo.reveal.in .idx svg{animation-play-state:running;}
-    .passos .passo:nth-child(2) .idx svg{animation-delay:.38s;}
-    .passos .passo:nth-child(3) .idx svg{animation-delay:.46s;}
-    .passos .passo:nth-child(4) .idx svg{animation-delay:.54s;}
-  }
-  @keyframes drawArrow{to{stroke-dashoffset:0;}}
 
-  /* micro-interacao: cards respondem ao hover no desktop, nada fica estatico */
+  /* micro-interacao: cards respondem ao hover no desktop, nada fica estatico.
+     estas regras tem a mesma especificidade do .reveal e vem depois no CSS,
+     entao o shorthand "transition" delas vence por completo -- precisam
+     redeclarar a opacidade do reveal junto, senao o fade em .7s some e o
+     card so' aparece (pop instantaneo) enquanto so' o transform anima. */
   @media (hover:hover){
     .fato-card, .publico-card, .comunidade-card, .degrau{
-      transition:transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
+      transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
     }
     .fato-card:hover, .publico-card:hover, .comunidade-card:hover, .degrau:hover{
       transform:translateY(-4px); box-shadow:0 20px 40px -16px rgba(10,15,54,.28);
     }
-    .passo{transition:background .25s ease, transform .25s cubic-bezier(.16,1,.3,1);}
+    .passo{transition:opacity .7s cubic-bezier(.16,1,.3,1), background .25s ease, transform .25s cubic-bezier(.16,1,.3,1);}
     .passo:hover{transform:translateY(-3px); background:rgba(255,255,255,.09);}
   }
 
@@ -793,9 +787,9 @@
       </div>
       <div class="passos">
         <div class="passo reveal"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular. Sem custo.</p></div>
-        <div class="passo reveal"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
-        <div class="passo reveal"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
-        <div class="passo reveal"><div class="idx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>04</div><h3>Concorra aos prêmios</h3><p>Desafios mensais, vouchers e a final ao vivo do GameShow Escalada.</p></div>
+        <div class="passo reveal"><div class="idx">02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
+        <div class="passo reveal"><div class="idx">03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
+        <div class="passo reveal"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Desafios mensais, vouchers e a final ao vivo do GameShow Escalada.</p></div>
       </div>
       <div class="quote-card reveal">
         <div class="qav" style="background:linear-gradient(135deg,var(--magenta),var(--magenta-claro));"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
@@ -914,20 +908,13 @@
 (function(){
   // reveals ao rolar
   var els = document.querySelectorAll('.reveal');
-  // a animacao de entrada (com forwards) prende a propriedade transform
-  // pra sempre depois que termina -- isso bloqueia qualquer :hover{transform:...}
-  // de fazer efeito nos cards. Assim que a animacao acaba, soltamos ela
-  // (animation:none) pra devolver o transform ao controle normal do CSS.
-  els.forEach(function(el){
-    el.addEventListener('animationend', function(){ el.classList.add('reveal-settled'); });
-  });
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
     }, {threshold:.15});
     els.forEach(function(el){ io.observe(el); });
   } else {
-    els.forEach(function(el){ el.classList.add('in'); el.classList.add('reveal-settled'); });
+    els.forEach(function(el){ el.classList.add('in'); });
   }
 })();
 </script>
@@ -996,6 +983,85 @@
       });
     }, {threshold:.3});
     io.observe(escada);
+  } else {
+    desenhar();
+  }
+  window.addEventListener('resize', function(){ if(drawn) desenhar(); });
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var passos = document.querySelector('.passos');
+  if(!passos) return;
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var drawn = false;
+
+  // mesma tecnica da trilha da escada -- conector real ligando os 4 passos,
+  // nao so' um glifo de seta solto ao lado do numero
+  function desenhar(){
+    var nos = passos.querySelectorAll('.passo');
+    if(nos.length < 2) return;
+    var old = passos.querySelector('.passos-trilha');
+    if(old) old.remove();
+
+    var rect = passos.getBoundingClientRect();
+    // os passos sao colados (sem gap, com fundo proprio) -- uma linha
+    // atravessando o meio de cada card cruzaria texto e ficaria escondida
+    // atras do fundo. Em vez disso, o container ganha padding-top reservado
+    // (desktop) e a trilha vira um trilho reto dentro desse respiro, acima
+    // de toda a fileira, alinhado ao centro horizontal de cada passo.
+    var railY = 11;
+    var pts = [];
+    nos.forEach(function(n){
+      var r = n.getBoundingClientRect();
+      pts.push([r.left + r.width/2 - rect.left, railY]);
+    });
+    var d = 'M' + pts.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' L');
+
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'passos-trilha');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('width', rect.width);
+    svg.setAttribute('height', rect.height);
+    svg.setAttribute('viewBox', '0 0 ' + rect.width + ' ' + rect.height);
+
+    var path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'rgba(0,255,133,.4)');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-dasharray', '7 8');
+    svg.appendChild(path);
+    passos.insertBefore(svg, passos.firstChild);
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduced && !drawn){
+      var len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      requestAnimationFrame(function(){
+        path.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1)';
+        path.style.strokeDashoffset = '0';
+        setTimeout(function(){
+          path.style.transition = '';
+          path.setAttribute('stroke-dasharray', '7 8');
+          path.style.strokeDasharray = '';
+          path.style.strokeDashoffset = '';
+        }, 1250);
+      });
+    }
+  }
+
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting && !drawn){ drawn = true; desenhar(); io.disconnect(); }
+      });
+    }, {threshold:.3});
+    io.observe(passos);
   } else {
     desenhar();
   }
@@ -1078,22 +1144,22 @@
 
     var colors = ['#00D95C', '#00FF85', '#FF00FF', '#FF76FF', '#00F9FF', '#2A4FDA', '#FFD84D'];
     var particles = [];
-    var N = 130;
+    var N = 170;
     for(var i = 0; i < N; i++){
-      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.8;
-      var speed = 480 + Math.random() * 620; // px/s
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.85;
+      var speed = 520 + Math.random() * 680; // px/s
       particles.push({
-        x: originX + (Math.random() - 0.5) * Math.min(originRect.width, 220),
+        x: originX + (Math.random() - 0.5) * Math.min(originRect.width, 260),
         y: originY,
         vx: Math.cos(a) * speed,
         vy: Math.sin(a) * speed,
-        size: 5 + Math.random() * 6,
+        size: 6 + Math.random() * 7,
         color: colors[(Math.random() * colors.length) | 0],
         rot: Math.random() * Math.PI * 2,
         vrot: (Math.random() - 0.5) * 3, // rad/s
         shape: Math.random() < 0.5 ? 'rect' : 'circle',
         life: 1,
-        decayPerSec: 0.32 + Math.random() * 0.32
+        decayPerSec: 0.28 + Math.random() * 0.28
       });
     }
     var gravity = 1400; // px/s^2
