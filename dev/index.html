@@ -312,7 +312,18 @@
   .publico-card{
     background:var(--papel-raised); border-radius:22px; padding:26px 26px 24px; box-shadow:var(--shadow);
     display:flex; flex-direction:column;
+    transition:opacity .3s ease, box-shadow .3s ease;
   }
+  /* depois que a pessoa escolhe "sou estudante"/"sou professor" no hero,
+     o card correspondente ganha destaque real em vez de só repetir a
+     mesma escolha em texto -- o outro nao' some, so' recua. escopado com
+     #publicos (especificidade extra) de proposito: .publico-card.publico-X
+     sozinho empata com ".reveal.in" e a regra de :hover (ambas 0-2-0) e
+     perde por ordem -- ja' aconteceu antes nesta pagina com outro par de
+     classes, entao aqui a regra ja' nasce especifica o bastante pra vencer
+     de qualquer jeito */
+  #publicos .publico-card.publico-match{box-shadow:0 0 0 2px var(--verde), var(--shadow);}
+  #publicos .publico-card.publico-outro{opacity:.55;}
   .publico-tag{
     display:inline-block; align-self:flex-start; font-family:var(--mono); font-size:11px; font-weight:600;
     letter-spacing:.06em; text-transform:uppercase; color:var(--verde-texto); background:rgba(0,217,92,.12);
@@ -517,6 +528,13 @@
   #sticky-cta .txt b{display:block; font-size:13.5px;}
   @media (min-width:860px){ #sticky-cta{display:none;} }
 
+  /* os dois botoes "sou estudante"/"sou professor" continuam clicaveis
+     depois da escolha (pra trocar direto, sem precisar de um "resetar"
+     separado) -- o escolhido fica em destaque, o outro recua (mesmo
+     tratamento dos cards em #publicos) */
+  .hero-ctas button{transition:opacity .2s ease;}
+  .hero-ctas.escolhido button:not(.ativo){opacity:.5;}
+
   /* transition (nao animation) de proposito: com @keyframes de um so' stop
      ("to"), varias ferramentas de inspecao (getAnimations()) relatam o
      easing como "linear" mesmo com cubic-bezier no CSS -- transition e'
@@ -638,7 +656,7 @@
       <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
     </nav>
     <div class="hdr-actions">
-      <a class="btn btn-primario btn-sm hdr-cta" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
+      <a class="btn btn-primario btn-sm hdr-cta" id="cta-header" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </div>
 </header>
@@ -651,10 +669,9 @@
     <div class="wrap">
       <div class="hero-left">
         <div class="hero-copy">
-          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Programa Escalada Sebrae · gratuito · alunos 14+ e professores</div>
           <h1 class="hero-h1" id="hero-h1">Todo mês, o ranking decide quem chega ao <em>GameShow Escalada</em>.</h1>
           <p class="sub" id="hero-sub">Até os 20 melhores do mês disputam a final ao vivo, e quem vence leva pra casa prêmios como smartphone e tablet. Esforço que conta ponto por ponto: trilha concluída, missão cumprida, sequência de dias mantida.</p>
-          <div class="hero-ctas">
+          <div class="hero-ctas" id="hero-ctas">
             <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
           </div>
           <div class="hero-facts">
@@ -664,7 +681,7 @@
           </div>
         </div>
         <div class="hero-teaser">
-          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Escalada Sebrae · grátis · 14+ e professores</div>
+          <div class="eyebrow hero-eyebrow"><span class="dot"></span>Grátis · 14+ e professores</div>
           <h2 class="hero-teaser-h1">Quer concorrer a um <em>prêmio incrível</em>?</h2>
           <p class="hero-teaser-sub">Cumpra trilhas e missões, suba no ranking e dispute o GameShow Escalada ao vivo — com prêmios como smartphone e tablet pra quem vence.</p>
         </div>
@@ -735,7 +752,7 @@
         <h2>Dois jeitos de entrar, dois jeitos de pontuar.</h2>
       </div>
       <div class="publicos-grid">
-        <div class="publico-card reveal">
+        <div class="publico-card reveal" data-publico="estudante">
           <span class="publico-tag">Pra estudante</span>
           <h3>Você sobe fazendo a sua trilha</h3>
           <ul>
@@ -745,7 +762,7 @@
           </ul>
           <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Quero participar como estudante</a>
         </div>
-        <div class="publico-card reveal">
+        <div class="publico-card reveal" data-publico="professor">
           <span class="publico-tag prof">Pra professor / educador</span>
           <h3>Você sobe mobilizando sua turma</h3>
           <ul>
@@ -960,7 +977,7 @@
       <div class="prazo-pill" id="cta-countdown"><span aria-hidden="true">🔥</span> o ranking deste mês já está rodando</div>
       <h2>A trilha para o sucesso está aberta. Falta você dar o primeiro passo.</h2>
       <p>Cadastro gratuito, direto do celular. Comece hoje e entre na disputa deste ciclo.</p>
-      <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
+      <a class="btn btn-primario" id="cta-final-btn" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </section>
 
@@ -979,7 +996,7 @@
 
 <div id="sticky-cta">
   <div class="txt"><b>Ranking do mês já rodando</b>gratuito, direto do celular</div>
-  <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Participar</a>
+  <a class="btn btn-primario btn-sm" id="cta-sticky-btn" href="https://escalada.me/lpescalada-estudantes1">Participar</a>
 </div>
 
 <canvas id="confetti-canvas" aria-hidden="true"></canvas>
@@ -1710,25 +1727,83 @@
 <script>
 (function(){
   'use strict';
-  // ranking mensal fecha no fim de cada mes -- countdown real calculado a
-  // partir da data local do visitante, nunca um texto estatico tipo "em
-  // andamento" (que nao diz nada) nem um numero inventado
-  function diasRestantesNoCiclo(){
-    var hoje = new Date();
-    var hojeMeiaNoite = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    var ultimoDiaDoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-    var msPorDia = 24 * 60 * 60 * 1000;
-    return Math.round((ultimoDiaDoMes - hojeMeiaNoite) / msPorDia);
+  // o Mes Flash NAO fecha no ultimo dia do mes civil -- dura ~20 a 26 dias
+  // corridos, variavel por edicao (Art. 31 do regulamento; dados reais de
+  // ciclos anteriores fecharam em 24/06 e 26/08, nunca no dia 30/31). Uma
+  // contagem regressiva por dia do calendario seria um numero inventado
+  // com cara de precisao que nao existe -- por isso o texto fica sem
+  // numero, ate' existir uma fonte real (ex.: API) da data de fechamento.
+  var rc = document.getElementById('rc-countdown');
+  if(rc) rc.innerHTML = '<span aria-hidden="true">🔥</span> ranking em andamento';
+  var cta = document.getElementById('cta-countdown');
+  if(cta) cta.innerHTML = '<span aria-hidden="true">🔥</span> o ranking deste mês já está rodando';
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+  // quando o rank card assenta (fim da animacao, ou de cara se reduced-motion),
+  // o botao unico "quero participar" do hero vira dois: "sou estudante" /
+  // "sou professor" -- escolher um atualiza os outros CTAs da pagina (header,
+  // cta final, barra fixa mobile) pro link certo e destaca o card certo em
+  // "Escolha seu caminho", sem exigir cadastro nem sair da pagina. Nao
+  // escolher nenhum e so' rolar continua mostrando a pagina como esta hoje.
+  var hero = document.getElementById('hero');
+  var heroCtas = document.getElementById('hero-ctas');
+  if(!hero || !heroCtas) return;
+
+  var PUBLICOS = {
+    estudante: { href:'https://escalada.me/lpescalada-estudantes1', label:'Quero participar como estudante', curto:'Participar' },
+    professor: { href:'https://escalada.me/lpescalada-professores1', label:'Quero participar como educador', curto:'Participar' }
+  };
+
+  var ctaHeader = document.getElementById('cta-header');
+  var ctaFinal = document.getElementById('cta-final-btn');
+  var ctaSticky = document.getElementById('cta-sticky-btn');
+
+  function aplicarCtas(info){
+    if(ctaHeader){ ctaHeader.href = info.href; ctaHeader.textContent = info.label; }
+    if(ctaFinal){ ctaFinal.href = info.href; ctaFinal.textContent = info.label; }
+    if(ctaSticky){ ctaSticky.href = info.href; ctaSticky.textContent = info.curto; }
   }
 
-  var dias = diasRestantesNoCiclo();
-  var curto = dias <= 0 ? 'último dia do ranking deste mês' : (dias === 1 ? 'falta 1 dia pro ranking fechar' : 'faltam ' + dias + ' dias pro ranking fechar');
-  var longo = dias <= 0 ? 'hoje é o último dia do ranking deste mês' : (dias === 1 ? 'falta 1 dia pro ranking deste mês fechar' : 'faltam ' + dias + ' dias pro ranking deste mês fechar');
+  function marcarCards(pub){
+    Array.prototype.forEach.call(document.querySelectorAll('.publico-card'), function(card){
+      var match = card.getAttribute('data-publico') === pub;
+      card.classList.toggle('publico-match', match);
+      card.classList.toggle('publico-outro', !match);
+    });
+  }
 
-  var rc = document.getElementById('rc-countdown');
-  if(rc) rc.innerHTML = '<span aria-hidden="true">🔥</span> ' + curto;
-  var cta = document.getElementById('cta-countdown');
-  if(cta) cta.innerHTML = '<span aria-hidden="true">🔥</span> ' + longo;
+  function escolher(pub){
+    var info = PUBLICOS[pub];
+    if(!info) return;
+    aplicarCtas(info);
+    marcarCards(pub);
+    heroCtas.classList.add('escolhido');
+    Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){
+      btn.classList.toggle('ativo', btn.getAttribute('data-pub') === pub);
+    });
+  }
+
+  function montarPicker(){
+    heroCtas.innerHTML =
+      '<button type="button" class="btn btn-primario" data-pub="estudante">Sou estudante</button>' +
+      '<button type="button" class="btn btn-ghost" data-pub="professor">Sou professor</button>';
+    Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){
+      btn.addEventListener('click', function(){ escolher(btn.getAttribute('data-pub')); });
+    });
+  }
+
+  if(hero.classList.contains('settled')){
+    montarPicker();
+  } else {
+    var mo = new MutationObserver(function(){
+      if(hero.classList.contains('settled')){ montarPicker(); mo.disconnect(); }
+    });
+    mo.observe(hero, {attributes:true, attributeFilter:['class']});
+  }
 })();
 </script>
 
