@@ -1373,10 +1373,10 @@
   // textos viram pro CTA: nao so' descrevem o perfil, fecham dizendo por que
   // esse jeito de ser rende ponto/vantagem real na regua do Escalada
   var PERFIS = {
-    testador: { nome: 'Testador', texto: 'Você aprende fazendo: mão na massa, teste rápido, ajuste pelo que vê acontecer. Esse ritmo é o que faz subir rápido no ranking.' },
-    estrategista: { nome: 'Estrategista', texto: 'Você para, pensa, mapeia o problema e só então age. Esse tipo de cabeça não desperdiça ponto.' },
-    comunitario: { nome: 'Comunitário', texto: 'Você conta com gente: busca rede, divide o problema, constrói junto. É assim que se sobe puxando outros, e ainda soma ponto de indicação.' },
-    misto: { nome: 'Combinado', texto: 'Você testa, pensa e conta com gente, dependendo da situação. Ninguém sobe sozinho com um jeito só, e você já sabe disso.' }
+    testador: { nome: 'Testador', texto: 'Você aprende fazendo: mão na massa, teste rápido, ajuste pelo que vê acontecer. Esse ritmo é o que faz subir rápido no ranking.', cta: 'Testar na prática' },
+    estrategista: { nome: 'Estrategista', texto: 'Você para, pensa, mapeia o problema e só então age. Esse tipo de cabeça não desperdiça ponto.', cta: 'Ver o caminho todo' },
+    comunitario: { nome: 'Comunitário', texto: 'Você conta com gente: busca rede, divide o problema, constrói junto. É assim que se sobe puxando outros, e ainda soma ponto de indicação.', cta: 'Encontrar mais gente como eu' },
+    misto: { nome: 'Combinado', texto: 'Você testa, pensa e conta com gente, dependendo da situação. Ninguém sobe sozinho com um jeito só, e você já sabe disso.', cta: 'Descobrir meu caminho' }
   };
 
   var idx = 0;
@@ -1449,7 +1449,7 @@
         '<span class="pts-grande">+15</span>' +
         '<span class="teste-perfil-nome perfil-' + chave + '">Seu perfil: ' + perfil.nome + '</span>' +
         '<p>' + perfil.texto + '</p>' +
-        '<a class="btn btn-primario" href="#publicos">Continuar como ' + perfil.nome + ' →</a>' +
+        '<a class="btn btn-primario" href="#publicos">' + perfil.cta + ' →</a>' +
       '</div>';
   }
 
