@@ -48,7 +48,7 @@
   .btn-primario:hover{filter:brightness(1.06); transform:translateY(-1px);}
   .btn-ghost{background:transparent; color:inherit; border:1.5px solid currentColor; opacity:.85;}
   .btn-ghost:hover{opacity:1;}
-  .btn-sm{padding:9px 16px; font-size:13.5px;}
+  .btn-sm{padding:13px 18px; font-size:13.5px;}
 
   /* ---------- header ---------- */
   #site-header{
@@ -265,7 +265,7 @@
   }
   .fatos-grid{display:grid; grid-template-columns:1fr; gap:14px; position:relative;}
   @media (min-width:700px){ .fatos-grid{grid-template-columns:repeat(2,1fr);} }
-  @media (min-width:1040px){ .fatos-grid{grid-template-columns:repeat(4,1fr);} }
+  @media (min-width:1040px){ .fatos-grid{grid-template-columns:repeat(5,1fr);} }
   .fato-card{
     background:var(--papel-raised); border-radius:20px; padding:24px 22px; box-shadow:var(--shadow);
   }
@@ -296,7 +296,7 @@
   .degrau:nth-of-type(2) .n{background:linear-gradient(135deg,#2A4FDA,#1A3AAD);}
   .degrau:nth-of-type(3) .n{background:linear-gradient(135deg,#00D95C,#00FF85); color:var(--ink);}
   .degrau:nth-of-type(4) .n{background:linear-gradient(135deg,#FF00FF,#FF76FF); color:var(--ink);}
-  .degrau:nth-of-type(5) .n{background:linear-gradient(135deg,#0A0F36,#2A4FDA);}
+  .degrau:nth-of-type(5) .n{background:linear-gradient(135deg,#B8860B,#FFD84D); color:var(--ink);}
   .degrau h3{font-size:17px; margin-bottom:2px;}
   .degrau .faixa{font-family:var(--mono); font-size:11px; color:var(--ink-faint); display:block; margin-bottom:6px;}
   .degrau p{font-size:14px; color:var(--ink-soft); margin:0;}
@@ -679,7 +679,7 @@
       <div class="fatos-grid">
         <div class="fato-card reveal">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-          <h3>Prêmio pro vencedor do mês</h3>
+          <h3>Prêmio pra quem vence o GameShow</h3>
           <p>Quem vence o GameShow Escalada leva prêmios como smartphone e tablet, anunciados a cada ciclo.</p>
         </div>
         <div class="fato-card reveal">
@@ -709,7 +709,7 @@
   <section id="jornada">
     <div class="wrap">
       <div class="section-head reveal">
-        <span class="eyebrow">A escada</span>
+        <span class="eyebrow" style="color:#1A3AAD;">A escada</span>
         <h2>Cinco degraus. Cada um com a pontuação exata pra chegar lá.</h2>
         <p>É o mesmo nível que aparece no seu perfil dentro da plataforma, sem enfeite. Esses pontos se acumulam a jornada toda e não zeram — já o ranking mensal (ali do lado) é outra contagem, que recomeça todo mês.</p>
       </div>
@@ -761,7 +761,7 @@
         <div class="pontos-item"><span class="ac">Cumprir missão especial</span><span class="pv">+15</span><span class="bar" style="width:25%;"></span></div>
         <div class="pontos-item"><span class="ac">Cumprir missão semanal</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
         <div class="pontos-item"><span class="ac">Indicar um novo membro</span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
-        <div class="pontos-item"><span class="ac">Manter sequência diária</span><span class="pv">+10 <span style="color:var(--ink-faint);">(+ bônus a cada 7 dias)</span></span><span class="bar" style="width:16.7%;"></span></div>
+        <div class="pontos-item"><span class="ac">Manter sequência diária<span style="color:var(--ink-faint); font-size:11px; display:block;">+ bônus a cada 7 dias</span></span><span class="pv">+10</span><span class="bar" style="width:16.7%;"></span></div>
         <div class="pontos-item"><span class="ac">Fazer uma publicação na comunidade</span><span class="pv">+5</span><span class="bar" style="width:8.3%;"></span></div>
       </div>
       <div class="integridade-box reveal">
@@ -1213,14 +1213,14 @@
 
   function finalState(){
     fadeText(lblEl, 'Top 20 do mês');
-    fadeText(prizeEl, '🏆 vencedor leva o prêmio do mês');
+    fadeText(prizeEl, '🏆 vaga garantida no GameShow');
     if(hero) hero.classList.add('settled');
   }
 
   function run(){
     if(reduced){
       lblEl.textContent = 'Top 20 do mês';
-      prizeEl.textContent = '🏆 vencedor leva o prêmio do mês';
+      prizeEl.textContent = '🏆 vaga garantida no GameShow';
       if(hookTop) hookTop.classList.add('in');
       if(hookBottom) hookBottom.classList.add('in');
       if(hero) hero.classList.add('settled');
@@ -1243,7 +1243,7 @@
       timers.forEach(clearTimeout);
       viewport.removeEventListener('click', skip);
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês';
-      prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vencedor leva o prêmio do mês';
+      prizeEl.style.opacity = '1'; prizeEl.textContent = '🏆 vaga garantida no GameShow';
       if(hero) hero.classList.add('settled');
     }
     viewport.addEventListener('click', skip);
