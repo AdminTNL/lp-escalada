@@ -1035,6 +1035,24 @@
     path.setAttribute('stroke-linecap', 'round');
     path.setAttribute('stroke-dasharray', '7 8');
     svg.appendChild(path);
+
+    // um chevron solido no meio de cada segmento, apontando pra frente --
+    // sem isso a trilha lia como um "risco" decorativo generico por cima
+    // dos cards, nao como um conector real marcando a progressao 01->02->...
+    for(var i = 0; i < pts.length - 1; i++){
+      var mx = (pts[i][0] + pts[i + 1][0]) / 2;
+      var chevron = document.createElementNS(svgNS, 'path');
+      chevron.setAttribute('d', 'M' + (mx - 4.5).toFixed(1) + ',' + (railY - 4.5).toFixed(1) +
+        ' L' + (mx + 3.5).toFixed(1) + ',' + railY.toFixed(1) +
+        ' L' + (mx - 4.5).toFixed(1) + ',' + (railY + 4.5).toFixed(1));
+      chevron.setAttribute('fill', 'none');
+      chevron.setAttribute('stroke', 'rgba(0,255,133,.85)');
+      chevron.setAttribute('stroke-width', '2');
+      chevron.setAttribute('stroke-linecap', 'round');
+      chevron.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(chevron);
+    }
+
     passos.insertBefore(svg, passos.firstChild);
 
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1218,21 +1236,21 @@
     }
   }
 
-  // conta os pontos subindo (com glow) -- a troca de posicao so acontece
-  // DEPOIS, e so' se o novo valor realmente ultrapassar quem esta acima
-  function countUpPoints(row, fromVal, toVal, duration, onDone){
+  // conta os pontos subindo (com glow) -- onFrame recebe o valor JA'
+  // interpolado a cada frame, pra quem chama poder reagir ao numero que
+  // esta na tela AGORA (nao so' ao valor final, no fim da contagem)
+  function countUpPoints(row, fromVal, toVal, duration, onFrame, onDone){
     var ptEl = row.querySelector('.pt');
     row.classList.add('ganhando');
     var start = null;
     function step(ts){
       if(!start) start = ts;
       var p = Math.min(1, (ts - start) / duration);
-      ptEl.textContent = formatPt(Math.round(fromVal + (toVal - fromVal) * p));
+      var current = fromVal + (toVal - fromVal) * p;
+      ptEl.textContent = formatPt(Math.round(current));
+      if(onFrame) onFrame(current);
       if(p < 1){ requestAnimationFrame(step); }
       else {
-        // o reorder dispara JA' no frame em que o numero final aparece --
-        // atrasar isso (mesmo so' pra tirar o glow) deixava uma janela
-        // real onde o numero ja' e' maior mas a linha ainda nao' subiu
         if(onDone) onDone();
         setTimeout(function(){ row.classList.remove('ganhando'); }, 160);
       }
@@ -1240,26 +1258,58 @@
     requestAnimationFrame(step);
   }
 
-  // depois do ganho de pontos, sobe (bubble) enquanto for maior que quem
-  // esta na posicao acima -- pode subir mais de uma posicao de uma vez
-  function bubbleUp(pointsState, idx, swapMs, onDone){
-    if(idx <= 0 || pointsState[idx] <= pointsState[idx - 1]){ onDone(); return; }
-    var rows = track.children;
-    flipSwap(rows[idx - 1], rows[idx], swapMs, function(){
-      var tmp = pointsState[idx - 1];
-      pointsState[idx - 1] = pointsState[idx];
-      pointsState[idx] = tmp;
-      updatePosLabels();
-      bubbleUp(pointsState, idx - 1, swapMs, onDone);
-    });
-  }
-
+  // conta os pontos e sobe (bubble) no MESMO instante em que o numero ja'
+  // animado (nao so' o valor final) ultrapassa quem esta acima -- checar
+  // isso so' depois que a contagem inteira termina deixava uma janela real
+  // e visivel com nota maior numa posicao inferior, ate' o numero acabar
+  // de contar. Como as disputas rodam uma de cada vez (nunca duas linhas
+  // contando ao mesmo tempo), e' seguro comparar contra o pointsState atual
+  // do vizinho a cada frame.
   function disputa(pointsState, idx, ganho, countMs, swapMs, onDone){
     var row = track.children[idx];
     var novo = pointsState[idx] + ganho;
-    countUpPoints(row, pointsState[idx], novo, countMs, function(){
-      pointsState[idx] = novo;
-      bubbleUp(pointsState, idx, swapMs, onDone);
+    var countDone = false;
+    var swapping = false;
+
+    function finishIfReady(){
+      if(countDone && !swapping) onDone();
+    }
+
+    function tryBubble(){
+      if(swapping) return;
+      var i = Array.prototype.indexOf.call(track.children, row);
+      if(i <= 0 || pointsState[i] <= pointsState[i - 1]){ finishIfReady(); return; }
+      swapping = true;
+      var rows = track.children;
+      // pointsState troca de valor no MESMO instante em que o flipSwap e'
+      // chamado -- flipSwap reordena o DOM de forma SINCRONA (insertBefore
+      // acontece na hora; so' a transicao visual via transform e' que leva
+      // swapMs). Se essa troca esperasse o onDone do flipSwap, pointsState
+      // ficaria dessincronizado da ordem real do DOM durante toda a
+      // transicao, o que podia fazer uma comparacao seguinte (num bubble de
+      // mais de um degrau) usar o valor errado.
+      var tmp = pointsState[i - 1];
+      pointsState[i - 1] = pointsState[i];
+      pointsState[i] = tmp;
+      flipSwap(rows[i - 1], rows[i], swapMs, function(){
+        updatePosLabels();
+        swapping = false;
+        tryBubble();
+      });
+    }
+
+    countUpPoints(row, pointsState[idx], novo, countMs, function(current){
+      var i = Array.prototype.indexOf.call(track.children, row);
+      pointsState[i] = current;
+      tryBubble();
+    }, function(){
+      var i = Array.prototype.indexOf.call(track.children, row);
+      pointsState[i] = novo;
+      countDone = true;
+      // tryBubble() ja' chama finishIfReady() em todo caminho (direto se nao
+      // precisar subir, ou no fim da cadeia de swaps se precisar) -- chamar
+      // de novo aqui disparava onDone() duas vezes quando nao' havia swap
+      tryBubble();
     });
   }
 
