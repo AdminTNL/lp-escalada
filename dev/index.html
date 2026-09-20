@@ -1245,22 +1245,26 @@
   // mede o espaco VAZIO de verdade ao redor do card (acima e abaixo dele,
   // dentro de #hero) e devolve onde encaixar um elemento de w×h sem nunca
   // sobrepor as linhas do ranking NEM o texto dos ganchos/legenda -- por
-  // isso "acima" para' no topo do hero-hook-top (nao' no topo do card: tem
-  // texto entre os dois) e "abaixo" para' no topo da legenda/hero-hook-
-  // bottom (idem). #hero e' o ancestral posicionado (fixo full-bleed no
-  // mobile durante a animacao, relativo no normal) -- entao top/left aqui
-  // sao sempre relativos a ELE, nao ao card. Quando sobra pouco espaco
-  // vertical (tipico desktop), cai pro fallback lateral, ao lado do card.
+  // isso "acima" para' no topo do hero-hook-top (o espaco de verdade vazio
+  // e' ENTRE o topo do hero e o gancho, nao' entre o gancho e o card, que
+  // e' so' um gap de 14px) e "abaixo" COMECA no fim do hero-hook-bottom
+  // (mesmo raciocinio: o espaco vazio de baixo fica depois dos dois textos
+  // -- legenda e gancho -- nao' entre o card e a legenda). #hero e' o
+  // ancestral posicionado (fixo full-bleed no mobile durante a animacao,
+  // relativo no normal) -- entao top/left aqui sao sempre relativos a ELE,
+  // nao ao card. Quando sobra pouco espaco vertical (tipico desktop), cai
+  // pro fallback lateral, ao lado do card.
   function medirEspacoVazio(){
     var hr = hero.getBoundingClientRect();
     var cr = rankCard.getBoundingClientRect();
     var limiteAcima = hookTop ? hookTop.getBoundingClientRect().top : cr.top;
-    var abaixoRef = captionEl || hookBottom;
-    var limiteAbaixo = abaixoRef ? abaixoRef.getBoundingClientRect().top : hr.bottom;
+    var abaixoRef = hookBottom || captionEl;
+    var inicioAbaixo = abaixoRef ? abaixoRef.getBoundingClientRect().bottom : cr.bottom;
     return {
       hr: hr, cr: cr,
       acima: limiteAcima - hr.top,
-      abaixo: limiteAbaixo - cr.bottom
+      inicioAbaixo: inicioAbaixo - hr.top,
+      abaixo: hr.bottom - inicioAbaixo
     };
   }
 
@@ -1298,17 +1302,26 @@
       if(cabeCima && cabeBaixo){ usaCima = (vertical === 'cima'); }
       else { usaCima = cabeCima; }
       // trava DENTRO da propria banda escolhida -- nunca vaza pro texto do
-      // gancho de cima nem pro da legenda/gancho de baixo, os dois limites
-      // que medirEspacoVazio() ja' calculou como o fim de cada banda
+      // gancho de cima nem pro do gancho de baixo, os dois limites que
+      // medirEspacoVazio() ja' calculou como o fim de cada banda. "top" e'
+      // a borda de CIMA do card -- pra' a borda de BAIXO (top+h, mais a
+      // folga da rotacao) nao' ultrapassar o fim da banda, o proprio h
+      // precisa entrar na conta do maxTop (faltava isso antes: o card
+      // conseguia avancar por cima do texto do gancho vizinho)
       var minTop, maxTop;
       if(usaCima){
         minTop = folga.h;
-        maxTop = m.acima - folga.h;
+        maxTop = m.acima - h - folga.h;
       } else {
-        minTop = (m.cr.bottom - m.hr.top) + folga.h;
-        maxTop = minTop + Math.max(0, m.abaixo - folga.h * 2);
+        minTop = m.inicioAbaixo + folga.h;
+        maxTop = minTop + Math.max(0, m.abaixo - h - folga.h * 2);
       }
-      top = minTop + Math.random() * Math.max(0, maxTop - minTop);
+      // vies pra cair perto da PONTA da banda mais proxima do card (o fim
+      // de "acima", o comeco de "abaixo") em vez de espalhado uniforme --
+      // sem isso o sorteio podia jogar o bloco la' longe, perto da borda
+      // externa da tela, distante demais do que o usuario esta' olhando
+      var vies = Math.pow(Math.random(), 1.8);
+      top = usaCima ? (maxTop - vies * (maxTop - minTop)) : (minTop + vies * (maxTop - minTop));
       top = Math.max(minTop, Math.min(top, maxTop));
       var faixaLargura = Math.max(0, m.hr.width * 0.42 - w);
       left = horizontal === 'esq'
@@ -1342,7 +1355,7 @@
       minTop = margem;
       maxTop = margem + Math.max(4, m.acima - h - margem * 2);
     } else if(m.abaixo > h + 20){
-      minTop = (m.cr.bottom - m.hr.top) + margem;
+      minTop = m.inicioAbaixo + margem;
       maxTop = minTop + Math.max(4, m.abaixo - h - margem * 2);
     } else {
       minTop = margem;
