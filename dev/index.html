@@ -86,7 +86,7 @@
      some da vista assim que a pessoa rola mais um pouco */
   .modo-badge{
     display:none; align-items:center; gap:4px; font-family:var(--mono);
-    font-size:11px; color:rgba(255,255,255,.7); background:rgba(255,255,255,.08);
+    font-size:11px; color:rgba(255,255,255,.92); background:rgba(255,255,255,.08);
     border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 12px;
     cursor:pointer; white-space:nowrap;
   }
@@ -121,6 +121,20 @@
     border-radius:50%; border:46px solid rgba(255,0,255,.28);
   }
   #hero .wrap{position:relative; display:flex; flex-direction:column;}
+  /* enquanto a animacao do rank roda, H1/CTA reais ficam fora da arvore de
+     acessibilidade ate' o hero assentar (de proposito -- ver .hero-copy) --
+     sem isso, quem usa teclado/leitor de tela fica sem NADA focavel no hero
+     por varios segundos, e o skip() so' escuta clique/toque. Esse botao da'
+     um jeito imediato de pular, visivel so' quando ganha foco de teclado
+     (mesmo padrao do .skip-link) */
+  .hero-skip-anim{
+    position:absolute; top:-48px; left:8px; z-index:20;
+    background:var(--verde); color:#052312; font-weight:700; font-size:13px;
+    font-family:var(--body); border:none; cursor:pointer;
+    padding:10px 16px; border-radius:10px; transition:top .15s ease;
+  }
+  .hero-skip-anim:focus{top:8px;}
+  #hero.settled .hero-skip-anim{display:none;}
   @media (min-width:960px){
     #hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;}
   }
@@ -303,7 +317,7 @@
   .teste-final{text-align:center; padding:8px 0;}
   .teste-final .pts-grande{
     font-family:var(--mono); font-weight:700; color:var(--verde-texto);
-    font-size:44px; display:block; margin-bottom:6px;
+    font-size:44px; display:block; margin-bottom:10px;
     animation:ptsPop .5s cubic-bezier(.34,1.56,.64,1) both;
   }
   @keyframes ptsPop{
@@ -311,15 +325,42 @@
     55%{ transform:scale(1.14); opacity:1; }
     100%{ transform:scale(1); opacity:1; }
   }
-  @media (prefers-reduced-motion: reduce){
-    .teste-final .pts-grande{ animation:none; }
-  }
+  /* revelacao do perfil: pop com leve giro + brilho na cor do proprio
+     perfil (currentColor pega a cor de cada .perfil-X abaixo) -- entra
+     DEPOIS do numero (delay .4s), tipo um "personality quiz" de verdade,
+     nao tudo aparecendo de uma vez so' */
   .teste-final .teste-perfil-nome{
-    display:inline-block; font-family:var(--mono); font-size:11px; font-weight:700;
-    letter-spacing:.06em; text-transform:uppercase; color:var(--verde-texto); background:rgba(0,217,92,.12);
-    padding:6px 14px; border-radius:999px; margin-bottom:14px;
+    display:inline-block; font-family:var(--mono); font-size:11.5px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase;
+    padding:7px 16px; border-radius:999px; margin-bottom:14px;
+    opacity:0; animation:perfilRevela .6s cubic-bezier(.34,1.56,.64,1) .4s both;
   }
-  .teste-final p{color:var(--ink-soft); font-size:14.5px; margin-bottom:20px;}
+  .perfil-testador{ color:var(--verde-texto); background:rgba(0,217,92,.14); }
+  .perfil-estrategista{ color:#1A3AAD; background:rgba(42,79,218,.14); }
+  .perfil-comunitario{ color:var(--magenta-texto); background:rgba(255,0,255,.12); }
+  .perfil-misto{ color:#fff; background:linear-gradient(135deg,var(--verde),var(--azul) 55%,var(--magenta)); }
+  @keyframes perfilRevela{
+    0%{ transform:scale(.4) rotate(-6deg); opacity:0; box-shadow:0 0 0 0 currentColor; }
+    55%{ transform:scale(1.14) rotate(2deg); opacity:1; box-shadow:0 0 26px 6px currentColor; }
+    100%{ transform:scale(1) rotate(0deg); opacity:1; box-shadow:0 0 0 0 transparent; }
+  }
+  .teste-final p{
+    color:var(--ink-soft); font-size:14.5px; margin-bottom:20px;
+    opacity:0; animation:testeFadeUp .5s ease .85s both;
+  }
+  .teste-final .btn{
+    opacity:0; animation:testeFadeUp .5s ease 1.15s both;
+  }
+  @keyframes testeFadeUp{
+    0%{ opacity:0; transform:translateY(10px); }
+    100%{ opacity:1; transform:translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .teste-final .pts-grande,
+    .teste-final .teste-perfil-nome,
+    .teste-final p,
+    .teste-final .btn{ animation:none; opacity:1; }
+  }
 
   /* efeito de foco: ao centralizar o card do publico escolhido na tela,
      tudo ao redor borra (fade-in 1s) e depois volta ao normal (fade-out
@@ -613,14 +654,15 @@
     .passo:hover{transform:translateY(-3px); background:rgba(255,255,255,.09);}
   }
 
-  /* anel pulsando no cta final -- chama o olho pro clique sem ser intrusivo */
-  #cta-final .btn-primario{position:relative;}
-  #cta-final .btn-primario::after{
+  /* anel pulsando no cta final (e no resultado do quiz) -- chama o olho
+     pro clique sem ser intrusivo */
+  #cta-final .btn-primario, .teste-final .btn-primario{position:relative;}
+  #cta-final .btn-primario::after, .teste-final .btn-primario::after{
     content:''; position:absolute; inset:0; border-radius:999px; pointer-events:none;
     border:1.5px solid var(--verde); opacity:.55;
   }
   @media (prefers-reduced-motion:no-preference){
-    #cta-final .btn-primario::after{animation:pulseRing 2.2s cubic-bezier(.16,1,.3,1) infinite;}
+    #cta-final .btn-primario::after, .teste-final .btn-primario::after{animation:pulseRing 2.2s cubic-bezier(.16,1,.3,1) infinite;}
   }
   @keyframes pulseRing{0%{transform:scale(1); opacity:.55;} 100%{transform:scale(1.35); opacity:0;}}
 
@@ -701,6 +743,7 @@
     <div class="arco" aria-hidden="true"></div>
     <div class="arco2" aria-hidden="true"></div>
     <div class="wrap">
+      <button type="button" class="hero-skip-anim" id="hero-skip-anim">Pular animação do ranking</button>
       <div class="hero-left">
         <div class="hero-copy">
           <h1 class="hero-h1" id="hero-h1">Prêmios reais pra quem sobe no <em>ranking</em>.</h1>
@@ -760,13 +803,12 @@
       <div class="section-head reveal">
         <span class="eyebrow">Teste rápido · sem cadastro</span>
         <h2>Antes de entrar, joga uma rodada.</h2>
-        <p>3 perguntas sem certo ou errado. É sobre te conhecer, não uma prova. Complete as 3 e veja seu perfil, com pontos reais na régua oficial do Escalada.</p>
+        <p>3 perguntas sem certo ou errado, pra te conhecer. Complete as 3 e veja seu perfil, com pontos reais na régua oficial do Escalada.</p>
         <p class="nota-publico" id="teste-nota-professor" hidden>Esse teste mostra a trilha do <strong>estudante</strong>. Sua trilha de educador pontua de um jeito diferente (veja mais abaixo).</p>
       </div>
       <div class="teste-card reveal" id="teste-card">
         <div class="teste-progress" id="teste-progress">
           <span id="teste-step-label">Missão 1 de 3</span>
-          <span class="teste-total">Sem certo ou errado</span>
         </div>
         <div class="teste-track" id="teste-track" aria-hidden="true"><span></span><span></span><span></span></div>
         <div id="teste-body"></div>
@@ -848,7 +890,7 @@
   <section id="pontuacao">
     <div class="wrap">
       <div class="section-head reveal">
-        <span class="eyebrow" style="color:var(--verde-texto);">Esforço, não sorte</span>
+        <span class="eyebrow" style="color:var(--verde-texto);">Esforço conta</span>
         <h2>Cada ponto tem uma ação real por trás.</h2>
         <p>Esta é a régua completa do estudante. Nada de caixa-preta.</p>
       </div>
@@ -886,14 +928,14 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow">Como funciona</span>
-        <h2>Do cadastro ao GameShow, em quatro passos.</h2>
+        <h2>Do cadastro ao topo, em quatro passos.</h2>
         <p class="nota-publico" id="mecanica-nota-professor" hidden>Esses passos mostram a jornada do <strong>estudante</strong>. Como educador, seu caminho é: cadastre-se → vincule sua turma → acompanhe o engajamento deles → dispute o voucher mensal.</p>
       </div>
       <div class="passos">
         <div class="passo reveal"><div class="idx">01</div><h3>Cadastre-se</h3><p>Login rápido, direto do celular.</p></div>
         <div class="passo reveal"><div class="idx">02</div><h3>Cumpra trilhas</h3><p>Missões curtas sobre empreender de verdade, no seu tempo.</p></div>
         <div class="passo reveal"><div class="idx">03</div><h3>Suba no ranking</h3><p>Cada missão soma pontos. Cada ponto te aproxima do próximo degrau.</p></div>
-        <div class="passo reveal"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Desafios mensais, vouchers e a final ao vivo do GameShow Escalada.</p></div>
+        <div class="passo reveal"><div class="idx">04</div><h3>Concorra aos prêmios</h3><p>Desafios mensais e prêmios: a final ao vivo do GameShow pro estudante, o voucher mensal pro educador.</p></div>
       </div>
       <div class="quote-card reveal">
         <div class="qav" style="background:linear-gradient(135deg,var(--magenta),var(--magenta-claro));" aria-hidden="true">EE</div>
@@ -915,12 +957,12 @@
       <div class="comunidade-grid">
         <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--azul);">As trilhas</span>
-          <h3>Trilhas com nome e tema, não vídeo solto</h3>
+          <h3>Trilhas com nome e tema</h3>
           <p><strong>Começa por você</strong> e <strong>Modo protagonista</strong> passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, em módulos curtos que você conclui no seu tempo.</p>
         </div>
         <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--magenta-texto);">O clube da comunidade</span>
-          <h3>Clube por região, não feed genérico</h3>
+          <h3>Clube por região</h3>
           <p>Dentro da comunidade existem clubes regionais, onde participantes comentam e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários desde que entrou.</p>
         </div>
       </div>
@@ -1522,6 +1564,8 @@
       if(hero) hero.classList.add('settled');
     }
     viewport.addEventListener('click', skip);
+    var skipBtn = document.getElementById('hero-skip-anim');
+    if(skipBtn) skipBtn.addEventListener('click', skip);
 
     t(function(){
       runDisputas(pointsState, 90, 420, 300, function(){
@@ -1664,11 +1708,13 @@
     }
   ];
 
+  // textos viram pro CTA: nao so' descrevem o perfil, fecham dizendo por que
+  // esse jeito de ser rende ponto/vantagem real na regua do Escalada
   var PERFIS = {
-    testador: { nome: 'Testador', texto: 'você aprende fazendo, colocando a mão na massa, testando na prática e ajustando pelo que vê de verdade acontecer.' },
-    estrategista: { nome: 'Estrategista', texto: 'você para pra pensar antes de agir, mapeia o problema, avalia caminhos e só então decide.' },
-    comunitario: { nome: 'Comunitário', texto: 'você conta com gente: busca rede, divide o problema e constrói junto.' },
-    misto: { nome: 'Combinado', texto: 'você mistura um pouco de cada jeito: testa na prática, pensa estratégico e conta com gente, dependendo da situação. É comum: as trilhas do Escalada trabalham essas competências juntas.' }
+    testador: { nome: 'Testador', texto: 'Você aprende fazendo: mão na massa, teste rápido, ajuste pelo que vê acontecer. Esse ritmo é o que faz subir rápido no ranking.' },
+    estrategista: { nome: 'Estrategista', texto: 'Você para, pensa, mapeia o problema e só então age. Esse tipo de cabeça não desperdiça ponto.' },
+    comunitario: { nome: 'Comunitário', texto: 'Você conta com gente: busca rede, divide o problema, constrói junto. É assim que se sobe puxando outros, e ainda soma ponto de indicação.' },
+    misto: { nome: 'Combinado', texto: 'Você testa, pensa e conta com gente, dependendo da situação. Ninguém sobe sozinho com um jeito só, e você já sabe disso.' }
   };
 
   var idx = 0;
@@ -1717,12 +1763,12 @@
     }, reduced ? 150 : 550);
   }
 
-  function calcularPerfil(){
+  function calcularPerfilChave(){
     var contagem = { testador: 0, estrategista: 0, comunitario: 0 };
     respostas.forEach(function(p){ contagem[p]++; });
     var max = Math.max(contagem.testador, contagem.estrategista, contagem.comunitario);
     var vencedores = Object.keys(contagem).filter(function(k){ return contagem[k] === max; });
-    return vencedores.length === 1 ? PERFIS[vencedores[0]] : PERFIS.misto;
+    return vencedores.length === 1 ? vencedores[0] : 'misto';
   }
 
   function renderFinal(){
@@ -1734,13 +1780,14 @@
     // e regra de autor vence UA, entao so' o atributo hidden nao bastaria
     if(progressEl) progressEl.style.display = 'none';
     if(trackEl) trackEl.style.display = 'none';
-    var perfil = calcularPerfil();
+    var chave = calcularPerfilChave();
+    var perfil = PERFIS[chave];
     body.innerHTML =
       '<div class="teste-final">' +
         '<span class="pts-grande">+15</span>' +
-        '<span class="teste-perfil-nome">Seu perfil: ' + perfil.nome + '</span>' +
+        '<span class="teste-perfil-nome perfil-' + chave + '">Seu perfil: ' + perfil.nome + '</span>' +
         '<p>' + perfil.texto + '</p>' +
-        '<a class="btn btn-primario" href="#publicos">Quero participar →</a>' +
+        '<a class="btn btn-primario" href="#publicos">Continuar como ' + perfil.nome + ' →</a>' +
       '</div>';
   }
 
