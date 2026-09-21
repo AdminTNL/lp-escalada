@@ -441,23 +441,44 @@
     .gs-convite{transition:opacity .35s ease, visibility 0s linear .35s;}
     .gs-convite.show{transition:opacity .3s ease, visibility 0s linear;}
   }
-  .gs-envelope{ position:relative; height:132px; perspective:600px; }
+  /* geometria do envelope: aba (triangulo) + corpo (retangulo) precisam se
+     encontrar EXATAMENTE na ponta do triangulo, nunca antes -- a versao
+     anterior tinha o corpo comecando ANTES da ponta da aba (corpo cobria
+     parte do triangulo), cortando ele num "chevron" de base larga e fundo
+     achatado que lia como seta, nao como dobra de envelope. --gs-flap-h e'
+     a UNICA fonte de verdade dessa fronteira, usada pelos dois lados. */
+  .gs-envelope{ position:relative; height:132px; perspective:600px; --gs-flap-h:50px; }
   .gs-flap{
-    position:absolute; top:0; left:0; right:0; height:56px;
-    background:linear-gradient(135deg,#FFD84D,#FF9F0A);
+    position:absolute; top:0; left:0; right:0; height:var(--gs-flap-h);
+    background:linear-gradient(160deg,#3B57DB,#6D89F7);
     clip-path:polygon(0 0, 100% 0, 50% 100%);
     transform-origin:top center; backface-visibility:hidden;
-    display:flex; align-items:flex-start; justify-content:center; padding-top:6px;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.22));
   }
-  .gs-selo{ font-size:15px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+  /* selo de cera bem no ponto onde a aba encosta no corpo -- e' essa pecinha
+     (fora da .gs-flap de proposito: o clip-path dela cortaria qualquer
+     filho que nao' coubesse dentro do triangulo) que faz o conjunto ler
+     como UM envelope de papel dobrado, nao uma caixa com um triangulo solto
+     em cima. z-index acima dos dois garante que fica visivel exatamente na
+     costura, nao' meio-coberta pelo topo reto do corpo. */
+  .gs-selo{
+    position:absolute; left:50%; top:var(--gs-flap-h); z-index:2;
+    transform:translate(-50%,-50%);
+    width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg,#FFD84D,#FF9F0A);
+    box-shadow:0 0 0 3px #17235f, 0 3px 8px -2px rgba(0,0,0,.5);
+    font-size:13px;
+  }
   .gs-body{
-    position:absolute; bottom:0; left:0; right:0; height:88px; border-radius:12px;
+    position:absolute; top:var(--gs-flap-h); left:0; right:0; bottom:0;
+    border-radius:0 0 12px 12px;
     background:linear-gradient(160deg,#17235f,#2A4FDA);
-    border:1.5px solid rgba(255,216,77,.55);
+    border:1.5px solid rgba(255,216,77,.55); border-top:none;
     box-shadow:0 18px 36px -14px rgba(0,0,0,.6), 0 0 22px -4px rgba(255,216,77,.3);
   }
   .gs-carta{
-    position:absolute; left:8px; right:8px; bottom:12px;
+    position:absolute; left:8px; right:8px; bottom:12px; z-index:3;
     background:#fff; border-radius:13px; padding:16px 12px 13px; text-align:center;
     box-shadow:0 22px 42px -14px rgba(0,0,0,.55);
     opacity:0;
@@ -474,6 +495,7 @@
   @media (prefers-reduced-motion:no-preference){
     .gs-convite.show .gs-envelope{animation:gsEnvelopeIn .5s cubic-bezier(.34,1.56,.64,1) both;}
     .gs-convite.show .gs-flap{animation:gsFlapAbre .5s ease .5s both;}
+    .gs-convite.show .gs-selo{animation:gsSeloSai .35s ease .5s both;}
     .gs-convite.show .gs-carta{animation:gsCartaSai .55s cubic-bezier(.34,1.56,.64,1) .8s both;}
   }
   @keyframes gsEnvelopeIn{
@@ -484,14 +506,21 @@
     0%{ transform:rotateX(0deg); }
     100%{ transform:rotateX(-155deg); }
   }
+  /* o selo "quebra" e sai voando junto quando a aba comeca a abrir --
+     mesmo instante de gatilho da gsFlapAbre, duracao mais curta pra sumir
+     bem no comeco do movimento da aba */
+  @keyframes gsSeloSai{
+    0%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+    100%{ opacity:0; transform:translate(-50%,-85%) scale(.55); }
+  }
   @keyframes gsCartaSai{
     0%{ opacity:0; transform:translateY(0) scale(.88); }
     55%{ opacity:1; }
     100%{ opacity:1; transform:translateY(-52px) scale(1); }
   }
   @media (prefers-reduced-motion:reduce){
-    .gs-envelope, .gs-flap, .gs-carta{animation:none!important;}
-    .gs-flap{display:none;}
+    .gs-envelope, .gs-flap, .gs-selo, .gs-carta{animation:none!important;}
+    .gs-flap, .gs-selo{display:none;}
     .gs-carta{opacity:1; transform:translateY(-52px);}
   }
 
@@ -894,14 +923,9 @@
       <div class="hero-left">
         <div class="hero-copy">
           <h1 class="hero-h1" id="hero-h1">Prêmios reais pra quem sobe no <em>ranking</em>.</h1>
-          <p class="sub" id="hero-sub">Complete trilhas sobre comportamento empreendedor e oportunidades de negócio, suba no ranking e dispute prêmios como smartphone e tablet no GameShow Escalada ao vivo.</p>
+          <p class="sub" id="hero-sub">Explore trilhas sobre comportamento empreendedor, autoconhecimento e muito mais, suba no ranking e dispute prêmios como smartphone e tablet no GameShow Escalada ao vivo.</p>
           <div class="hero-ctas" id="hero-ctas">
             <a class="btn btn-primario" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
-          </div>
-          <div class="hero-facts">
-            <span class="hero-fact">100% gratuito</span>
-            <span class="hero-fact">direto do celular</span>
-            <span class="hero-fact">ranking recomeça todo mês</span>
           </div>
         </div>
       </div>
@@ -910,7 +934,6 @@
         <div class="rank-card" id="rank-card" role="img" aria-label="Demonstração ilustrativa (dados de exemplo, não reais) de como o ranking mensal funciona: o perfil Você entra em 20º lugar e, conforme comenta na comunidade, assiste aulas e explora as trilhas, sobe posições até assumir o 1º lugar, garantindo uma vaga no GameShow Escalada.">
           <div class="ps-lb-head" aria-hidden="true">
             <span class="lbl" id="lb-lbl">Você chegou agora</span>
-            <span class="prize" id="lb-prize"><span aria-hidden="true">🏆</span> vaga no GameShow</span>
           </div>
           <div class="ps-lb-viewport" id="lb-viewport" aria-hidden="true">
             <div class="ps-lb-track" id="lb-track">
@@ -946,7 +969,8 @@
     <div class="rank-flurry" id="rank-flurry" aria-hidden="true"></div>
     <div class="gs-convite" id="gs-convite" aria-hidden="true">
       <div class="gs-envelope">
-        <div class="gs-flap"><span class="gs-selo" aria-hidden="true">🏆</span></div>
+        <div class="gs-flap"></div>
+        <span class="gs-selo" aria-hidden="true">🏆</span>
         <div class="gs-body"></div>
         <div class="gs-carta">
           <p class="gs-carta-titulo">Você está convidado!</p>
@@ -979,27 +1003,28 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow" style="color:var(--verde-texto);">Escolha seu caminho</span>
-        <h2>Dois jeitos de entrar, dois jeitos de pontuar.</h2>
+        <h2>Dois públicos, dois jogos.</h2>
       </div>
       <div class="publicos-grid">
         <div class="publico-card reveal" data-publico="estudante">
           <span class="publico-tag">Pra estudante</span>
           <h3>Você sobe fazendo a sua trilha</h3>
           <ul>
-            <li>Cada trilha, módulo e missão concluída soma pontos direto no seu ranking</li>
-            <li>Prêmio: itens como smartphone e tablet pra quem vence o GameShow Escalada</li>
+            <li>Cada trilha, módulo e quiz concluídos somam pontos direto no seu ranking</li>
+            <li>Contribua com a comunidade, postando suas ideias e comentando nas dos outros para receber mais pontos</li>
+            <li>Traga amigos pro Escalada usando o seu link pra receber mais pontos ainda!</li>
+            <li>Prêmio: itens como um smartphone para quem vence o GameShow Escalada</li>
             <li>A partir de 14 anos</li>
           </ul>
           <a class="btn btn-primario btn-sm" href="https://escalada.me/lpescalada-estudantes1">Quero participar como estudante</a>
         </div>
         <div class="publico-card reveal" data-publico="professor">
-          <span class="publico-tag prof">Pra professor / educador / gestor</span>
+          <span class="publico-tag prof">Pra professor / educador</span>
           <h3>Você sobe mobilizando sua turma</h3>
           <ul>
             <li>Trilha própria (com quizzes e artigos) pra você também evoluir</li>
             <li>Pontua por estudante ativo vinculado, por atividade válida deles e pela sua própria sequência diária</li>
             <li>Prêmio: o educador de maior pontuação leva R$1.000 por mês, por até 3 meses seguidos, mantendo o engajamento mínimo exigido pelo programa (estudantes ativos, atividade na plataforma e participação quando convocado)</li>
-            <li>Ranking e prêmio próprios: o GameShow ao vivo é a disputa dos estudantes; você concorre no seu placar de educador</li>
           </ul>
           <a class="btn btn-ghost btn-sm" href="https://escalada.me/lpescalada-professores1">Quero participar como educador</a>
         </div>
@@ -1028,11 +1053,7 @@
       </div>
       <div class="integridade-box reveal">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#2A4FDA" stroke-width="1.8" aria-hidden="true"><path d="M2 9a3 3 0 010 6v2a2 2 0 002 2h16a2 2 0 002-2v-2a3 3 0 010-6V7a2 2 0 00-2-2H4a2 2 0 00-2 2v2z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
-        <p><strong>Professor, seu placar soma pontos por um caminho diferente:</strong> +5 por estudante ativo vinculado, +1 por atividade válida que ele completa, e a mesma sequência diária acima (+10/dia). Sua trilha própria (com quizzes e artigos) é pra você evoluir. Ela não entra nesse placar.</p>
-      </div>
-      <div class="integridade-box reveal">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#00D95C" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
-        <p><strong>O sistema audita contra manipulação de pontos.</strong> Clique repetido sem propósito, comportamento de robô e outras condutas vedadas são detectados e a pontuação pode ser revertida. Quem está no topo do ranking chegou lá fazendo a trilha.</p>
+        <p><strong>Professor, lembre-se, seu placar soma pontos por um caminho diferente:</strong> +5 por estudante ativo vinculado, +1 por atividade válida que ele completa, e a mesma sequência diária acima (+10/dia). Sua trilha própria (com quizzes e artigos) é pra você evoluir e aprimorar sua sala de aula.</p>
       </div>
     </div>
   </section>
@@ -1040,25 +1061,25 @@
   <section id="comunidade">
     <div class="wrap">
       <div class="section-head reveal">
-        <span class="eyebrow" style="color:var(--magenta-texto);">Você não faz sozinho</span>
-        <h2>Trilha com nome, clube com gente.</h2>
-        <p>A pontuação é só a metade. A outra metade é quem está do seu lado enquanto você sobe.</p>
+        <span class="eyebrow" style="color:var(--magenta-texto);">O Escalada tem mais a oferecer</span>
+        <h2>Pensou que era só a premiação?.</h2>
+        <p>Milhares de outros estudantes e educadores estão se conectando e evoluindo juntos, todos os dias, e você pode fazer parte disso AGORA.</p>
       </div>
       <div class="comunidade-grid">
         <div class="comunidade-card reveal">
           <span class="eyebrow" style="color:var(--azul);">As trilhas</span>
-          <h3>Começa por você e Modo protagonista</h3>
-          <p>As duas trilhas passam por comportamento empreendedor, competências pro mercado de trabalho, competências socioemocionais e como identificar oportunidade de negócio, em módulos curtos que você conclui no seu tempo.</p>
+          <h3>Trilhas por tema: Empreendedorismo, IA, Autoconhecimento, Ensino Técnico</h3>
+          <p>Se você está no ensino médio, técnico, ou se já acabou a escola, o Escalada tem lugar pra você</p>
         </div>
         <div class="comunidade-card reveal">
-          <span class="eyebrow" style="color:var(--magenta-texto);">O clube da comunidade</span>
-          <h3>Clube por interesse</h3>
-          <p>Tem clube de idiomas, onde participantes comentam e compartilham o que estão vivendo fora da sala de aula. Tem gente que já passou de centenas de publicações e comentários desde que entrou.</p>
+          <span class="eyebrow" style="color:var(--magenta-texto);">Fora da trilha, dentro do seu currículo</span>
+          <h3>Clubes Escalada</h3>
+          <p>Temos clube de idiomas, filmes e livros, extracurriculares que vão preencher sua experiência.</p>
         </div>
       </div>
       <div class="integridade-box reveal" style="margin-top:16px;">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#FF00FF" stroke-width="1.8" aria-hidden="true"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.97-4.03 9-9 9-1.6 0-3.1-.42-4.4-1.15L3 21l1.15-3.6A8.96 8.96 0 013 12c0-4.97 4.03-9 9-9s9 4.03 9 9z"/></svg>
-        <p><strong>Receba pontos por interagir todo dia e acumule bônus.</strong> Comentar em publicações de colegas conta pra sua sequência diária, a mesma régua de pontos lá em cima, com bônus a cada 7 dias seguidos.</p>
+        <p><strong>Receba pontos por interagir todo dia e acumule bônus.</strong> Comentar em publicações dos amigos conta pra sua sequência diária, com bônus a cada 7 dias seguidos.</p>
       </div>
     </div>
   </section>
@@ -1071,15 +1092,15 @@
       <div class="faq-list reveal">
         <details class="faq-item">
           <summary>Quais são os incentivos previstos no programa?<span></span></summary>
-          <div class="a">Até os 20 melhores do ranking mensal disputam o GameShow Escalada ao vivo, e quem vence leva pra casa prêmios como smartphone e tablet, anunciados a cada ciclo. Há também vouchers financeiros mensais para professores e educadores (multiplicadores) e o Selo Escalada como reconhecimento de quem completa a jornada.</div>
+          <div class="a">Os 20 melhores do ranking mensal disputam o GameShow Escalada ao vivo, e quem vence leva pra casa prêmios como um smartphone novinho. Há também vouchers financeiros mensais para professores e educadores.</div>
         </details>
         <details class="faq-item">
           <summary>Até quando posso me inscrever?<span></span></summary>
-          <div class="a">O cadastro na plataforma Escalada é contínuo durante o Ciclo 2026 (março a agosto). Assim que você entra, já concorre ao ranking do mês em andamento.</div>
+          <div class="a">O cadastro na plataforma Escalada é contínuo durante o Ciclo 2026. Assim que você entra, já concorre ao ranking do mês em andamento.</div>
         </details>
         <details class="faq-item">
           <summary>Quem pode participar como estudante?<span></span></summary>
-          <div class="a">Estudantes a partir de 14 anos. Professores, educadores e gestores entram como multiplicadores.</div>
+          <div class="a">Estudantes a partir de 14 anos. Professores, educadores entram como multiplicadores.</div>
         </details>
       </div>
       <div style="text-align:center; margin-top:26px;">
@@ -2007,7 +2028,7 @@
   }
 
   function finalState(){
-    fadeText(lblEl, 'Top 20 do mês · exemplo');
+    fadeText(lblEl, 'Top 20 do mês');
     if(!hero) return;
     // no mobile, #hero sai de position:fixed (o "modal" full-bleed) pra
     // relative no instante exato em que .settled entra -- como "position"
@@ -2219,7 +2240,7 @@
   // estudo, projeto pessoal ou trabalho escolar.
   var QUESTOES = [
     {
-      texto: 'Uma ideia sua (um projeto, um trabalho da escola, algo que você queria fazer) não está saindo como esperava. O que soa mais com você?',
+      texto: 'Uma ideia sua não está saindo como esperava. E aí?',
       opcoes: [
         { texto: 'Busco pessoas reais pra ouvir o que não está funcionando', perfil: 'testador' },
         { texto: 'Repenso o plano antes de qualquer mudança grande', perfil: 'estrategista' },
@@ -2227,7 +2248,7 @@
       ]
     },
     {
-      texto: 'Você trava numa dificuldade, seja nos estudos ou num projeto seu. O que você faz primeiro?',
+      texto: 'Você encontrou uma dificuldade. E agora?',
       opcoes: [
         { texto: 'Tento uma solução diferente, na prática, e vejo se funciona', perfil: 'testador' },
         { texto: 'Paro, repenso o plano, e só depois tento de novo', perfil: 'estrategista' },
@@ -2235,7 +2256,7 @@
       ]
     },
     {
-      texto: 'Você percebe um problema chato e repetido no seu dia a dia. O que chama mais sua atenção nisso?',
+      texto: 'Você percebe um problema chato que tá semprrer atrrapalhando seu dia. Como lidar com isso?',
       opcoes: [
         { texto: 'Já penso em como resolver isso na prática', perfil: 'testador' },
         { texto: 'Penso em quem mais passa por isso, e como ajudar mais gente', perfil: 'estrategista' },
