@@ -230,6 +230,19 @@
     backdrop-filter:blur(18px) saturate(1.2); border-radius:26px;
     padding:22px 18px 24px; box-shadow:var(--shadow-dark);
   }
+  /* entrada do rank + de "Você": sem isso o card inteiro (com "Você" ja'
+     no 20o lugar) so' aparecia pronto desde o 1o frame, sem nenhuma
+     sensacao de "chegando" -- reportado pelo usuario. So' com JS de
+     verdade rodando (html.js-hero, ver topo do script): sem JS o card e'
+     visivel de cara, nunca preso num opacity:0 permanente. */
+  html.js-hero .rank-card{ opacity:0; transform:translateY(14px) scale(.97); }
+  html.js-hero .rank-card.card-in{ opacity:1; transform:translateY(0) scale(1); }
+  html.js-hero .ps-lb-row.me{ opacity:0; transform:translateY(8px) scale(.9); }
+  html.js-hero .ps-lb-row.me.entrou{ opacity:1; transform:translateY(0) scale(1); }
+  @media (prefers-reduced-motion:no-preference){
+    html.js-hero .rank-card{ transition:opacity .5s ease, transform .5s cubic-bezier(.16,1,.3,1); }
+    html.js-hero .ps-lb-row.me{ transition:opacity .4s ease, transform .4s cubic-bezier(.34,1.56,.64,1); }
+  }
   @media (min-width:960px){
     .rank-card{max-width:480px; padding:30px 26px 32px;}
     .ps-lb-viewport{height:290px;}
@@ -335,6 +348,23 @@
   .rank-activity.ra-aula.show{ transform:translateY(0) rotate(3deg) scale(1); }
   .rank-activity.ra-trilhas{ width:108px; transform:translateY(-26px) rotate(-6deg) scale(.9); }
   .rank-activity.ra-trilhas.show{ transform:translateY(0) rotate(2deg) scale(1); }
+  /* desktop: cima/baixo do card tem largura de sobra bem maior que os 4
+     cantos do mobile -- da' pra' esses cards serem bem maiores (o usuario
+     reportou que do jeito antigo "nao chamavam atencao") sem arriscar
+     estourar largura nenhuma */
+  @media (min-width:960px){
+    .rank-activity.ra-comente{ width:190px; }
+    .rank-activity.ra-aula{ width:168px; }
+    .rank-activity.ra-trilhas{ width:176px; }
+    .ra-card{ padding:20px 18px 18px; border-radius:20px; }
+    .ra-icon{ width:34px; height:34px; font-size:17px; top:-13px; left:-13px; }
+    .ra-av{ width:34px; height:34px; font-size:12px; }
+    .ra-post-arrow{ font-size:17px; }
+    .ra-lesson-thumb{ height:74px; margin-bottom:10px; }
+    .ra-play{ width:38px; height:38px; font-size:15px; }
+    .ra-progress{ height:6px; }
+    .ra-thumb{ height:38px; }
+  }
   .ra-card{
     position:relative; background:rgba(6,10,34,.9); border:1px solid rgba(255,255,255,.18);
     backdrop-filter:blur(14px) saturate(1.3); border-radius:16px; padding:14px 12px 12px;
@@ -1483,15 +1513,10 @@
   // 4 REGIOES bem distintas (cima-esq/baixo-dir/cima-dir/baixo-esq) -- nunca
   // dois tipos de card na mesma regiao, mas dentro da regiao a posicao
   // exata e' sorteada a cada vez (nunca o mesmo pontinho fixo reciclado).
-  // Slot e' sempre "vertical-horizontal". No desktop, cada slot mapeia pra
-  // uma das 4 zonas de zonasAoRedor() -- rotaciona entre cima/baixo/
-  // direita/esquerda em vez de empilhar tudo do mesmo lado.
-  var PREF_ZONA = {
-    'cima-esq': ['esquerda', 'cima', 'direita', 'baixo'],
-    'cima-dir': ['cima', 'direita', 'baixo', 'esquerda'],
-    'baixo-dir': ['direita', 'baixo', 'esquerda', 'cima'],
-    'baixo-esq': ['baixo', 'esquerda', 'cima', 'direita']
-  };
+  // Slot e' sempre "vertical-horizontal". No desktop, so' as zonas cima/
+  // baixo entram (nunca lateral) -- lateral ficava numa quina discreta,
+  // sem chamar atencao (reportado pelo usuario); cima/baixo tem largura
+  // de sobra bem maior, cabe um card grande e centralizado de verdade.
   function posicionarEl(el, slot){
     var partes = slot.split('-');
     var vertical = partes[0], horizontal = partes[1];
@@ -1535,33 +1560,33 @@
         : (m.hr.width * 0.58) + Math.random() * faixaLargura;
       left = Math.max(folga.w, Math.min(left, m.hr.width - w - folga.w));
     } else {
-      // desktop: distribui pelas 4 zonas AO REDOR do card (cima/baixo/
-      // direita/esquerda), nunca preso a um unico lado -- o slot ('cima-
-      // esq'/'cima-dir'/'baixo-dir'/'baixo-esq') da' uma PREFERENCIA de
-      // regiao, rotacionando entre as 4, mas so' se ela realmente tiver
-      // espaco; senao cai pra qualquer outra zona disponivel
-      var zonas = zonasAoRedor(m, w, h, folga.w, folga.h);
+      // desktop: so' cima/baixo -- o slot ja' diz qual prefere ('cima-*'
+      // ou 'baixo-*'), cai pra outra so' se a preferida nao' tiver espaco.
+      // Horizontal fica com um VIES pro centro do proprio card (nao'
+      // uniforme pela faixa toda) -- assim o card continua lendo como
+      // "ligado" aquele card, nao um popup solto flutuando na lateral
+      var cardCenterX = (m.cr.left + m.cr.right) / 2 - m.hr.left;
+      var zonasTodas = zonasAoRedor(m, w, h, folga.w, folga.h);
+      var zonas = zonasTodas.filter(function(z){ return z.nome === 'cima' || z.nome === 'baixo'; });
       if(zonas.length){
-        var prefs = PREF_ZONA[slot] || ['direita', 'baixo', 'cima', 'esquerda'];
+        var nomePreferido = vertical === 'cima' ? 'cima' : 'baixo';
         var z = null;
-        for(var i = 0; i < prefs.length && !z; i++){
-          for(var j = 0; j < zonas.length; j++){
-            if(zonas[j].nome === prefs[i]){ z = zonas[j]; break; }
-          }
-        }
-        if(!z) z = zonas[Math.floor(Math.random() * zonas.length)];
+        for(var j = 0; j < zonas.length; j++){ if(zonas[j].nome === nomePreferido){ z = zonas[j]; break; } }
+        if(!z) z = zonas[0];
         top = z.minTop + Math.random() * Math.max(0, z.maxTop - z.minTop);
-        left = z.minLeft + Math.random() * Math.max(0, z.maxLeft - z.minLeft);
+        left = cardCenterX - w / 2 + (Math.random() * 90 - 45);
+        left = Math.max(z.minLeft, Math.min(left, z.maxLeft));
       } else {
-        // ultimo recurso -- viewport apertado demais pra qualquer zona de
-        // sobra (raro, perto do breakpoint de 960px): cola na lateral do
-        // proprio card, unico lugar quase sempre valido
-        var cardLeft = m.cr.left - m.hr.left, cardRight = m.cr.right - m.hr.left;
-        var cabeDireita = (m.hr.width - cardRight) > w * 0.55;
-        left = (cabeDireita ? (cardRight - w * 0.2) : (cardLeft - w * 0.8)) + (Math.random() * 24 - 12);
-        top = (vertical === 'cima'
-          ? (m.cr.top - m.hr.top) - h * 0.25
-          : (m.cr.bottom - m.hr.top) - h * 0.75) + (Math.random() * 24 - 12);
+        // ultimo recurso -- nem cima nem baixo tem sobra real (viewport
+        // baixo demais, raro): forca pro lado com mais folga relativa,
+        // mesmo que aperte, em vez de lateral (relatado como mal
+        // posicionado e sem chamar atencao)
+        var cardTop = m.cr.top - m.hr.top, cardBottom = m.cr.bottom - m.hr.top;
+        var folgaCima = cardTop, folgaBaixo = m.hr.height - cardBottom;
+        top = folgaCima >= folgaBaixo
+          ? Math.max(folga.h, cardTop - h - 14)
+          : Math.min(m.hr.height - h - folga.h, cardBottom + 14);
+        left = cardCenterX - w / 2;
       }
       // trava final generica: nao' deixa sair dos limites reais de #hero
       top = Math.max(folga.h, Math.min(top, m.hr.height - h - folga.h));
@@ -1643,26 +1668,32 @@
       left = (m.hr.width - w) / 2;
       if(rankCard) rankCard.classList.toggle('convite-perto', !temBandaLivre);
     } else {
-      if(rankCard) rankCard.classList.remove('convite-perto');
-      // desktop: centraliza ACIMA do proprio CARD, nao' do hero inteiro,
-      // restrito a' coluna onde o card de verdade esta', nunca deixa
-      // vazar pra cima do H1/CTA do outro lado.
-      // 3 niveis de fallback: acima do card -> abaixo do card -> (hero
-      // baixo demais pros dois primeiros) centralizado POR CIMA do
-      // proprio card, como um destaque daquele instante -- sem esse 3o
-      // nivel, o clamp final empurrava o convite pra dentro do MEIO do
-      // card quando nao' sobrava altura nenhuma no hero.
+      // desktop: centraliza ABAIXO do proprio CARD por PRIMEIRO -- e'
+      // exatamente nesse instante do climax que "Você" assenta no 1o
+      // lugar, topo do card; prefer "acima" cobria o proprio podio que
+      // acabou de conquistar (reportado pelo usuario, com espaco de sobra
+      // embaixo sem uso). Restrito a' coluna onde o card de verdade esta',
+      // nunca deixa vazar pra cima do H1/CTA do outro lado.
+      // 3 niveis de fallback: abaixo do card -> acima do card -> (hero
+      // baixo demais pros dois -- tela curta, tipo notebook 13") ancora
+      // perto do RODAPE do card (NUNCA do topo/podio), reaproveitando o
+      // mesmo desfoque+degrade (.convite-perto/.ps-lb-fade) do caso
+      // mobile equivalente pra disfarcar a sobreposicao parcial.
       var cardCenterX = (m.cr.left + m.cr.right) / 2 - m.hr.left;
       left = cardCenterX - w / 2;
-      var acimaCard = (m.cr.top - m.hr.top) - h - margem;
-      var abaixoCard = (m.cr.bottom - m.hr.top) + margem;
-      if(acimaCard >= margem){
-        top = acimaCard;
-      } else if(abaixoCard + h <= m.hr.height - margem){
+      var cardTopRel = m.cr.top - m.hr.top, cardBottomRel = m.cr.bottom - m.hr.top;
+      var acimaCard = cardTopRel - h - margem;
+      var abaixoCard = cardBottomRel + margem;
+      var pertoDoRodape = false;
+      if(abaixoCard + h <= m.hr.height - margem){
         top = abaixoCard;
+      } else if(acimaCard >= margem){
+        top = acimaCard;
       } else {
-        top = (m.cr.top + m.cr.bottom) / 2 - m.hr.top - h / 2;
+        top = cardBottomRel - h * 0.55;
+        pertoDoRodape = true;
       }
+      if(rankCard) rankCard.classList.toggle('convite-perto', pertoDoRodape);
     }
     top = Math.max(margem, Math.min(top, m.hr.height - h - margem));
     left = Math.max(margem, Math.min(left, m.hr.width - w - margem));
@@ -2069,6 +2100,8 @@
       if(hookTop) hookTop.classList.add('in');
       if(hookBottom) hookBottom.classList.add('in');
       if(hero) hero.classList.add('settled');
+      rankCard.classList.add('card-in');
+      if(meRow) meRow.classList.add('entrou');
       return;
     }
 
@@ -2093,10 +2126,23 @@
       resolverRankingFinal(); // forca "Você" no 1o lugar de verdade, nao so' o texto ao redor
       lblEl.style.opacity = '1'; lblEl.textContent = 'Top 20 do mês · exemplo';
       if(hero) hero.classList.add('settled');
+      rankCard.classList.add('card-in');
+      if(meRow) meRow.classList.add('entrou');
     }
     viewport.addEventListener('click', skip);
     var skipBtn = document.getElementById('hero-skip-anim');
     if(skipBtn) skipBtn.addEventListener('click', skip);
+
+    // entrada de verdade: o card (com "Você" ja' escondida dentro dele)
+    // some pra' opacity:0 no CSS assim que a pagina carrega -- aqui ele
+    // aparece em fade, e so' DEPOIS "Você" pipoca no proprio lugar (20o),
+    // como se estivesse entrando no rank de verdade, em vez de ja' nascer
+    // pronta dentro dele desde o 1o frame (reportado pelo usuario). Cabe
+    // dentro do MESMO orcamento de tempo que os ganchos ja' usavam (nao'
+    // atrasa o resto da animacao): card as 60ms, "Você" as 480ms, ainda
+    // dentro da janela em que hookTop esta' visivel (150-650ms)
+    t(function(){ rankCard.classList.add('card-in'); }, 60);
+    t(function(){ if(meRow) meRow.classList.add('entrou'); }, 480);
 
     // fase 1, sozinha na tela: os dois ganchos ("e' um jogo" / "voce
     // consegue chegar no topo?") aparecem, seguram por um instante e saem
