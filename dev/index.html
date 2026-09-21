@@ -556,10 +556,8 @@
     position:absolute; left:50%; top:var(--gs-flap-h); z-index:4;
     transform:translate(-50%,-50%);
     width:28px; height:28px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
     background:linear-gradient(160deg,#FFD84D,#FF9F0A);
-    box-shadow:0 0 0 3px #17235f, 0 3px 8px -2px rgba(0,0,0,.5);
-    font-size:13px;
+    box-shadow:0 0 0 3px #17235f, 0 3px 8px -2px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.4), inset 0 -2px 3px rgba(0,0,0,.25);
   }
   .gs-body{
     position:absolute; inset:0; z-index:2;
@@ -582,7 +580,12 @@
     display:block; font-family:var(--mono); font-size:9px; letter-spacing:.06em;
     text-transform:uppercase; color:var(--magenta-texto); margin-bottom:9px;
   }
-  .gs-carta-premios{display:flex; justify-content:center; gap:10px; font-size:15px;}
+  .gs-carta-premios{display:flex; justify-content:center; gap:6px; flex-wrap:wrap;}
+  .gs-carta-premio{
+    font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--azul); background:rgba(42,79,218,.1);
+    border:1px solid rgba(42,79,218,.25); border-radius:999px; padding:4px 10px;
+  }
   @media (prefers-reduced-motion:no-preference){
     .gs-convite.show .gs-envelope{animation:gsEnvelopeIn .5s cubic-bezier(.34,1.56,.64,1) both;}
     .gs-convite.show .gs-flap{animation:gsFlapAbre .5s ease .5s both;}
@@ -1078,12 +1081,12 @@
     <div class="gs-convite" id="gs-convite" aria-hidden="true">
       <div class="gs-envelope">
         <div class="gs-flap"></div>
-        <span class="gs-selo" aria-hidden="true">🏆</span>
+        <span class="gs-selo" aria-hidden="true"></span>
         <div class="gs-body"></div>
         <div class="gs-carta">
           <p class="gs-carta-titulo">Você está convidado!</p>
           <span class="gs-carta-sub">GameShow Escalada</span>
-          <div class="gs-carta-premios"><span aria-hidden="true">📱</span><span aria-hidden="true">💻</span></div>
+          <div class="gs-carta-premios"><span class="gs-carta-premio">Smartphone</span><span class="gs-carta-premio">Tablet</span></div>
         </div>
       </div>
     </div>
@@ -2282,7 +2285,7 @@
               // merece respirar (o convite mesmo ja' segura 2.6s no ar)
               t(function(){
                 fadeText(lblEl, 'Top 1 do ranking!');
-                fadeCaption('Chegou ao topo!');
+                fadeCaption('E aí, você consegue chegar ao topo?');
                 mostrarConvite(t, function(){
                   t(function(){
                     viewport.removeEventListener('click', skip);
