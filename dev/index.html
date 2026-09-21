@@ -81,19 +81,6 @@
   .nav-desktop-only a:hover{opacity:1;}
   .hdr-actions{display:flex; align-items:center; gap:14px;}
   .hdr-cta{display:none;}
-  /* unico sinal PERSISTENTE de que a pagina "aprendeu" o publico -- antes
-     disso a unica pista era um anel de sombra num card la' embaixo, que
-     some da vista assim que a pessoa rola mais um pouco */
-  .modo-badge{
-    display:none; align-items:center; gap:4px; font-family:var(--mono);
-    font-size:11px; color:rgba(255,255,255,.92); background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 12px;
-    cursor:pointer; white-space:nowrap;
-  }
-  .modo-badge strong{color:var(--verde-claro); font-weight:700;}
-  .modo-badge:not([hidden]){display:inline-flex;}
-  @media (hover:hover){ .modo-badge:hover{background:rgba(255,255,255,.16);} }
-  @media (max-width:499px){ .modo-badge span{display:none;} }
   @media (min-width:860px){
     .nav-desktop-only{display:flex;}
     .hdr-cta{display:inline-flex;}
@@ -441,28 +428,29 @@
     .gs-convite{transition:opacity .35s ease, visibility 0s linear .35s;}
     .gs-convite.show{transition:opacity .3s ease, visibility 0s linear;}
   }
-  /* geometria do envelope: aba (triangulo) + corpo (retangulo) precisam se
-     encontrar EXATAMENTE na ponta do triangulo, nunca antes -- a versao
-     anterior tinha o corpo comecando ANTES da ponta da aba (corpo cobria
-     parte do triangulo), cortando ele num "chevron" de base larga e fundo
-     achatado que lia como seta, nao como dobra de envelope. --gs-flap-h e'
+  /* geometria de envelope de verdade, baseada numa tecnica ja' testada
+     (https://codepen.io/MrBlank/pen/JjXxovL): o corpo NAO' e' um retangulo
+     simples comecando onde a aba termina -- ele cobre a altura TODA do
+     envelope com um recorte em V no topo (mesmo formato da aba), como os
+     "ombros" de um envelope de verdade. Isso garante que NUNCA existe um
+     vao de fundo vazio entre aba e corpo, nao' importa o angulo da aba no
+     meio da animacao -- sempre tem papel do corpo por tras. --gs-flap-h e'
      a UNICA fonte de verdade dessa fronteira, usada pelos dois lados. */
-  .gs-envelope{ position:relative; height:132px; perspective:600px; --gs-flap-h:50px; }
+  .gs-envelope{ position:relative; height:132px; --gs-flap-h:50px; }
   .gs-flap{
     position:absolute; top:0; left:0; right:0; height:var(--gs-flap-h);
     background:linear-gradient(160deg,#3B57DB,#6D89F7);
     clip-path:polygon(0 0, 100% 0, 50% 100%);
-    transform-origin:top center; backface-visibility:hidden;
+    transform-origin:top center; z-index:5;
     filter:drop-shadow(0 2px 2px rgba(0,0,0,.22));
   }
   /* selo de cera bem no ponto onde a aba encosta no corpo -- e' essa pecinha
      (fora da .gs-flap de proposito: o clip-path dela cortaria qualquer
      filho que nao' coubesse dentro do triangulo) que faz o conjunto ler
      como UM envelope de papel dobrado, nao uma caixa com um triangulo solto
-     em cima. z-index acima dos dois garante que fica visivel exatamente na
-     costura, nao' meio-coberta pelo topo reto do corpo. */
+     em cima. */
   .gs-selo{
-    position:absolute; left:50%; top:var(--gs-flap-h); z-index:2;
+    position:absolute; left:50%; top:var(--gs-flap-h); z-index:4;
     transform:translate(-50%,-50%);
     width:28px; height:28px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
@@ -471,14 +459,14 @@
     font-size:13px;
   }
   .gs-body{
-    position:absolute; top:var(--gs-flap-h); left:0; right:0; bottom:0;
-    border-radius:0 0 12px 12px;
+    position:absolute; inset:0; z-index:2;
+    clip-path:polygon(0 0, 50% var(--gs-flap-h), 100% 0, 100% 100%, 0 100%);
+    border-radius:12px;
     background:linear-gradient(160deg,#17235f,#2A4FDA);
-    border:1.5px solid rgba(255,216,77,.55); border-top:none;
-    box-shadow:0 18px 36px -14px rgba(0,0,0,.6), 0 0 22px -4px rgba(255,216,77,.3);
+    filter:drop-shadow(0 18px 30px rgba(0,0,0,.5)) drop-shadow(0 0 16px rgba(255,216,77,.28));
   }
   .gs-carta{
-    position:absolute; left:8px; right:8px; bottom:12px; z-index:3;
+    position:absolute; left:8px; right:8px; bottom:12px; z-index:6;
     background:#fff; border-radius:13px; padding:16px 12px 13px; text-align:center;
     box-shadow:0 22px 42px -14px rgba(0,0,0,.55);
     opacity:0;
@@ -502,19 +490,27 @@
     0%{ opacity:0; transform:translateY(18px) scale(.85); }
     100%{ opacity:1; transform:translateY(0) scale(1); }
   }
-  /* rotateX ate' perto de 90deg (a versao anterior ia a -155deg) faz um
-     plano PLANO com clip-path triangular encolher, em algum ponto do meio
-     do caminho, numa lasca fina flutuando longe do corpo -- matematicamente
-     e' o foreshortening correto de uma dobradica de verdade (o topo fica
-     fixo, o resto encolhe rumo a ele), mas com um triangulo (em vez de um
-     retangulo) o olho nao' le isso como "dobrando", le como "quebrado",
-     mesmo rapido, e foi reportado assim com print. Fix: rotacao bem mais
-     modesta (nunca chega perto do perfil/90deg) + fade simultaneo, entao a
-     aba sempre fica em algum angulo "legivel" e desaparece pelo opacity
-     antes de qualquer encolhimento estranho aparecer. */
+  /* 4a tentativa: flip 3D COMPLETO ate' 180deg (a tecnica do envelope de
+     referencia) tem um problema geometrico que so' aparece pausando a
+     animacao pra inspecionar frame a frame: rotateX gira em torno do
+     TOPO fixo, entao a metade que ANTES apontava pra baixo (a ponta do
+     triangulo) acaba, depois de passar dos 90deg, projetada ACIMA do
+     topo do envelope -- pra' FORA da area que os "ombros" do corpo
+     cobrem, entao nada a esconde ali (o corpo so' cobre de --gs-flap-h
+     pra' baixo, nunca acima do proprio topo). No envelope de referencia
+     isso pode passar batido (area vazia acima, atencao no coracao
+     voando), mas aqui, dentro do hero cheio de conteudo, ficava um
+     residuo visivel por cima do envelope.
+     Fix: limita a rotacao a um angulo que NUNCA passa de 90deg (fica
+     sempre dentro da propria area da aba, nunca projeta pra fora) +
+     fade simultaneo que so' fecha bem no fim -- da' tempo de PERCEBER a
+     aba girando (ao contrario da tentativa anterior, que sumia cedo
+     demais), mas ela nunca chega no angulo de perfil/nunca escapa da
+     area que o corpo ja' cobre atras dela. */
   @keyframes gsFlapAbre{
     0%{ transform:rotateX(0deg); opacity:1; }
-    100%{ transform:rotateX(-38deg); opacity:0; }
+    65%{ opacity:1; }
+    100%{ transform:rotateX(85deg); opacity:0; }
   }
   /* o selo "quebra" e sai voando junto quando a aba comeca a abrir --
      mesmo instante de gatilho da gsFlapAbre, duracao mais curta pra sumir
@@ -917,7 +913,6 @@
       <a href="https://docs.google.com/document/d/1pN4W_K8h80m-68HGJlbZKjVsTVzE5JRjz07uDjQ-rTI/">Regulamento</a>
     </nav>
     <div class="hdr-actions">
-      <button type="button" class="modo-badge" id="modo-badge" hidden>Modo: <strong id="modo-badge-txt">estudante</strong><span> · trocar</span></button>
       <a class="btn btn-primario btn-sm hdr-cta" id="cta-header" href="https://escalada.me/lpescalada-estudantes1">Quero participar</a>
     </div>
   </div>
@@ -2389,9 +2384,11 @@
   var heroCtas = document.getElementById('hero-ctas');
   if(!hero || !heroCtas) return;
 
+  // so' o link muda por publico -- o texto do botao fica sempre o mesmo
+  // ("Quero participar"/"Participar"), nao varia por estudante/professor
   var PUBLICOS = {
-    estudante: { href:'https://escalada.me/lpescalada-estudantes1', label:'Quero participar como estudante', curto:'Participar' },
-    professor: { href:'https://escalada.me/lpescalada-professores1', label:'Quero participar como educador', curto:'Participar' }
+    estudante: { href:'https://escalada.me/lpescalada-estudantes1' },
+    professor: { href:'https://escalada.me/lpescalada-professores1' }
   };
 
   var ctaHeader = document.getElementById('cta-header');
@@ -2399,9 +2396,9 @@
   var ctaSticky = document.getElementById('cta-sticky-btn');
 
   function aplicarCtas(info){
-    if(ctaHeader){ ctaHeader.href = info.href; ctaHeader.textContent = info.label; }
-    if(ctaFinal){ ctaFinal.href = info.href; ctaFinal.textContent = info.label; }
-    if(ctaSticky){ ctaSticky.href = info.href; ctaSticky.textContent = info.curto; }
+    if(ctaHeader){ ctaHeader.href = info.href; }
+    if(ctaFinal){ ctaFinal.href = info.href; }
+    if(ctaSticky){ ctaSticky.href = info.href; }
   }
 
   function marcarCards(pub){
@@ -2416,8 +2413,6 @@
   var publicosSection = document.getElementById('publicos');
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var anuncio = document.getElementById('anuncio-publico');
-  var modoBadge = document.getElementById('modo-badge');
-  var modoBadgeTxt = document.getElementById('modo-badge-txt');
   var notasProfessor = [
     document.getElementById('teste-nota-professor')
   ];
@@ -2453,19 +2448,6 @@
     Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){
       btn.classList.toggle('ativo', btn.getAttribute('data-pub') === pub);
     });
-    // unico sinal PERSISTENTE de que a escolha "pegou" -- sem isso, quem
-    // rola a pagina depois de escolher nunca mais ve nenhum rastro disso
-    // (o anel do card e' visivel so' por um instante, ate' rolar mais)
-    if(modoBadge){
-      modoBadge.hidden = false;
-      var modoTxt = pub === 'estudante' ? 'estudante' : 'professor';
-      if(modoBadgeTxt) modoBadgeTxt.textContent = modoTxt;
-      // aria-label fixo, nao' depende do span " · trocar" -- ele some por
-      // CSS (display:none) em telas bem estreitas, o que tambem tira do
-      // leitor de tela; o aria-label garante que "toque pra trocar" sempre
-      // chega ao leitor de tela, independente do viewport
-      modoBadge.setAttribute('aria-label', 'Modo: ' + modoTxt + '. Toque para trocar.');
-    }
     // o teste jogavel e o "como funciona" continuam escritos pro estudante
     // -- reescrever os dois de verdade e' uma mudanca grande demais pra
     // essa rodada, mas pelo menos avisa quem escolheu professor que aquele
@@ -2483,23 +2465,9 @@
     centralizarComFoco(cardEscolhido || publicosSection);
   }
   // exposta global pra o CTA final do quiz jogavel (#teste, outro script)
-  // poder reaproveitar o mesmo mecanismo de destaque/foco/badge, em vez de
-  // so' navegar por href puro sem nenhuma continuidade visual
+  // poder reaproveitar o mesmo mecanismo de destaque/foco, em vez de so'
+  // navegar por href puro sem nenhuma continuidade visual
   window.escolher = escolher;
-
-  var CTA_PADRAO = { href:'https://escalada.me/lpescalada-estudantes1', label:'Quero participar', curto:'Participar' };
-
-  if(modoBadge){
-    modoBadge.addEventListener('click', function(){
-      modoBadge.hidden = true;
-      aplicarCtas(CTA_PADRAO);
-      marcarCards(null);
-      notasProfessor.forEach(function(el){ if(el) el.hidden = true; });
-      heroCtas.classList.remove('escolhido');
-      Array.prototype.forEach.call(heroCtas.querySelectorAll('button'), function(btn){ btn.classList.remove('ativo'); });
-      if(anuncio) anuncio.textContent = 'Seleção de público removida.';
-    });
-  }
 
   function montarPicker(){
     // se o foco de teclado estiver no link unico original quando ele vira
