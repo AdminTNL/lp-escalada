@@ -237,8 +237,20 @@
        prefere abaixo (ver posicionarConvite), colidiria se os dois
        disputassem o mesmo lado ao mesmo tempo. */
     .hero-hook:not(.hero-caption){display:none;}
+    /* max-width:none E' ESSENCIAL aqui, nao' so' decoracao -- causa raiz
+       real do bug (confirmado renderizando de verdade, pixel-verify): o
+       .hero-hook BASE (mobile, sempre ativo, nunca revogado por essa
+       media query) ja' tem max-width:320px, e max-width SEMPRE vence um
+       width mais largo vindo de outra regra, nao' importa a ordem/
+       especificidade -- so' setar width:500px aqui nao' bastava, o
+       resultado ainda ficava limitado a min(500px,320px)=320px, quebrando
+       a frase em 2 linhas e invadindo o topo do card com a 2a linha
+       (reportado com print). Com max-width:none o width:500px passa a
+       valer de verdade -- confirmado que 500px cobre a frase inteira
+       numa linha so', com folga real ate' a coluna do H1/CTA de um lado
+       e a borda do hero do outro, nos dois lados do centro do card. */
     .hero-caption{
-      position:absolute; left:50%; top:-46px; max-width:380px;
+      position:absolute; left:50%; top:-46px; width:500px; max-width:none;
       transform:translateX(-50%) translateY(8px);
       font-size:27px;
     }
