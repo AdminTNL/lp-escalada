@@ -1483,9 +1483,35 @@
     var precisaAjuste = rowBottomNaTela > (vpH * limitePadrao / 100) - 8;
     var fimPct = precisaAjuste ? Math.min(96, ((rowBottomNaTela + 8) / vpH) * 100) : limitePadrao;
     var comTopo = viewport.classList.contains('panned');
-    var mask = comTopo
-      ? 'linear-gradient(180deg, transparent 0%, #000 12%, #000 ' + fimPct.toFixed(1) + '%, transparent 100%)'
-      : 'linear-gradient(180deg, #000 ' + fimPct.toFixed(1) + '%, transparent 100%)';
+    var mask;
+    if(comTopo){
+      // mesmo problema da faixa de baixo, espelhado no topo: a faixa FIXA
+      // (transparent 0% -> #000 12%) supoe que a linha cortada no topo
+      // sempre fica bem apagada dentro desses 12% -- mas perto do fim da
+      // lista (quando "Você" esta' perto do 20o lugar e o clamp de
+      // minShift trava o scroll), a linha anterior a' faixa em foco (ex:
+      // 16o lugar) pode sobrar so' uma tira fina logo no topo, que o
+      // degrade de 12% deixa so' PARCIALMENTE apagada (ainda perceptivel
+      // -- reportado com o 16o lugar "ainda visivel"). Acha a linha que
+      // fica cortada bem no topo (top<0<bottom) e empurra o fim da faixa
+      // transparente pra' DEPOIS do fim dela, garantindo opacity:0 de
+      // verdade nela, nunca so' "meio apagada".
+      var inicioTopoPct = 12;
+      var rows = track.children;
+      for(var i = 0; i < rows.length; i++){
+        var rTop = rows[i].offsetTop + shift;
+        var rBottom = rTop + rows[i].offsetHeight;
+        if(rTop < 0 && rBottom > 0){
+          inicioTopoPct = Math.min(40, ((rBottom + 6) / vpH) * 100);
+          break;
+        }
+      }
+      var fimRampaPct = Math.min(inicioTopoPct + 6, 50);
+      mask = 'linear-gradient(180deg, transparent 0%, transparent ' + inicioTopoPct.toFixed(1) +
+        '%, #000 ' + fimRampaPct.toFixed(1) + '%, #000 ' + fimPct.toFixed(1) + '%, transparent 100%)';
+    } else {
+      mask = 'linear-gradient(180deg, #000 ' + fimPct.toFixed(1) + '%, transparent 100%)';
+    }
     viewport.style.maskImage = mask;
     viewport.style.webkitMaskImage = mask;
   }
