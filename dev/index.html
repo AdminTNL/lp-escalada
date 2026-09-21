@@ -502,9 +502,19 @@
     0%{ opacity:0; transform:translateY(18px) scale(.85); }
     100%{ opacity:1; transform:translateY(0) scale(1); }
   }
+  /* rotateX ate' perto de 90deg (a versao anterior ia a -155deg) faz um
+     plano PLANO com clip-path triangular encolher, em algum ponto do meio
+     do caminho, numa lasca fina flutuando longe do corpo -- matematicamente
+     e' o foreshortening correto de uma dobradica de verdade (o topo fica
+     fixo, o resto encolhe rumo a ele), mas com um triangulo (em vez de um
+     retangulo) o olho nao' le isso como "dobrando", le como "quebrado",
+     mesmo rapido, e foi reportado assim com print. Fix: rotacao bem mais
+     modesta (nunca chega perto do perfil/90deg) + fade simultaneo, entao a
+     aba sempre fica em algum angulo "legivel" e desaparece pelo opacity
+     antes de qualquer encolhimento estranho aparecer. */
   @keyframes gsFlapAbre{
-    0%{ transform:rotateX(0deg); }
-    100%{ transform:rotateX(-155deg); }
+    0%{ transform:rotateX(0deg); opacity:1; }
+    100%{ transform:rotateX(-38deg); opacity:0; }
   }
   /* o selo "quebra" e sai voando junto quando a aba comeca a abrir --
      mesmo instante de gatilho da gsFlapAbre, duracao mais curta pra sumir
