@@ -237,11 +237,22 @@
      visivel de cara, nunca preso num opacity:0 permanente. */
   html.js-hero .rank-card{ opacity:0; transform:translateY(14px) scale(.97); }
   html.js-hero .rank-card.card-in{ opacity:1; transform:translateY(0) scale(1); }
-  html.js-hero .ps-lb-row.me{ opacity:0; transform:translateY(8px) scale(.9); }
+  /* entrada de "Você" precisa CHAMAR ATENCAO de verdade (reportado como
+     fraca demais so' com fade) -- vem de mais longe/menor (bem alem do
+     resto do card) e ganha um PULSO de brilho verde ao assentar, a mesma
+     cor da propria linha (.me), em vez de so' aparecer -- e' o momento
+     mais importante da entrada inteira, precisa ler como tal */
+  html.js-hero .ps-lb-row.me{ opacity:0; transform:translateY(20px) scale(.8); }
   html.js-hero .ps-lb-row.me.entrou{ opacity:1; transform:translateY(0) scale(1); }
   @media (prefers-reduced-motion:no-preference){
     html.js-hero .rank-card{ transition:opacity .5s ease, transform .5s cubic-bezier(.16,1,.3,1); }
-    html.js-hero .ps-lb-row.me{ transition:opacity .4s ease, transform .4s cubic-bezier(.34,1.56,.64,1); }
+    html.js-hero .ps-lb-row.me{ transition:opacity .45s ease, transform .5s cubic-bezier(.34,1.56,.64,1); }
+    html.js-hero .ps-lb-row.me.entrou{ animation:voceEntraPulso .9s ease-out; }
+  }
+  @keyframes voceEntraPulso{
+    0%{ box-shadow:0 0 0 0 rgba(0,255,133,.65); }
+    55%{ box-shadow:0 0 0 20px rgba(0,255,133,0); }
+    100%{ box-shadow:0 0 0 0 rgba(0,255,133,0); }
   }
   @media (min-width:960px){
     .rank-card{max-width:480px; padding:30px 26px 32px;}
@@ -1377,6 +1388,31 @@
   // nunca a posicao pintada na tela (que ja' esta deslocada pelo transform
   // anterior); por isso o calculo funciona igual não importa quantas vezes
   // ja' foi chamado antes.
+  // a mascara fixa (desfoca os ultimos 12% do viewport, ver .ps-lb-viewport)
+  // supoe que sempre da' pra' centralizar "Você" longe dessa borda -- mas
+  // quando ela e' uma das ULTIMAS linhas da lista (o caso do 20o lugar,
+  // exatamente onde ela entra), nao' tem mais conteudo abaixo pra "puxar"
+  // a camera: o clamp de minShift trava o scroll ANTES do centro desejado,
+  // e ela acaba caindo dentro da propria faixa de desfoque -- metade do
+  // nome ilegivel bem no momento em que devia chamar mais atencao
+  // (reportado pelo usuario). Fix: calcula onde a linha dela realmente cai
+  // NA TELA depois do clamp e, se invadir a faixa de desfoque padrao (88%),
+  // empurra o inicio do desfoque pra' DEPOIS da linha, sempre -- refeito a
+  // cada chamada de panCamera(), entao volta sozinho ao padrao assim que
+  // ela sobe o suficiente pra' nao' precisar mais do ajuste.
+  function ajustarMascaraViewport(shift, rowTop, rowH, vpH){
+    var rowBottomNaTela = rowTop + rowH + shift;
+    var limitePadrao = 88;
+    var precisaAjuste = rowBottomNaTela > (vpH * limitePadrao / 100) - 8;
+    var fimPct = precisaAjuste ? Math.min(96, ((rowBottomNaTela + 8) / vpH) * 100) : limitePadrao;
+    var comTopo = viewport.classList.contains('panned');
+    var mask = comTopo
+      ? 'linear-gradient(180deg, transparent 0%, #000 12%, #000 ' + fimPct.toFixed(1) + '%, transparent 100%)'
+      : 'linear-gradient(180deg, #000 ' + fimPct.toFixed(1) + '%, transparent 100%)';
+    viewport.style.maskImage = mask;
+    viewport.style.webkitMaskImage = mask;
+  }
+
   function panCamera(instant){
     if(!track.contains(meRow)) return;
     var rowTop = meRow.offsetTop;
@@ -1391,6 +1427,8 @@
     var target = anchor - (rowTop + rowH / 2);
     var minShift = Math.min(0, vpH - trackH);
     target = Math.max(minShift, Math.min(0, target));
+    viewport.classList.toggle('panned', target < -1);
+    ajustarMascaraViewport(target, rowTop, rowH, vpH);
     if(instant){
       // pra "Você" ja' aparecer perto do 20o lugar assim que a animacao
       // comeca, sem um pan visivel descendo do 1o ate' la' -- so' o
@@ -1403,7 +1441,6 @@
     } else {
       track.style.transform = 'translateY(' + Math.round(target) + 'px)';
     }
-    viewport.classList.toggle('panned', target < -1);
   }
 
   // mede o espaco VAZIO de verdade ao redor do card (acima e abaixo dele,
@@ -2034,6 +2071,8 @@
     });
     updatePosLabels();
     track.style.transform = '';
+    viewport.style.maskImage = '';
+    viewport.style.webkitMaskImage = '';
     viewport.classList.remove('panned');
     viewport.classList.remove('rolando');
     if(activityBox) activityBox.classList.remove('show');
