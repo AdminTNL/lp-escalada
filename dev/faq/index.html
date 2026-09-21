@@ -139,22 +139,28 @@
   />
   <link rel="icon" href="https://assets-tnl.org/cropped-Escalada-SEBRAE-7-192x192.png" sizes="192x192" />
   <link rel="stylesheet" href="/wp-content/uploads/elementor/google-fonts/css/spacegrotesk.css" />
-  <link rel="stylesheet" href="/wp-content/uploads/elementor/google-fonts/css/intertight.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       color-scheme: light;
-      --bg: #020611;
-      --bg-soft: #091224;
+      /* valores alinhados com os tokens de marca do dev/index.html --
+         antes tinha green/pink/cyan quase identicos (so' diferiam em
+         maiusculas) mas blue/bg eram tons proprios, nunca usados no resto
+         do site */
+      --bg: #0A0F36;
+      --bg-soft: #17235f;
       --panel: rgba(255, 255, 255, 0.06);
       --panel-border: rgba(255, 255, 255, 0.12);
       --text: #ffffff;
       --muted: rgba(255, 255, 255, 0.76);
       --card: #ffffff;
-      --card-text: #101828;
-      --green: #00d95d;
-      --pink: #ff00ff;
-      --cyan: #00f9ff;
-      --blue: #122f9b;
+      --card-text: #12163A;
+      --green: #00D95C;
+      --pink: #FF00FF;
+      --cyan: #00F9FF;
+      --blue: #2A4FDA;
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
       --radius-xl: 32px;
       --radius-lg: 24px;
@@ -172,10 +178,10 @@
 
     body {
       margin: 0;
-      font-family: "Inter Tight", "Segoe UI", Arial, sans-serif;
+      font-family: "Figtree", "Segoe UI", Arial, sans-serif;
       background:
         radial-gradient(circle at top left, rgba(0, 217, 93, 0.2), transparent 22%),
-        linear-gradient(180deg, #060b16 0%, var(--bg) 42%, #091224 100%);
+        linear-gradient(180deg, #060b16 0%, var(--bg) 42%, var(--bg-soft) 100%);
       color: var(--text);
     }
 
@@ -250,24 +256,14 @@
       color: #000000;
     }
 
+    /* mesmo degrade do #hero em dev/index.html -- sem foto nenhuma, so'
+       gradiente de marca (pedido do usuario: tira o asset da mulher e
+       alinha os estilos com o resto do site) */
     .hero {
       position: relative;
       overflow: hidden;
       padding: 88px 0 52px;
-      background:
-        linear-gradient(135deg, rgba(18, 47, 155, 0.82), rgba(0, 217, 93, 0.44)),
-        url("https://assets-tnl.org/background-rosa-e1749108482198.png") center top / cover no-repeat;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        url("https://assets-tnl.org/close-up-young-attractive-charismatic-woman-isolated-scaled-e1749193550727.png")
-        right bottom / min(42vw, 560px) no-repeat;
-      opacity: 1;
-      pointer-events: none;
+      background: linear-gradient(160deg, #0A0F36 0%, #17235f 38%, #2A4FDA 72%, #8a1fd6 100%);
     }
 
     .hero__inner,
@@ -480,7 +476,7 @@
     }
 
     .answer a {
-      color: #0f5cff;
+      color: var(--blue);
       word-break: break-word;
     }
 
@@ -495,27 +491,15 @@
       line-height: 1.5;
     }
 
+    /* mesmo degrade de marca do .hero, sem foto -- pedido do usuario */
     .cta {
       margin-top: 48px;
       position: relative;
       overflow: hidden;
       border-radius: var(--radius-xl);
       padding: 48px 32px;
-      background:
-        linear-gradient(135deg, rgba(18, 47, 155, 0.88), rgba(0, 217, 93, 0.48)),
-        url("https://assets-tnl.org/background-rosa-e1749108482198.png") center center / cover no-repeat;
+      background: linear-gradient(160deg, #0A0F36 0%, #17235f 38%, #2A4FDA 72%, #8a1fd6 100%);
       box-shadow: var(--shadow);
-    }
-
-    .cta::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        url("https://assets-tnl.org/close-up-young-attractive-charismatic-woman-isolated-scaled-e1749193550727.png")
-        right bottom / min(32vw, 420px) no-repeat;
-      pointer-events: none;
-      opacity: 0.96;
     }
 
     .cta__copy {
@@ -546,7 +530,7 @@
 
     .footer {
       margin-top: 48px;
-      background: linear-gradient(250deg, #ff00ff 0%, #122f9b 36%);
+      background: linear-gradient(250deg, var(--pink) 0%, var(--blue) 36%);
     }
 
     .footer__inner {
@@ -627,14 +611,6 @@
       cursor: pointer;
     }
 
-    @media (max-width: 900px) {
-      .hero::after,
-      .cta::after {
-        opacity: 0.28;
-        background-size: 320px;
-      }
-    }
-
     @media (max-width: 767px) {
       .topbar__inner,
       .hero__inner,
@@ -660,11 +636,6 @@
 
       .hero {
         padding: 60px 0 34px;
-      }
-
-      .hero::after,
-      .cta::after {
-        display: none;
       }
 
       .hero p,
