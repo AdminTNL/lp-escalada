@@ -305,8 +305,9 @@
      posicionarEl no script), porque so' medir da' pra garantir que nunca
      cobre o proprio ranking em qualquer altura de tela. Aqui na CSS so'
      ficam tamanho, angulo de entrada e a "distancia" que ele percorre --
-     cada tipo (.ra-comente/.ra-aula/.ra-trilhas/.ra-gameshow) com o seu,
-     pra nunca parecer o mesmo popup reciclado */
+     cada tipo (.ra-comente/.ra-aula/.ra-trilhas) com o seu, pra nunca
+     parecer o mesmo popup reciclado -- o clímax (gameshow) tem seu proprio
+     componente a' parte, ver .gs-convite mais abaixo */
   .rank-activity{
     position:absolute; z-index:6; max-width:70%;
     opacity:0; visibility:hidden; pointer-events:none;
@@ -325,8 +326,6 @@
   .rank-activity.ra-aula.show{ transform:translateY(0) rotate(3deg) scale(1); }
   .rank-activity.ra-trilhas{ width:108px; transform:translateY(-26px) rotate(-6deg) scale(.9); }
   .rank-activity.ra-trilhas.show{ transform:translateY(0) rotate(2deg) scale(1); }
-  .rank-activity.ra-gameshow{ width:126px; transform:translateY(26px) rotate(7deg) scale(.88); }
-  .rank-activity.ra-gameshow.show{ transform:translateY(0) rotate(-2deg) scale(1); }
   .ra-card{
     position:relative; background:rgba(6,10,34,.9); border:1px solid rgba(255,255,255,.18);
     backdrop-filter:blur(14px) saturate(1.3); border-radius:16px; padding:14px 12px 12px;
@@ -343,7 +342,6 @@
     background:linear-gradient(135deg,var(--verde),var(--verde-claro)); box-shadow:0 5px 12px -3px rgba(0,0,0,.55);
     z-index:1;
   }
-  .ra-gameshow .ra-icon{background:linear-gradient(135deg,#FFD84D,#FF9F0A);}
   .ra-check{
     display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px;
     border-radius:50%; background:var(--verde); color:#052312; font-size:9px; font-weight:900; flex:none;
@@ -380,10 +378,6 @@
   .ra-thumb-alt2{background:linear-gradient(135deg,#FFD84D,#FF9F0A);}
   .ra-thumb-alt3{background:linear-gradient(135deg,#FF00FF,#8a1fd6);}
   .ra-thumb .ra-check{position:absolute; bottom:-5px; right:-5px; box-shadow:0 0 0 2px rgba(6,10,34,.9);}
-  /* gameshow: trofeu grande + os dois premios -- a legenda grande ("Chegou
-     ao topo!") ja' carrega o texto, aqui e' so' o simbolo */
-  .ra-trophy{display:block; text-align:center; font-size:30px; line-height:1; margin:2px 0 8px;}
-  .ra-premios{display:flex; justify-content:center; gap:10px; font-size:16px;}
 
   /* burst de chips pequenos durante a rolagem final -- espalham pelos
      espacos vazios (nunca por cima do card), dao a nocao de "muita coisa
@@ -409,6 +403,74 @@
   }
   @media (prefers-reduced-motion:reduce){
     .rank-flurry{display:none;}
+  }
+
+  /* convite do gameshow: o momento do clímax merece destaque proprio, nao'
+     mais um bloco pequeno reciclado nos 4 cantos -- um envelope que abre
+     de verdade (a aba dobra pra tras em 3D) e a carta desliza de dentro
+     pra cima, acima do proprio card do ranking. So' transform/opacity,
+     inclusive na rotacao 3D da aba (perspective no pai, rotateX no filho). */
+  .gs-convite{
+    position:absolute; z-index:8; width:210px;
+    opacity:0; visibility:hidden; pointer-events:none;
+  }
+  .gs-convite.show{ opacity:1; visibility:visible; }
+  @media (prefers-reduced-motion:no-preference){
+    .gs-convite{transition:opacity .35s ease, visibility 0s linear .35s;}
+    .gs-convite.show{transition:opacity .3s ease, visibility 0s linear;}
+  }
+  .gs-envelope{ position:relative; height:132px; perspective:600px; }
+  .gs-flap{
+    position:absolute; top:0; left:0; right:0; height:56px;
+    background:linear-gradient(135deg,#FFD84D,#FF9F0A);
+    clip-path:polygon(0 0, 100% 0, 50% 100%);
+    transform-origin:top center; backface-visibility:hidden;
+    display:flex; align-items:flex-start; justify-content:center; padding-top:6px;
+  }
+  .gs-selo{ font-size:15px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+  .gs-body{
+    position:absolute; bottom:0; left:0; right:0; height:88px; border-radius:12px;
+    background:linear-gradient(160deg,#17235f,#2A4FDA);
+    border:1.5px solid rgba(255,216,77,.55);
+    box-shadow:0 18px 36px -14px rgba(0,0,0,.6), 0 0 22px -4px rgba(255,216,77,.3);
+  }
+  .gs-carta{
+    position:absolute; left:8px; right:8px; bottom:12px;
+    background:#fff; border-radius:13px; padding:16px 12px 13px; text-align:center;
+    box-shadow:0 22px 42px -14px rgba(0,0,0,.55);
+    opacity:0;
+  }
+  .gs-carta-titulo{
+    font-family:var(--display); font-weight:800; font-size:14.5px; color:var(--azul);
+    margin:0 0 3px; line-height:1.25;
+  }
+  .gs-carta-sub{
+    display:block; font-family:var(--mono); font-size:9px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--magenta-texto); margin-bottom:9px;
+  }
+  .gs-carta-premios{display:flex; justify-content:center; gap:10px; font-size:15px;}
+  @media (prefers-reduced-motion:no-preference){
+    .gs-convite.show .gs-envelope{animation:gsEnvelopeIn .5s cubic-bezier(.34,1.56,.64,1) both;}
+    .gs-convite.show .gs-flap{animation:gsFlapAbre .5s ease .5s both;}
+    .gs-convite.show .gs-carta{animation:gsCartaSai .55s cubic-bezier(.34,1.56,.64,1) .8s both;}
+  }
+  @keyframes gsEnvelopeIn{
+    0%{ opacity:0; transform:translateY(18px) scale(.85); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes gsFlapAbre{
+    0%{ transform:rotateX(0deg); }
+    100%{ transform:rotateX(-155deg); }
+  }
+  @keyframes gsCartaSai{
+    0%{ opacity:0; transform:translateY(0) scale(.88); }
+    55%{ opacity:1; }
+    100%{ opacity:1; transform:translateY(-52px) scale(1); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .gs-envelope, .gs-flap, .gs-carta{animation:none!important;}
+    .gs-flap{display:none;}
+    .gs-carta{opacity:1; transform:translateY(-52px);}
   }
 
   /* confete de clímax -- canvas full-viewport, so' desenha durante o burst */
@@ -859,6 +921,17 @@
     </div>
     <div class="rank-activity" id="rank-activity" aria-hidden="true"></div>
     <div class="rank-flurry" id="rank-flurry" aria-hidden="true"></div>
+    <div class="gs-convite" id="gs-convite" aria-hidden="true">
+      <div class="gs-envelope">
+        <div class="gs-flap"><span class="gs-selo" aria-hidden="true">🏆</span></div>
+        <div class="gs-body"></div>
+        <div class="gs-carta">
+          <p class="gs-carta-titulo">Você está convidado!</p>
+          <span class="gs-carta-sub">GameShow Escalada</span>
+          <div class="gs-carta-premios"><span aria-hidden="true">📱</span><span aria-hidden="true">💻</span></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="teste">
@@ -1380,6 +1453,32 @@
     el.style.left = Math.round(left) + 'px';
   }
 
+  // o convite do gameshow e' maior e sempre CENTRALIZADO (nunca num dos 4
+  // cantos como os blocos normais) -- prefere a banda de cima (que e' onde
+  // "acima do ranking" pedido faz sentido de verdade), cai pra baixo so' se
+  // nao' sobrar espaco em cima. +40 na altura e' a folga da carta saindo
+  // do envelope pra cima (translateY(-52px) no keyframe), que a caixa do
+  // proprio elemento nao' conta sozinha (e' um filho position:absolute).
+  function posicionarConvite(el){
+    var m = medirEspacoVazio();
+    var w = el.offsetWidth || 210;
+    var h = (el.offsetHeight || 132) + 40;
+    var margem = 10;
+    var top;
+    if(m.acima > h + margem * 2){
+      top = m.acima - h - margem;
+    } else if(m.abaixo > h + margem * 2){
+      top = m.inicioAbaixo + margem;
+    } else {
+      top = m.acima > m.abaixo ? (m.acima - h - margem) : (m.inicioAbaixo + margem);
+    }
+    top = Math.max(margem, Math.min(top, m.hr.height - h - margem));
+    var left = (m.hr.width - w) / 2;
+    left = Math.max(margem, Math.min(left, m.hr.width - w - margem));
+    el.style.top = Math.round(top) + 'px';
+    el.style.left = Math.round(left) + 'px';
+  }
+
   // conta os pontos subindo (com glow) -- onFrame recebe o valor JA'
   // interpolado a cada frame, pra quem chama poder reagir ao numero que
   // esta na tela AGORA (nao so' ao valor final, no fim da contagem)
@@ -1569,8 +1668,8 @@
     // eles, entao varios ficam visiveis ao mesmo tempo, sobrepondo --
     // exatamente a sensacao de "muita coisa acontecendo de uma vez" que
     // sustenta a subida rapida do rank
-    for(var k = 0; k < 18; k++){
-      t(spawnChip, k * 100);
+    for(var k = 0; k < 30; k++){
+      t(spawnChip, k * 80);
     }
   }
 
@@ -1610,21 +1709,15 @@
           '<span class="ra-thumb ra-thumb-alt2"></span>' +
           '<span class="ra-thumb ra-thumb-alt3"></span>' +
         '</div>' +
-      '</div>',
-    gameshow:
-      '<div class="ra-card ra-gameshow">' +
-        '<span class="ra-icon" aria-hidden="true">🎮</span>' +
-        '<span class="ra-trophy" aria-hidden="true">🏆</span>' +
-        '<div class="ra-premios"><span aria-hidden="true">📱</span><span aria-hidden="true">💻</span></div>' +
       '</div>'
   };
 
-  // 4 cantos bem distintos, um por tipo -- nunca dois cards no mesmo lugar
+  // 4 cantos bem distintos, um por tipo -- nunca dois cards no mesmo lugar.
+  // O clímax (gameshow) nao' usa mais esse sistema -- ver mostrarConvite().
   var ATIVIDADE_SLOT = {
     comente: 'cima-esq',
     aula: 'baixo-dir',
-    trilhas: 'cima-dir',
-    gameshow: 'baixo-esq'
+    trilhas: 'cima-dir'
   };
 
   function showActivity(kind, t, onDone, holdMs){
@@ -1651,6 +1744,27 @@
         onDone();
       }, 220);
     }, holdMs || 480);
+  }
+
+  // o convite do gameshow, no clímax: envelope que abre de verdade (a aba
+  // dobra em 3D) e a carta desliza de dentro pra cima, acima do proprio
+  // card do ranking -- toda a coreografia (entrada do envelope, abertura
+  // da aba, saida da carta) e' feita via CSS @keyframes (ver .gs-convite no
+  // <style>), essa funcao so' liga o gatilho (.show) e segura no ar tempo
+  // suficiente pra' pessoa ler a carta depois que ela termina de sair
+  function mostrarConvite(t, onDone){
+    var el = document.getElementById('gs-convite');
+    if(!el){ onDone(); return; }
+    posicionarConvite(el);
+    el.classList.add('show');
+    t(function(){
+      if(!animacaoAtiva) return;
+      el.classList.remove('show');
+      t(function(){
+        if(!animacaoAtiva) return;
+        onDone();
+      }, 300);
+    }, 2600);
   }
 
   // aplica a MESMA sequencia de disputas, sem nenhuma animacao, e forca o
@@ -1702,6 +1816,8 @@
     if(activityBox) activityBox.classList.remove('show');
     if(flurryLayer) flurryLayer.innerHTML = ''; // corta qualquer chip de flurry que ainda estivesse em voo
     if(captionEl) captionEl.classList.remove('in');
+    var convite = document.getElementById('gs-convite');
+    if(convite) convite.classList.remove('show');
   }
 
   function fadeText(el, newHtml){
@@ -1804,17 +1920,17 @@
             runRolagem(pointsState, t, function(){
               burstConfetti();
               // etapa de parabenizacao: mais tempo que os outros beats de
-              // proposito (holdMs=1400 em vez do 480 padrao) -- e' o
-              // clímax, o pagamento de toda a subida, merece respirar
+              // proposito -- e' o clímax, o pagamento de toda a subida,
+              // merece respirar (o convite mesmo ja' segura 2.6s no ar)
               t(function(){
                 fadeText(lblEl, 'Top 1 do ranking!');
                 fadeCaption('Chegou ao topo!');
-                showActivity('gameshow', t, function(){
+                mostrarConvite(t, function(){
                   t(function(){
                     viewport.removeEventListener('click', skip);
                     finalState();
-                  }, 800);
-                }, 1400);
+                  }, 500);
+                });
               }, 500);
             });
           }, 140);
