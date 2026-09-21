@@ -275,6 +275,28 @@
     .ps-lb-viewport{transition:filter .25s ease;}
     .ps-lb-viewport.rolando{filter:blur(3.5px);}
   }
+
+  /* no mobile, o convite do clímax pode abrir parcialmente por cima do
+     RODAPE do card quando nao' sobra espaco embaixo dele (ver
+     posicionarConvite/mostrarConvite no script) -- esse degrade+desfoque
+     avisa visualmente que aquele trecho "saiu de cena" de proposito, em
+     vez de parecer sobreposicao acidental. So' opacity anima (a intensidade
+     do blur fica fixa) pra nao' fugir do transform/opacity-only. */
+  .ps-lb-fade{
+    position:absolute; left:0; right:0; bottom:0; height:48%;
+    border-radius:0 0 26px 26px; z-index:2; pointer-events:none;
+    background:linear-gradient(180deg, rgba(9,13,40,0) 0%, rgba(9,13,40,.82) 55%, rgba(9,13,40,.94) 100%);
+    -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 42%);
+    mask-image:linear-gradient(180deg, transparent 0%, #000 42%);
+    opacity:0;
+  }
+  .rank-card.convite-perto .ps-lb-fade{ opacity:1; }
+  @media (prefers-reduced-motion:no-preference){
+    .ps-lb-fade{
+      backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+      transition:opacity .4s ease;
+    }
+  }
   .ps-lb-track{display:flex; flex-direction:column; gap:7px; will-change:transform;}
   @media (prefers-reduced-motion:no-preference){
     .ps-lb-track{transition:transform .55s cubic-bezier(.16,1,.3,1);}
@@ -914,6 +936,7 @@
               <div class="ps-lb-row me"><span class="pos">20º</span><span class="av">EU</span><span class="nm">Você</span><span class="pt">980</span></div>
             </div>
           </div>
+          <div class="ps-lb-fade" aria-hidden="true"></div>
         </div>
         <p class="hero-hook hero-caption" id="hero-caption" aria-hidden="true"></p>
         <p class="hero-hook" id="hero-hook-bottom">Você consegue ficar entre os <em>melhores</em>?</p>
@@ -1136,6 +1159,7 @@
   var captionEl = document.getElementById('hero-caption');
   var activityBox = document.getElementById('rank-activity');
   var flurryLayer = document.getElementById('rank-flurry');
+  var heroLeft = document.querySelector('.hero-left'); // coluna do H1/CTA no desktop -- ver safeLeft em medirEspacoVazio
   if(!track || !viewport) return;
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1338,18 +1362,69 @@
   // relativo no normal) -- entao top/left aqui sao sempre relativos a ELE,
   // nao ao card. Quando sobra pouco espaco vertical (tipico desktop), cai
   // pro fallback lateral, ao lado do card.
+  // display:none (os ganchos/legenda somem assim no desktop, via CSS)
+  // deixa o proprio elemento intacto no DOM -- so' getBoundingClientRect()
+  // dele volta tudo zerado. offsetParent, ao contrario, so' e' null quando
+  // o elemento (ou um ancestral) esta' de fato display:none -- e' o jeito
+  // certo de perguntar "isso ta' REALMENTE renderizado" antes de confiar
+  // no rect dele pra alguma conta.
+  function retanguloSeVisivel(el){
+    return (el && el.offsetParent !== null) ? el.getBoundingClientRect() : null;
+  }
+
   function medirEspacoVazio(){
     var hr = hero.getBoundingClientRect();
     var cr = rankCard.getBoundingClientRect();
-    var limiteAcima = hookTop ? hookTop.getBoundingClientRect().top : cr.top;
-    var abaixoRef = hookBottom || captionEl;
-    var inicioAbaixo = abaixoRef ? abaixoRef.getBoundingClientRect().bottom : cr.bottom;
+    var rAcima = retanguloSeVisivel(hookTop);
+    var limiteAcima = rAcima ? rAcima.top : cr.top;
+    var rAbaixo = retanguloSeVisivel(hookBottom) || retanguloSeVisivel(captionEl);
+    var inicioAbaixo = rAbaixo ? rAbaixo.bottom : cr.bottom;
+    // no desktop, a SAFE AREA de qualquer bloco/chip/convite comeca so'
+    // depois da coluna do hero-copy (H1/paragrafo/CTA) -- nunca por cima
+    // dela. Mede a fronteira de verdade (a coluna e' 1.05fr, varia com o
+    // viewport) em vez de supor uma largura fixa; +28 da' folga visual
+    // alem do gap de 40px que o proprio grid ja' tem entre as colunas.
+    var safeLeft = null;
+    if(!faixasPermitidas()){
+      var rCopy = retanguloSeVisivel(heroLeft);
+      safeLeft = (rCopy ? rCopy.right - hr.left : cr.left - hr.left - 40) + 28;
+    }
     return {
       hr: hr, cr: cr,
       acima: limiteAcima - hr.top,
       inicioAbaixo: inicioAbaixo - hr.top,
-      abaixo: hr.bottom - inicioAbaixo
+      abaixo: hr.bottom - inicioAbaixo,
+      safeLeft: safeLeft
     };
+  }
+
+  // 4 zonas ao redor do card (cima/baixo/direita/esquerda), cada uma so'
+  // entra na lista se tiver espaco de verdade pro elemento caber -- e
+  // nenhuma delas jamais cruza pra antes de m.safeLeft (a safe area nunca
+  // avanca por cima da coluna do H1/CTA). E' o que substitui, no desktop,
+  // o antigo fallback que so' colocava tudo colado na lateral direita.
+  function zonasAoRedor(m, w, h, margemW, margemH){
+    if(m.safeLeft === null) return [];
+    var cardLeft = m.cr.left - m.hr.left, cardRight = m.cr.right - m.hr.left;
+    var cardTop = m.cr.top - m.hr.top, cardBottom = m.cr.bottom - m.hr.top;
+    var safeLeft = m.safeLeft, safeRight = m.hr.width - margemW;
+    var safeTop = margemH, safeBottom = m.hr.height - margemH;
+    var folgaCard = 14;
+    var zonas = [];
+    var largaOSuficiente = (safeRight - safeLeft) > w;
+    if(largaOSuficiente && cardTop - safeTop > h + folgaCard){
+      zonas.push({ nome:'cima', minTop:safeTop, maxTop:cardTop - h - folgaCard, minLeft:safeLeft, maxLeft:safeRight - w });
+    }
+    if(largaOSuficiente && safeBottom - cardBottom > h + folgaCard){
+      zonas.push({ nome:'baixo', minTop:cardBottom + folgaCard, maxTop:safeBottom - h, minLeft:safeLeft, maxLeft:safeRight - w });
+    }
+    if(safeRight - cardRight > w + folgaCard){
+      zonas.push({ nome:'direita', minTop:safeTop, maxTop:safeBottom - h, minLeft:cardRight + folgaCard, maxLeft:safeRight - w });
+    }
+    if(cardLeft - safeLeft > w + folgaCard){
+      zonas.push({ nome:'esquerda', minTop:safeTop, maxTop:safeBottom - h, minLeft:safeLeft, maxLeft:cardLeft - w - folgaCard });
+    }
+    return zonas;
   }
 
   // rotate() nao muda offsetWidth/offsetHeight (essas so' medem a caixa de
@@ -1367,10 +1442,30 @@
     return { w: (wRot - w) / 2 + 6, h: (hRot - h) / 2 + 6 };
   }
 
+  // as faixas "acima"/"abaixo" (largura TOTAL do hero) so' fazem sentido
+  // quando essa largura toda e' mesmo vazia -- no mobile, onde o rank-card
+  // e' o UNICO conteudo do hero. No desktop, a coluna da esquerda tem o
+  // H1/paragrafo/CTA de verdade, sempre visivel, o tempo todo -- usar
+  // aquela largura pra posicionar qualquer coisa e' o que fazia bloco e
+  // convite carem literalmente em cima do headline. Por isso essas 3
+  // funcoes de posicionamento so' usam as faixas no mobile; no desktop
+  // caem sempre pro fallback lateral, perto do proprio card.
+  function faixasPermitidas(){
+    return window.matchMedia('(max-width:959px)').matches;
+  }
+
   // 4 REGIOES bem distintas (cima-esq/baixo-dir/cima-dir/baixo-esq) -- nunca
   // dois tipos de card na mesma regiao, mas dentro da regiao a posicao
   // exata e' sorteada a cada vez (nunca o mesmo pontinho fixo reciclado).
-  // Slot e' sempre "vertical-horizontal".
+  // Slot e' sempre "vertical-horizontal". No desktop, cada slot mapeia pra
+  // uma das 4 zonas de zonasAoRedor() -- rotaciona entre cima/baixo/
+  // direita/esquerda em vez de empilhar tudo do mesmo lado.
+  var PREF_ZONA = {
+    'cima-esq': ['esquerda', 'cima', 'direita', 'baixo'],
+    'cima-dir': ['cima', 'direita', 'baixo', 'esquerda'],
+    'baixo-dir': ['direita', 'baixo', 'esquerda', 'cima'],
+    'baixo-esq': ['baixo', 'esquerda', 'cima', 'direita']
+  };
   function posicionarEl(el, slot){
     var partes = slot.split('-');
     var vertical = partes[0], horizontal = partes[1];
@@ -1379,8 +1474,9 @@
     var h = el.offsetHeight || 90;
     var folga = folgaRotacao(w, h);
     var top, left;
-    var cabeCima = m.acima > h + 30;
-    var cabeBaixo = m.abaixo > h + 30;
+    var permite = faixasPermitidas();
+    var cabeCima = permite && m.acima > h + 30;
+    var cabeBaixo = permite && m.abaixo > h + 30;
     if(cabeCima || cabeBaixo){
       var usaCima;
       if(cabeCima && cabeBaixo){ usaCima = (vertical === 'cima'); }
@@ -1413,15 +1509,34 @@
         : (m.hr.width * 0.58) + Math.random() * faixaLargura;
       left = Math.max(folga.w, Math.min(left, m.hr.width - w - folga.w));
     } else {
-      // pouca folga vertical -- usa a lateral do proprio card, que e' onde
-      // sobra espaco de verdade nesse caso (tipico desktop), com um
-      // pequeno sorteio pra nao' cair sempre no mesmo pixel
-      var cardLeft = m.cr.left - m.hr.left, cardRight = m.cr.right - m.hr.left;
-      var cabeDireita = (m.hr.width - cardRight) > w * 0.55;
-      left = (cabeDireita ? (cardRight - w * 0.2) : (cardLeft - w * 0.8)) + (Math.random() * 24 - 12);
-      top = (vertical === 'cima'
-        ? (m.cr.top - m.hr.top) - h * 0.25
-        : (m.cr.bottom - m.hr.top) - h * 0.75) + (Math.random() * 24 - 12);
+      // desktop: distribui pelas 4 zonas AO REDOR do card (cima/baixo/
+      // direita/esquerda), nunca preso a um unico lado -- o slot ('cima-
+      // esq'/'cima-dir'/'baixo-dir'/'baixo-esq') da' uma PREFERENCIA de
+      // regiao, rotacionando entre as 4, mas so' se ela realmente tiver
+      // espaco; senao cai pra qualquer outra zona disponivel
+      var zonas = zonasAoRedor(m, w, h, folga.w, folga.h);
+      if(zonas.length){
+        var prefs = PREF_ZONA[slot] || ['direita', 'baixo', 'cima', 'esquerda'];
+        var z = null;
+        for(var i = 0; i < prefs.length && !z; i++){
+          for(var j = 0; j < zonas.length; j++){
+            if(zonas[j].nome === prefs[i]){ z = zonas[j]; break; }
+          }
+        }
+        if(!z) z = zonas[Math.floor(Math.random() * zonas.length)];
+        top = z.minTop + Math.random() * Math.max(0, z.maxTop - z.minTop);
+        left = z.minLeft + Math.random() * Math.max(0, z.maxLeft - z.minLeft);
+      } else {
+        // ultimo recurso -- viewport apertado demais pra qualquer zona de
+        // sobra (raro, perto do breakpoint de 960px): cola na lateral do
+        // proprio card, unico lugar quase sempre valido
+        var cardLeft = m.cr.left - m.hr.left, cardRight = m.cr.right - m.hr.left;
+        var cabeDireita = (m.hr.width - cardRight) > w * 0.55;
+        left = (cabeDireita ? (cardRight - w * 0.2) : (cardLeft - w * 0.8)) + (Math.random() * 24 - 12);
+        top = (vertical === 'cima'
+          ? (m.cr.top - m.hr.top) - h * 0.25
+          : (m.cr.bottom - m.hr.top) - h * 0.75) + (Math.random() * 24 - 12);
+      }
       // trava final generica: nao' deixa sair dos limites reais de #hero
       top = Math.max(folga.h, Math.min(top, m.hr.height - h - folga.h));
       left = Math.max(folga.w, Math.min(left, m.hr.width - w - folga.w));
@@ -1433,47 +1548,97 @@
   function posicionarChip(el){
     var m = medirEspacoVazio();
     var w = 118, h = 32, margem = 10;
-    var top, minTop, maxTop;
-    var usaCima = m.acima > h + 20 && (m.abaixo <= h + 20 || Math.random() < 0.5);
-    if(usaCima){
-      minTop = margem;
-      maxTop = margem + Math.max(4, m.acima - h - margem * 2);
-    } else if(m.abaixo > h + 20){
-      minTop = m.inicioAbaixo + margem;
-      maxTop = minTop + Math.max(4, m.abaixo - h - margem * 2);
+    var top, left;
+    if(faixasPermitidas()){
+      var minTop, maxTop;
+      var usaCima = m.acima > h + 20 && (m.abaixo <= h + 20 || Math.random() < 0.5);
+      if(usaCima){
+        minTop = margem;
+        maxTop = margem + Math.max(4, m.acima - h - margem * 2);
+      } else if(m.abaixo > h + 20){
+        minTop = m.inicioAbaixo + margem;
+        maxTop = minTop + Math.max(4, m.abaixo - h - margem * 2);
+      } else {
+        minTop = margem;
+        maxTop = margem + Math.max(4, m.acima - h - margem);
+      }
+      top = minTop + Math.random() * Math.max(0, maxTop - minTop);
+      top = Math.max(minTop, Math.min(top, maxTop));
+      left = margem + Math.random() * Math.max(4, m.hr.width - w - margem * 2);
     } else {
-      minTop = margem;
-      maxTop = margem + Math.max(4, m.acima - h - margem);
+      // desktop: sorteia entre as 4 zonas AO REDOR do card (cima/baixo/
+      // direita/esquerda) -- com 30 chips no total, espalhar entre as 4
+      // da' a sensacao de atividade por todo lado, nunca so' colado numa
+      // lateral. Nenhuma zona cruza a safe area (nunca por cima do H1/CTA)
+      var zonas = zonasAoRedor(m, w, h, margem, margem);
+      if(zonas.length){
+        var z = zonas[Math.floor(Math.random() * zonas.length)];
+        top = z.minTop + Math.random() * Math.max(0, z.maxTop - z.minTop);
+        left = z.minLeft + Math.random() * Math.max(0, z.maxLeft - z.minLeft);
+      } else {
+        // ultimo recurso, sem NENHUMA zona de sobra: lateral direita do
+        // card, unico lugar quase sempre valido
+        var cardRight = m.cr.right - m.hr.left;
+        var cardTop = m.cr.top - m.hr.top, cardH = m.cr.bottom - m.cr.top;
+        left = cardRight + 6 + Math.random() * 60;
+        top = cardTop + Math.random() * Math.max(0, cardH - h);
+      }
     }
-    top = minTop + Math.random() * Math.max(0, maxTop - minTop);
-    top = Math.max(minTop, Math.min(top, maxTop));
-    var left = margem + Math.random() * Math.max(4, m.hr.width - w - margem * 2);
+    top = Math.max(4, Math.min(top, m.hr.height - h - 4));
     left = Math.max(4, Math.min(left, m.hr.width - w - 4));
     el.style.top = Math.round(top) + 'px';
     el.style.left = Math.round(left) + 'px';
   }
 
   // o convite do gameshow e' maior e sempre CENTRALIZADO (nunca num dos 4
-  // cantos como os blocos normais) -- prefere a banda de cima (que e' onde
-  // "acima do ranking" pedido faz sentido de verdade), cai pra baixo so' se
-  // nao' sobrar espaco em cima. +40 na altura e' a folga da carta saindo
-  // do envelope pra cima (translateY(-52px) no keyframe), que a caixa do
-  // proprio elemento nao' conta sozinha (e' um filho position:absolute).
+  // cantos como os blocos normais) -- +40 na altura e' a folga da carta
+  // saindo do envelope pra cima (translateY(-52px) no keyframe), que a
+  // caixa do proprio elemento nao' conta sozinha (e' um filho
+  // position:absolute).
   function posicionarConvite(el){
     var m = medirEspacoVazio();
     var w = el.offsetWidth || 210;
     var h = (el.offsetHeight || 132) + 40;
     var margem = 10;
-    var top;
-    if(m.acima > h + margem * 2){
-      top = m.acima - h - margem;
-    } else if(m.abaixo > h + margem * 2){
-      top = m.inicioAbaixo + margem;
+    var top, left;
+    if(faixasPermitidas()){
+      // mobile: SEMPRE abaixo do card, nunca acima -- a banda "acima" fica
+      // perto do topo do #hero, que durante o climax ja' esta' rolado pra
+      // fora da area visivel pela camera da rolagem (ver panned/scroll em
+      // runRolagem); colocar o convite ali fazia ele nascer fora da tela.
+      // Sem banda "abaixo" de sobra, deixa a aba do envelope invadir ATE'
+      // 40% da propria altura por cima do RODAPE do card de proposito --
+      // .ps-lb-fade (ligado junto, ver mostrarConvite) desfoca+degrade
+      // aquele trecho pra disfarcar a sobreposicao em vez de evita-la a
+      // qualquer custo (o que empurrava o convite pra fora da tela)
+      var cardBottom = m.cr.bottom - m.hr.top;
+      var temBandaLivre = m.abaixo > h + margem * 2;
+      top = temBandaLivre ? (m.inicioAbaixo + margem) : (cardBottom - h * 0.4);
+      left = (m.hr.width - w) / 2;
+      if(rankCard) rankCard.classList.toggle('convite-perto', !temBandaLivre);
     } else {
-      top = m.acima > m.abaixo ? (m.acima - h - margem) : (m.inicioAbaixo + margem);
+      if(rankCard) rankCard.classList.remove('convite-perto');
+      // desktop: centraliza ACIMA do proprio CARD, nao' do hero inteiro,
+      // restrito a' coluna onde o card de verdade esta', nunca deixa
+      // vazar pra cima do H1/CTA do outro lado.
+      // 3 niveis de fallback: acima do card -> abaixo do card -> (hero
+      // baixo demais pros dois primeiros) centralizado POR CIMA do
+      // proprio card, como um destaque daquele instante -- sem esse 3o
+      // nivel, o clamp final empurrava o convite pra dentro do MEIO do
+      // card quando nao' sobrava altura nenhuma no hero.
+      var cardCenterX = (m.cr.left + m.cr.right) / 2 - m.hr.left;
+      left = cardCenterX - w / 2;
+      var acimaCard = (m.cr.top - m.hr.top) - h - margem;
+      var abaixoCard = (m.cr.bottom - m.hr.top) + margem;
+      if(acimaCard >= margem){
+        top = acimaCard;
+      } else if(abaixoCard + h <= m.hr.height - margem){
+        top = abaixoCard;
+      } else {
+        top = (m.cr.top + m.cr.bottom) / 2 - m.hr.top - h / 2;
+      }
     }
     top = Math.max(margem, Math.min(top, m.hr.height - h - margem));
-    var left = (m.hr.width - w) / 2;
     left = Math.max(margem, Math.min(left, m.hr.width - w - margem));
     el.style.top = Math.round(top) + 'px';
     el.style.left = Math.round(left) + 'px';
@@ -1760,6 +1925,7 @@
     t(function(){
       if(!animacaoAtiva) return;
       el.classList.remove('show');
+      if(rankCard) rankCard.classList.remove('convite-perto');
       t(function(){
         if(!animacaoAtiva) return;
         onDone();
@@ -1818,6 +1984,7 @@
     if(captionEl) captionEl.classList.remove('in');
     var convite = document.getElementById('gs-convite');
     if(convite) convite.classList.remove('show');
+    if(rankCard) rankCard.classList.remove('convite-perto');
   }
 
   function fadeText(el, newHtml){
