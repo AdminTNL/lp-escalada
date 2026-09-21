@@ -406,6 +406,7 @@
     .ra-play{ width:38px; height:38px; font-size:15px; }
     .ra-progress{ height:6px; }
     .ra-thumb{ height:38px; }
+    .ra-titulo{ font-size:16px; margin-top:14px; }
   }
   .ra-card{
     position:relative; background:rgba(6,10,34,.9); border:1px solid rgba(255,255,255,.18);
@@ -459,6 +460,14 @@
   .ra-thumb-alt2{background:linear-gradient(135deg,#FFD84D,#FF9F0A);}
   .ra-thumb-alt3{background:linear-gradient(135deg,#FF00FF,#8a1fd6);}
   .ra-thumb .ra-check{position:absolute; bottom:-5px; right:-5px; box-shadow:0 0 0 2px rgba(6,10,34,.9);}
+  /* a FRASE da acao ("Explorou as trilhas" etc.) mora aqui dentro do card
+     grande -- antes so' existia no label pequeno do cabecalho do proprio
+     rank-card, que nunca mudou de lugar mesmo depois do card grande ser
+     reposicionado/aumentado (reportado pelo usuario) */
+  .ra-titulo{
+    margin:10px 0 0; text-align:center; font-family:var(--display); font-weight:700;
+    font-size:12.5px; line-height:1.25; color:#fff;
+  }
 
   /* burst de chips pequenos durante a rolagem final -- espalham pelos
      espacos vazios (nunca por cima do card), dao a nocao de "muita coisa
@@ -1972,6 +1981,15 @@
   // SO' DE OLHAR (icone, forma, cor, check de conclusao), nunca de ler um
   // titulo ou uma legenda -- o texto de verdade fica todo na legenda
   // grande e parada, embaixo do card (fadeCaption).
+  // a FRASE de cada acao ("Explorou as trilhas" etc.) so' existia no
+  // label pequeno do cabecalho do proprio rank-card (.lbl, 10px, sempre no
+  // mesmo canto) -- o card grande flutuante (reposicionado/aumentado por
+  // pedido do usuario) so' tinha icones, sem texto nenhum, entao mesmo
+  // depois de mover o card, a FRASE em si continuava presa no lugar de
+  // sempre. Agora cada card carrega a propria frase como titulo, no lugar
+  // novo e maior -- o mesmo texto de RANK_SEQ[].label, repetido aqui de
+  // proposito (harcoded, como o resto de ACTIVITY_HTML) porque o card e'
+  // montado via innerHTML antes do beat saber qual label usar.
   var ACTIVITY_HTML = {
     comente:
       '<div class="ra-card ra-post">' +
@@ -1981,6 +1999,7 @@
           '<span class="ra-post-arrow" aria-hidden="true">→</span>' +
           '<span class="ra-av me"><span class="ra-check" aria-hidden="true">✓</span></span>' +
         '</div>' +
+        '<p class="ra-titulo">Comentou no clube</p>' +
       '</div>',
     aula:
       '<div class="ra-card ra-lesson">' +
@@ -1989,6 +2008,7 @@
           '<span class="ra-play" aria-hidden="true">▶</span>' +
         '</div>' +
         '<div class="ra-progress"><span class="ra-progress-fill"></span></div>' +
+        '<p class="ra-titulo">Assistiu uma aula</p>' +
       '</div>',
     trilhas:
       '<div class="ra-card ra-trilhas">' +
@@ -1999,6 +2019,7 @@
           '<span class="ra-thumb ra-thumb-alt2"></span>' +
           '<span class="ra-thumb ra-thumb-alt3"></span>' +
         '</div>' +
+        '<p class="ra-titulo">Explorou as trilhas</p>' +
       '</div>'
   };
 
