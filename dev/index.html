@@ -219,8 +219,30 @@
     .hero-rank-zone{
       order:0; flex-direction:row; justify-content:center; min-height:0!important; max-height:none!important;
       opacity:1!important; padding:0!important; pointer-events:auto!important; overflow:visible!important;
+      position:relative;
     }
-    .hero-hook{display:none;}
+    /* hookTop/hookBottom continuam escondidos (sao onboarding textual, so'
+       fazem sentido no mobile, onde o rank e' o UNICO conteudo do hero) --
+       mas .hero-caption e' status narrado em tempo real ("Chegou ao
+       topo!"), nao' um gancho de onboarding, e no desktop nao' tinha
+       NENHUM equivalente grande pro CLIMAX especificamente: so' sobrava o
+       label de 10px do cabecalho do proprio card (".lbl"), reportado
+       explicitamente como "ainda ta' no mesmo lugar" mesmo depois dos
+       outros ajustes. (Os 3 beats da narrativa -- comente/aula/trilhas --
+       ja' ganharam sua propria frase grande dentro do card de atividade,
+       .ra-titulo; o script so' dispara fadeCaption() no desktop pro
+       climax, pra' nao' arriscar colidir com a zona cima/baixo que o
+       card de atividade daquele beat ja' esta' usando.) Fica ACIMA do
+       card (nao' abaixo) de proposito -- o convite do climax agora
+       prefere abaixo (ver posicionarConvite), colidiria se os dois
+       disputassem o mesmo lado ao mesmo tempo. */
+    .hero-hook:not(.hero-caption){display:none;}
+    .hero-caption{
+      position:absolute; left:50%; top:-46px; max-width:380px;
+      transform:translateX(-50%) translateY(8px);
+      font-size:27px;
+    }
+    .hero-caption.in{ transform:translateX(-50%) translateY(0); }
   }
 
   /* rank-card: sem moldura de celular, cartao de vidro flutuando */
@@ -1916,7 +1938,13 @@
       if(i >= RANK_SEQ.length){ onAllDone(); return; }
       var s = RANK_SEQ[i++];
       fadeText(lblEl, s.label);
-      fadeCaption(s.caption);
+      // no desktop, esses 3 beats ja' tem a propria frase grande dentro
+      // do card de atividade (.ra-titulo) -- disparar o caption tambem
+      // arriscaria colidir com a mesma zona cima/baixo que aquele card
+      // esta' usando. So' no mobile (onde o caption mora no fluxo normal,
+      // nunca disputa espaco com o card de atividade -- ver
+      // medirEspacoVazio) esse caption dispara pros 3 beats.
+      if(faixasPermitidas()) fadeCaption(s.caption);
       showActivity(s.beat, t, function(){
         if(!animacaoAtiva) return;
         var idx = Array.prototype.indexOf.call(track.children, meRow);
