@@ -1627,7 +1627,7 @@
     gameshow: 'baixo-esq'
   };
 
-  function showActivity(kind, t, onDone){
+  function showActivity(kind, t, onDone, holdMs){
     var box = activityBox;
     if(!box){ onDone(); return; }
     box.innerHTML = ACTIVITY_HTML[kind];
@@ -1650,7 +1650,7 @@
         if(!animacaoAtiva) return;
         onDone();
       }, 220);
-    }, 480);
+    }, holdMs || 480);
   }
 
   // aplica a MESMA sequencia de disputas, sem nenhuma animacao, e forca o
@@ -1725,7 +1725,32 @@
 
   function finalState(){
     fadeText(lblEl, 'Top 20 do mês · exemplo');
-    if(hero) hero.classList.add('settled');
+    if(!hero) return;
+    // no mobile, #hero sai de position:fixed (o "modal" full-bleed) pra
+    // relative no instante exato em que .settled entra -- como "position"
+    // nao' e' animavel, isso e' um salto seco: o cabecalho e o resto da
+    // pagina, que ja' estavam la' atras (so' escondidos pelo hero fixo),
+    // "pipocavam" na tela do nada. Essa cortina de opacidade esconde o
+    // salto: escurece tudo, troca a classe enquanto esta' invisivel, e
+    // revela de novo do outro lado -- ai' sim uma transicao suave pra
+    // pagina principal, nao' um corte seco. No desktop #hero nunca fica
+    // fixed, entao o salto nao existe -- so' troca a classe direto.
+    if(!window.matchMedia('(max-width:959px)').matches){
+      hero.classList.add('settled');
+      return;
+    }
+    hero.style.transition = 'opacity .4s ease';
+    hero.style.opacity = '0';
+    setTimeout(function(){
+      hero.classList.add('settled');
+      void hero.offsetHeight;
+      hero.style.transition = 'opacity .6s ease';
+      hero.style.opacity = '1';
+      setTimeout(function(){
+        hero.style.transition = '';
+        hero.style.opacity = '';
+      }, 620);
+    }, 420);
   }
 
   function run(){
@@ -1778,6 +1803,9 @@
           t(function(){
             runRolagem(pointsState, t, function(){
               burstConfetti();
+              // etapa de parabenizacao: mais tempo que os outros beats de
+              // proposito (holdMs=1400 em vez do 480 padrao) -- e' o
+              // clímax, o pagamento de toda a subida, merece respirar
               t(function(){
                 fadeText(lblEl, 'Top 1 do ranking!');
                 fadeCaption('Chegou ao topo!');
@@ -1785,9 +1813,9 @@
                   t(function(){
                     viewport.removeEventListener('click', skip);
                     finalState();
-                  }, 200);
-                });
-              }, 180);
+                  }, 800);
+                }, 1400);
+              }, 500);
             });
           }, 140);
         });
