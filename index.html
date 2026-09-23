@@ -3,7 +3,13 @@
 <head><meta charset="UTF-8">
 <script>
 (function(){
-  var WEBHOOK_URL='https://webhookn8n.tnledu.shop/webhook/trafego-escalada';
+  // Endpoint proprio (Cloudflare Pages Function, functions/api/trafego.js)
+  // em vez do webhook do n8n direto -- roda no mesmo dominio pra poder ler
+  // request.cf (IP/ASN/TLS) na borda antes de repassar pro n8n, sinal que
+  // nao existe se o browser postar direto pro webhookn8n.tnledu.shop (fora
+  // da Cloudflare). Mesmo-origem tambem elimina o CORS preflight que o
+  // sendBeacon com JSON tinha (por isso o Blob 'text/plain' mais abaixo).
+  var WEBHOOK_URL='/api/trafego';
   var CTA_HOST='escalada.me';
   var PAGINA='lp';
   var p=new URLSearchParams(window.location.search);
