@@ -79,6 +79,15 @@
     var link=event.target.closest('a[href]');
     if(!link||!isCtaLink(link))return;
     send('click');
+    // Manda o engajamento (scroll/tempo/heatmap de cliques) JA no clique do
+    // CTA, em vez de depender so do visibilitychange -- a navegacao pro
+    // escalada.me acontece rapido demais e o beacon de saida quase nunca
+    // tinha tempo de completar (achado real: 18 de 25 sessoes que
+    // clicaram no CTA nao tinham NENHUM dado de scroll/clique gravado).
+    // setTimeout(0) garante que o proprio clique no CTA ja esteja no
+    // array de cliques (o listener de heatmap abaixo roda depois deste,
+    // na mesma dispatch do evento) antes do snapshot ser montado.
+    setTimeout(enviarEngagement,0);
   },true);
 
   // --- Engajamento por sessao: scroll, tempo na pagina e "heatmap" de cliques ---
