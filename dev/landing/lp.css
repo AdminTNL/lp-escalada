@@ -1,0 +1,1930 @@
+/* ===========================================================
+   Landing (/landing) · Escalada 2026
+   Marca oficial: verde neon, magenta, azul elétrico, ciano.
+
+   PROPORÇÃO, não pixel. Tudo aqui é `em`; o que muda de uma tela pra outra é o
+   `font-size` de cada bloco, que nasce da largura da janela (e, no hero, também
+   da altura). Tela maior = tudo cresce junto, e a composição fica idêntica.
+   A única decisão por faixa é o celular em pé, que empilha — também em `em`.
+   Nada de px em medida de layout (exceção: traço fino de 1px e blur).
+   Isolado sob `.lp` (não vaza pro resto do app).
+   =========================================================== */
+
+.lp {
+	--verde: #00ff85;
+	--azul: #2a4fda;
+	--azul-escuro: #1d4acd;
+	--magenta: #ff00ff;
+	--ciano: #00f9ff;
+	--tinta: #0a0f2e;
+	--papel: #f4f1ea;
+	--branco: #fff;
+	--texto-claro: #edeefb;
+	--texto-claro-fraco: rgba(237, 238, 251, 0.74);
+	--texto-papel: #3b3f63;
+
+	--fonte-titulo: 'Space Grotesk', sans-serif;
+	--fonte-texto: 'Figtree', sans-serif;
+
+	--raio-g: 1.6em;
+	--raio-m: 1.1em;
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+	display: block;
+	position: relative;
+	min-height: 100dvh;
+	overflow-x: clip;
+	background: var(--tinta);
+	color: var(--texto-claro);
+	font-family: var(--fonte-texto);
+	/* base proporcional à largura; o piso só evita texto ilegível em janela minúscula */
+	font-size: max(13px, 1.06vw);
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-webkit-text-size-adjust: 100%;
+}
+@media (max-width: 1000px) {
+	.lp {
+		font-size: clamp(14px, 4.3vw, 21px);
+	}
+}
+
+.lp *,
+.lp *::before,
+.lp *::after {
+	box-sizing: border-box;
+}
+.lp img,
+.lp video,
+.lp svg {
+	display: block;
+	max-width: 100%;
+}
+.lp a {
+	color: inherit;
+	text-decoration: none;
+}
+.lp h1,
+.lp h2,
+.lp h3,
+.lp p,
+.lp ol,
+.lp ul,
+.lp figure,
+.lp blockquote {
+	margin: 0;
+	padding: 0;
+}
+.lp h1,
+.lp h2,
+.lp h3 {
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	line-height: 1.05;
+	letter-spacing: -0.01em;
+}
+.lp button {
+	font-family: inherit;
+	cursor: pointer;
+	border: 0;
+	background: none;
+	color: inherit;
+}
+.lp a:focus-visible,
+.lp button:focus-visible,
+.lp summary:focus-visible {
+	outline: 3px solid var(--ciano);
+	outline-offset: 3px;
+	border-radius: 0.5em;
+}
+
+/* ---------- peças comuns ---------- */
+.lp .secao {
+	position: relative;
+	padding: 6em 0;
+}
+.lp .secao__miolo {
+	position: relative;
+	width: min(100%, 82em);
+	margin-inline: auto;
+	padding-inline: 2em;
+}
+.lp .kicker {
+	display: block;
+	margin-bottom: 1em;
+	font-family: var(--fonte-titulo);
+	font-size: 0.85em;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--verde);
+}
+.lp .kicker--magenta {
+	color: #a6009b;
+}
+
+.lp .btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.95em 1.7em;
+	border-radius: 999px;
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	font-size: 1em;
+	line-height: 1.2;
+	text-align: center;
+	white-space: nowrap;
+	transition:
+		transform 0.25s var(--ease-out),
+		box-shadow 0.25s var(--ease-out),
+		background 0.25s;
+}
+.lp .btn:active {
+	transform: scale(0.97);
+}
+.lp .btn-primario {
+	background: var(--verde);
+	color: var(--tinta);
+}
+.lp .btn-primario:hover {
+	box-shadow: 0 0.5em 1.9em rgba(0, 255, 133, 0.45);
+	transform: translateY(-0.12em);
+}
+.lp .btn-contorno {
+	color: var(--branco);
+	box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+}
+.lp .btn-contorno:hover {
+	box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.95);
+	background: rgba(255, 255, 255, 0.08);
+	transform: translateY(-0.12em);
+}
+.lp .btn-contorno-tinta {
+	color: var(--tinta);
+	box-shadow: inset 0 0 0 1.5px rgba(10, 15, 46, 0.4);
+}
+.lp .btn-contorno-tinta:hover {
+	box-shadow: inset 0 0 0 1.5px rgba(10, 15, 46, 0.85);
+	background: rgba(10, 15, 46, 0.06);
+}
+
+.lp .cta-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.9em;
+	margin-top: 2em;
+}
+.lp .cta-row--centro {
+	justify-content: center;
+}
+.lp .cta-nota {
+	margin-top: 0.9em;
+	font-size: 0.85em;
+	color: var(--texto-claro-fraco);
+}
+
+/* Entrada ao rolar. Sem JS (ou antes de hidratar) nada fica escondido. */
+.lp.js-pronto .reveal {
+	opacity: 0;
+	transform: translateY(1.4em);
+}
+.lp.js-pronto .reveal.is-revelado {
+	opacity: 1;
+	transform: none;
+	transition:
+		opacity 0.8s var(--ease-out),
+		transform 0.8s var(--ease-out);
+}
+.lp.reduced-motion .reveal {
+	opacity: 1 !important;
+	transform: none !important;
+	transition: none !important;
+}
+
+/* =========================================================
+   1. HERO — composição única, dimensionada por min(largura, altura)
+   ========================================================= */
+.lp .hero {
+	position: relative;
+	display: grid;
+	place-items: center;
+	min-height: 100svh;
+	overflow: hidden;
+	padding: 4em 0;
+	/* a unidade do hero: a menor entre "1% da largura" e "1,75% da altura".
+	   A janela baixa e larga encolhe a composição inteira em vez de cortá-la. */
+	font-size: min(1.06vw, 1.75svh);
+	background: radial-gradient(120% 90% at 18% 0%, #2e3ea8 0%, var(--azul-escuro) 42%, var(--tinta) 100%);
+}
+.lp .hero__auroras {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+.lp .aurora {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(90px);
+	opacity: 0.55;
+}
+.lp .aurora--verde {
+	width: 46vw;
+	height: 46vw;
+	top: -10%;
+	left: -8%;
+	background: var(--verde);
+	animation: aurora-a 22s ease-in-out infinite alternate;
+}
+.lp .aurora--magenta {
+	width: 40vw;
+	height: 40vw;
+	bottom: -14%;
+	right: -6%;
+	background: var(--magenta);
+	animation: aurora-b 26s ease-in-out infinite alternate;
+}
+.lp .aurora--ciano {
+	width: 34vw;
+	height: 34vw;
+	top: 30%;
+	right: 18%;
+	opacity: 0.35;
+	background: var(--ciano);
+	animation: aurora-c 19s ease-in-out infinite alternate;
+}
+@keyframes aurora-a {
+	to {
+		transform: translate(6%, 8%) scale(1.15);
+	}
+}
+@keyframes aurora-b {
+	to {
+		transform: translate(-8%, -4%) scale(1.1);
+	}
+}
+@keyframes aurora-c {
+	to {
+		transform: translate(-10%, 10%) scale(0.9);
+	}
+}
+
+.lp .hero__grid {
+	position: relative;
+	z-index: 2;
+	display: grid;
+	grid-template-columns: minmax(0, 40em) minmax(0, 1fr);
+	align-items: center;
+	width: min(100%, 118em);
+	padding-inline: 4em;
+}
+.lp .hero__titulo {
+	font-size: 4.3em;
+	line-height: 1.04;
+	font-style: oblique 8deg;
+	color: var(--branco);
+}
+.lp .hero__titulo .linha {
+	display: block;
+	overflow: hidden;
+	padding: 0 0.12em 0.06em 0;
+}
+.lp .hero__titulo .linha span {
+	display: block;
+	animation: linha-sobe 0.9s var(--ease-out) both;
+}
+.lp .hero__titulo .linha:nth-child(1) span {
+	animation-delay: 0.2s;
+}
+.lp .hero__titulo .linha:nth-child(2) span {
+	animation-delay: 0.32s;
+	color: var(--verde);
+}
+.lp .hero__titulo .linha:nth-child(3) span {
+	animation-delay: 0.44s;
+}
+@keyframes linha-sobe {
+	from {
+		transform: translateY(110%);
+	}
+}
+.lp .hero__dor {
+	max-width: 27em;
+	margin-top: 1.5em;
+	font-family: var(--fonte-titulo);
+	font-size: 1.3em;
+	font-weight: 500;
+	font-style: italic;
+	line-height: 1.35;
+	color: var(--texto-claro);
+}
+.lp .hero__sub {
+	max-width: 30em;
+	margin-top: 1.1em;
+	font-size: 1.25em;
+	line-height: 1.45;
+	color: var(--texto-claro-fraco);
+}
+.lp .hero .cta-row {
+	margin-top: 1.7em;
+	font-size: 1.2em;
+}
+.lp .hero .cta-nota {
+	font-size: 1.05em;
+}
+
+/* Mural no hero: os destaques orbitam a logo direto sobre o fundo (sem wrapper), em três anéis
+   inclinados e orgânicos (raio, ângulo e tamanho variam por foto). O giro anima o ângulo registrado
+   `--ang`; cada foto se posiciona com as funções trigonométricas do CSS nele e só muda `transform`
+   (sem layout). Tudo em em: escala junto com o hero. */
+@property --ang {
+	syntax: '<angle>';
+	inherits: true;
+	initial-value: 0deg;
+}
+.lp .hero__stage {
+	position: relative;
+	align-self: center;
+}
+.lp .mural {
+	position: relative;
+	/* o eixo horizontal das órbitas é em cqw (largura da coluna): quanto mais espaço o hero dá, mais a elipse abre */
+	container-type: inline-size;
+	width: 100%;
+	height: 42em;
+	margin-inline: auto;
+}
+.lp .orbita {
+	position: absolute;
+	inset: 0;
+	rotate: var(--tilt, 0deg);
+	animation: orbita var(--dur) linear infinite;
+}
+.lp .orbita--rev {
+	animation-direction: reverse;
+}
+@keyframes orbita {
+	to {
+		--ang: 360deg;
+	}
+}
+/* só a órbita com foto em foco para (a foto não sai do lugar) e sobe de camada, pra o zoom e a dica
+   nunca ficarem por baixo das fotos de outra órbita. `rotate` já faz de cada órbita um contexto de empilhamento. */
+.lp .orbita {
+	z-index: 2;
+	pointer-events: none;
+}
+.lp .orbita--foco {
+	z-index: 10;
+	animation-play-state: paused;
+}
+.lp .mural__foto {
+	pointer-events: auto;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 2;
+	width: var(--s);
+	height: var(--s);
+	transform: translate(calc(cos(var(--a0) + var(--ang)) * var(--rx) * var(--kr)), calc(sin(var(--a0) + var(--ang)) * var(--ry) * var(--kr)))
+		translate(-50%, -50%) rotate(var(--r));
+	/* --bl / --op vêm do JS (círculo de desfoque ao redor da foto em foco) */
+	filter: blur(var(--bl, 0));
+	opacity: var(--op, 1);
+	transition:
+		filter 0.12s linear,
+		opacity 0.12s linear;
+}
+.lp .mural__img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	border: 0.2em solid #fff;
+	border-radius: 0.65em;
+	box-shadow: 0 0.6em 1.4em -0.5em rgba(0, 0, 0, 0.55);
+}
+.lp .mural__img img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+/* O zoom é no miolo, não na âncora: a propriedade `scale` se aplica por fora do `transform` da âncora
+   e multiplicaria o deslocamento da órbita (a foto "sairia" do anel). Escalando o miolo, ela só cresce. */
+.lp .mural__foto.ativa {
+	z-index: 20;
+}
+.lp .mural__corpo {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 100%;
+	transition: scale 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.lp .mural__foto.ativa .mural__corpo {
+	scale: 1.6;
+}
+.lp .mural__foto.ativa .mural__img {
+	box-shadow: 0 1.2em 2.2em -0.6em rgba(0, 0, 0, 0.7);
+}
+
+.lp .mural__dica {
+	position: absolute;
+	left: 50%;
+	top: 100%;
+	margin-top: 0.5em;
+	padding: 0.3em 0.75em;
+	border-radius: 999px;
+	background: #fff;
+	color: var(--tinta);
+	font-size: 0.72em;
+	font-weight: 700;
+	white-space: nowrap;
+	opacity: 0;
+	rotate: calc(var(--r) * -1);
+	translate: -50% 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+}
+.lp .mural__foto.ativa .mural__dica {
+	opacity: 1;
+}
+.lp .mural__centro {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.8em;
+	width: 17em;
+	text-align: center;
+	color: var(--branco);
+	transform: translate(-50%, -50%);
+}
+.lp .mural__logo {
+	width: auto;
+	height: 5.4em;
+}
+.lp .mural__meta {
+	font-size: 0.95em;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+/* =========================================================
+   2. ESPAÇOS — o lado qualitativo
+   ========================================================= */
+.lp .espacos {
+	background: var(--papel);
+	color: var(--tinta);
+}
+.lp .espacos__topo {
+	max-width: 46em;
+}
+.lp .espacos__titulo {
+	font-size: 2.6em;
+	font-style: oblique 6deg;
+}
+.lp .espacos__sub {
+	margin-top: 1em;
+	font-size: 1.15em;
+	color: var(--texto-papel);
+}
+.lp .espacos__grade {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1.3em;
+	margin-top: 2.6em;
+}
+.lp .espaco {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6em;
+	min-height: 15em;
+	padding: 1.6em 1.5em;
+	border-radius: var(--raio-g);
+	color: var(--tinta);
+	background: var(--verde);
+}
+.lp .espaco--magenta {
+	background: var(--magenta);
+}
+.lp .espaco--ciano {
+	background: var(--ciano);
+}
+.lp .espaco--larga {
+	grid-column: span 2;
+	background: linear-gradient(135deg, #1d4acd 0%, #2a4fda 55%, #6a2bd9 100%);
+}
+.lp .espaco--larga .espaco__nome {
+	max-width: 13em;
+	font-size: 2.1em;
+}
+.lp .espaco--larga .espaco__texto {
+	max-width: 30em;
+	font-size: 1.05em;
+}
+.lp .espaco--azul {
+	background: var(--azul-escuro);
+	color: var(--branco);
+}
+.lp .espaco__tag {
+	font-family: var(--fonte-titulo);
+	font-size: 0.8em;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	opacity: 0.8;
+}
+.lp .espaco__nome {
+	font-size: 1.9em;
+	font-style: oblique 6deg;
+}
+.lp .espaco__texto {
+	margin-top: auto;
+	font-weight: 500;
+	line-height: 1.4;
+}
+/* carrossel de testemunhos: faixa fina, sempre passando (duas cópias, trilho anda -50%) */
+.lp .testemunhos {
+	margin-top: 2.6em;
+	text-align: center;
+}
+.lp .testemunhos__rotulo {
+	display: block;
+	margin-bottom: 0.7em;
+	font-family: var(--fonte-titulo);
+	font-size: 0.78em;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #a6009b;
+}
+.lp .testemunhos__faixa {
+	overflow: hidden;
+	-webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+	mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.lp .testemunhos__trilho {
+	display: flex;
+	width: max-content;
+	animation: testemunhos 45s linear infinite;
+}
+@keyframes testemunhos {
+	to {
+		transform: translateX(-50%);
+	}
+}
+.lp .frase {
+	flex: none;
+	margin-right: 0.7em;
+	padding: 0.55em 1.2em;
+	border-radius: 999px;
+	font-size: 1.05em;
+	font-weight: 600;
+	white-space: nowrap;
+	color: var(--tinta);
+	background: var(--verde);
+}
+.lp .frase:nth-child(4n + 2) {
+	background: var(--magenta);
+}
+.lp .frase:nth-child(4n + 3) {
+	background: var(--ciano);
+}
+.lp .frase:nth-child(4n + 4) {
+	background: var(--tinta);
+	color: var(--branco);
+}
+
+/* =========================================================
+   3. QUEM USA
+   ========================================================= */
+.lp .vozes {
+	background: var(--tinta);
+}
+.lp .vozes__topo {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 2em;
+	margin-bottom: 2.4em;
+}
+.lp .vozes__titulo {
+	font-size: 2.6em;
+	font-style: oblique 6deg;
+	color: var(--branco);
+}
+.lp .filme-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.7em;
+	padding: 0.8em 1.4em;
+	border-radius: 999px;
+	font-weight: 700;
+	white-space: nowrap;
+	background: rgba(255, 255, 255, 0.1);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+	transition: background 0.25s;
+}
+.lp .filme-btn:hover {
+	background: rgba(255, 255, 255, 0.18);
+}
+.lp .filme-btn__icone {
+	display: grid;
+	place-items: center;
+	width: 1.9em;
+	height: 1.9em;
+	padding-left: 0.1em;
+	border-radius: 50%;
+	background: var(--verde);
+	color: var(--tinta);
+	font-size: 0.75em;
+}
+
+.lp .vozes__grade {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1.6em;
+}
+.lp .voz {
+	position: relative;
+	aspect-ratio: 4 / 5;
+	overflow: hidden;
+	border-radius: var(--raio-g);
+	background: #10173f;
+	cursor: pointer;
+}
+.lp .voz video,
+.lp .voz__poster {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.lp .voz video {
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+.lp .voz.is-playing video {
+	opacity: 1;
+}
+.lp .voz__sombra {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(10, 15, 46, 0) 40%, rgba(10, 15, 46, 0.92) 100%);
+	pointer-events: none;
+}
+.lp .voz__som {
+	position: absolute;
+	top: 0.9em;
+	right: 0.9em;
+	display: grid;
+	place-items: center;
+	width: 2.4em;
+	height: 2.4em;
+	border-radius: 50%;
+	background: rgba(10, 15, 46, 0.55);
+	pointer-events: none;
+}
+.lp .voz__som svg {
+	width: 55%;
+	height: 55%;
+}
+.lp .voz__info {
+	position: absolute;
+	inset: auto 1.2em 1.2em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.55em;
+}
+.lp .voz__quem {
+	align-self: flex-start;
+	padding: 0.3em 0.75em;
+	border-radius: 999px;
+	background: var(--verde);
+	color: var(--tinta);
+	font-size: 0.8em;
+	font-weight: 700;
+}
+.lp .voz__frase {
+	font-family: var(--fonte-titulo);
+	font-size: 1.3em;
+	font-weight: 700;
+	line-height: 1.22;
+	color: var(--branco);
+}
+.lp .voz__legenda {
+	display: none;
+	padding: 0.4em 0.7em;
+	border-radius: 0.7em;
+	background: var(--magenta);
+	color: var(--branco);
+	font-size: 0.95em;
+	font-weight: 700;
+	line-height: 1.3;
+}
+.lp .voz.is-playing .voz__legenda:not(:empty) {
+	display: block;
+}
+.lp .voz.is-playing .voz__frase {
+	display: none;
+}
+
+.lp .numeros {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1.4em;
+	margin-top: 3em;
+	padding: 2.2em 2.4em;
+	border-radius: var(--raio-g);
+	background: var(--verde);
+	color: var(--tinta);
+}
+.lp .numero {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35em;
+}
+.lp .numero__valor {
+	font-family: var(--fonte-titulo);
+	font-size: 2.7em;
+	font-weight: 700;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+.lp .numero__valor--texto {
+	font-size: 1.7em;
+	line-height: 1.12;
+}
+.lp .numero__rotulo {
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.lp .virada {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1.6em;
+	margin-top: 3em;
+}
+.lp .virada__par {
+	padding: 1.8em 2em;
+	border-radius: var(--raio-g);
+	background: rgba(255, 255, 255, 0.06);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.lp .virada__antes,
+.lp .virada__depois {
+	font-family: var(--fonte-titulo);
+	font-size: 1.15em;
+	font-weight: 500;
+	line-height: 1.35;
+}
+.lp .virada__antes {
+	color: var(--texto-claro-fraco);
+}
+.lp .virada__antes em {
+	font-style: normal;
+	text-decoration: line-through;
+	text-decoration-color: rgba(255, 0, 255, 0.7);
+}
+.lp .virada__depois {
+	margin-top: 1em;
+	font-weight: 700;
+	color: var(--verde);
+}
+.lp .virada__antes span,
+.lp .virada__depois span {
+	display: block;
+	margin-bottom: 0.3em;
+	font-size: 0.7em;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--ciano);
+}
+.lp .virada__autor {
+	margin-top: 1.2em;
+	font-size: 0.85em;
+	color: var(--texto-claro-fraco);
+}
+
+/* =========================================================
+   4. INICIATIVAS PASSADAS — blocos com degradê + cartões (estilo do Mural)
+   ========================================================= */
+.lp .iniciativas {
+	background: var(--papel);
+	color: var(--tinta);
+}
+.lp .iniciativas__topo {
+	max-width: 44em;
+	margin-bottom: 3em;
+}
+.lp .iniciativas__titulo {
+	font-size: 2.6em;
+	font-style: oblique 6deg;
+}
+.lp .iniciativas__sub {
+	margin-top: 0.9em;
+	font-size: 1.1em;
+	color: var(--texto-papel);
+}
+.lp .ini {
+	display: grid;
+	grid-template-columns: minmax(0, 20em) minmax(0, 1fr);
+	gap: 2.2em;
+	align-items: start;
+	scroll-margin-top: 2em;
+}
+.lp .ini + .ini {
+	margin-top: 3.4em;
+	padding-top: 3.4em;
+	border-top: 1px dashed #d9d9d9;
+}
+.lp .ini__cab {
+	position: sticky;
+	top: 2em;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6em;
+	min-height: 17em;
+	padding: 1.5em 1.6em 1.6em;
+	border-radius: 1.4em;
+	justify-content: flex-end;
+	background: var(--grad);
+	color: #14120a;
+}
+.lp .ini--escuro .ini__cab {
+	color: var(--branco);
+}
+.lp .ini__chip {
+	align-self: flex-start;
+	padding: 0.3em 0.8em;
+	border-radius: 999px;
+	font-size: 0.78em;
+	font-weight: 700;
+	background: rgba(255, 255, 255, 0.85);
+	color: var(--tinta);
+}
+.lp .ini__titulo {
+	font-size: 1.9em;
+	line-height: 1.05;
+}
+.lp .ini__desc {
+	font-size: 0.95em;
+	line-height: 1.4;
+	opacity: 0.92;
+}
+.lp .ini__conta {
+	font-family: var(--fonte-titulo);
+	font-size: 0.85em;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	opacity: 0.85;
+}
+.lp .ini__grade {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(9.5em, 1fr));
+	gap: 1em;
+	list-style: none;
+}
+.lp .cartao {
+	overflow: hidden;
+	border-radius: 1em;
+	background: var(--branco);
+	box-shadow: inset 0 0 0 1.5px var(--acc, #d9d9d9);
+	transition:
+		transform 0.3s var(--ease-out),
+		box-shadow 0.3s ease;
+}
+.lp .cartao__foto {
+	display: block;
+	aspect-ratio: 1;
+	overflow: hidden;
+	background: var(--acc, #d9d9d9);
+}
+.lp .cartao__foto img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.lp .cartao__corpo {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2em;
+	padding: 0.75em 0.85em 0.9em;
+}
+.lp .cartao__nome {
+	font-family: var(--fonte-titulo);
+	font-size: 0.92em;
+	font-weight: 700;
+	line-height: 1.2;
+	color: #3d3d3d;
+}
+.lp .cartao__local {
+	font-size: 0.8em;
+	color: #6f6f6f;
+}
+.lp .cartao__tag {
+	margin-top: 0.25em;
+	font-size: 0.72em;
+	font-weight: 600;
+	color: #8c8c8c;
+}
+/* a pessoa clicada na grade "acende" aqui */
+.lp .cartao.is-alvo {
+	transform: translateY(-0.4em) scale(1.04);
+	box-shadow:
+		inset 0 0 0 2px var(--acc, #2a4fda),
+		0 0 0 0.3em color-mix(in srgb, var(--acc, #2a4fda) 35%, transparent),
+		0 1.2em 2em -0.8em rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================
+   4. TRILHAS (catálogo real)
+   ========================================================= */
+.lp .trilhas-lp {
+	background: #0c1440;
+}
+.lp .trilhas-lp__topo {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 2em;
+	margin-bottom: 2.4em;
+}
+.lp .trilhas-lp__titulo {
+	font-size: 2.6em;
+	font-style: oblique 6deg;
+	color: var(--branco);
+}
+.lp .trilhas-lp__grade {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1.5em;
+}
+.lp .tl-card {
+	display: block;
+	transition: transform 0.3s var(--ease-out);
+}
+.lp .tl-card:hover {
+	transform: translateY(-0.3em);
+}
+.lp .tl-card__arte {
+	display: block;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border-radius: var(--raio-m);
+	background: var(--tinta);
+	box-shadow: 0 0.9em 1.9em -1em rgba(0, 0, 0, 0.6);
+}
+.lp .tl-card__arte img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.lp .tl-card__nome {
+	display: block;
+	margin-top: 0.75em;
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	font-size: 1.1em;
+	color: var(--branco);
+}
+.lp .tl-card__meta {
+	display: block;
+	margin-top: 0.1em;
+	font-size: 0.85em;
+	color: var(--texto-claro-fraco);
+}
+
+/* =========================================================
+   5. COMO FUNCIONA O JOGO (gamificação, prática)
+   ========================================================= */
+.lp .pontos {
+	background: radial-gradient(120% 100% at 80% 0%, #2a4fda 0%, var(--azul-escuro) 35%, #0f1c62 100%);
+}
+.lp .pontos__topo {
+	max-width: 44em;
+}
+.lp .pontos__titulo {
+	font-size: 2.6em;
+	font-style: oblique 6deg;
+	color: var(--branco);
+}
+.lp .pontos__sub {
+	margin-top: 1em;
+	font-size: 1.15em;
+	color: var(--texto-claro-fraco);
+}
+.lp .passos {
+	list-style: none;
+}
+.lp .passo {
+	display: flex;
+	gap: 1em;
+	align-items: flex-start;
+}
+.lp .passo__num {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 2.5em;
+	height: 2.5em;
+	border-radius: 50%;
+	background: var(--verde);
+	color: var(--tinta);
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	font-size: 1.1em;
+}
+.lp .passo__titulo {
+	font-size: 1.25em;
+	color: var(--branco);
+}
+.lp .passo__texto {
+	margin-top: 0.3em;
+	color: var(--texto-claro-fraco);
+}
+
+/* ---------- palco: texto + ranking animado ---------- */
+.lp .palco {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 28em);
+	gap: 4.5em;
+	align-items: center;
+}
+.lp .palco__texto .passos {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5em;
+	margin-top: 2.2em;
+}
+
+.lp .rank {
+	position: relative;
+}
+.lp .rank__card {
+	position: relative;
+	padding: 1.4em 1.3em 1.5em;
+	border-radius: 1.8em;
+	background: rgba(255, 255, 255, 0.08);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+		0 2em 4em -2em rgba(0, 0, 0, 0.55);
+	-webkit-backdrop-filter: blur(1.2em);
+	backdrop-filter: blur(1.2em);
+	cursor: pointer;
+}
+.lp.js-pronto .rank__card {
+	opacity: 0;
+	transform: translateY(1em) scale(0.97);
+}
+.lp.js-pronto .rank__card.card-in {
+	opacity: 1;
+	transform: none;
+	transition:
+		opacity 0.5s ease,
+		transform 0.5s var(--ease-out);
+}
+.lp .rank__cab {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1em;
+	margin-bottom: 0.9em;
+	font-family: var(--fonte-titulo);
+	font-size: 0.78em;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+.lp .rank__lbl {
+	color: var(--branco);
+	transition: opacity 0.14s ease;
+}
+.lp .rank__tag {
+	color: var(--verde);
+	text-align: right;
+}
+.lp .rank__vp {
+	position: relative;
+	height: 18.5em;
+	overflow: hidden;
+	-webkit-mask-image: linear-gradient(180deg, #000 90%, transparent 100%);
+	mask-image: linear-gradient(180deg, #000 90%, transparent 100%);
+	transition: filter 0.25s ease;
+}
+.lp .rank__vp.panned {
+	-webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 90%, transparent 100%);
+	mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 90%, transparent 100%);
+}
+/* a rolagem final é rápida demais pra ler: o desfoque reforça o "carretel girando" */
+.lp .rank__vp.rolando {
+	filter: blur(0.22em);
+}
+.lp .rank__trilho {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5em;
+	padding-bottom: 2.5em;
+	transition: transform 0.55s var(--ease-out);
+	will-change: transform;
+}
+.lp .rank__linha {
+	position: relative;
+	display: grid;
+	grid-template-columns: 2.2em 2.3em minmax(0, 1fr) auto;
+	gap: 0.7em;
+	align-items: center;
+	flex: none;
+	padding: 0.65em 0.85em;
+	border-radius: 0.85em;
+	background: rgba(255, 255, 255, 0.06);
+	transition:
+		background 0.4s ease,
+		box-shadow 0.3s ease;
+}
+.lp .rank__linha.lifting {
+	z-index: 4;
+	background: rgba(255, 255, 255, 0.14);
+	box-shadow: 0 0.8em 1.6em -0.6em rgba(0, 0, 0, 0.55);
+}
+.lp .rank__linha.me {
+	background: rgba(0, 255, 133, 0.16);
+	box-shadow: inset 0 0 0 1px rgba(0, 255, 133, 0.45);
+}
+.lp .rank__linha.ganhando {
+	background: rgba(0, 255, 133, 0.26);
+}
+.lp .rank__linha.ganhando .rank__pt {
+	color: var(--verde);
+	text-shadow: 0 0 0.8em rgba(0, 255, 133, 0.85);
+}
+.lp .rank__pos {
+	text-align: center;
+	font-family: var(--fonte-titulo);
+	font-size: 0.85em;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.85);
+	font-variant-numeric: tabular-nums;
+}
+.lp .rank__linha.p1 .rank__pos {
+	color: #ffd84d;
+}
+.lp .rank__av {
+	display: grid;
+	place-items: center;
+	width: 2.3em;
+	height: 2.3em;
+	border-radius: 50%;
+	font-family: var(--fonte-titulo);
+	font-size: 0.72em;
+	font-weight: 700;
+	color: var(--branco);
+	background: linear-gradient(135deg, #2a4fda, #1a3aad);
+}
+.lp .rank__linha.me .rank__av {
+	background: linear-gradient(135deg, var(--verde), #6bffb8);
+	color: #052312;
+}
+.lp .rank__nm {
+	overflow: hidden;
+	font-weight: 600;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: rgba(255, 255, 255, 0.92);
+}
+.lp .rank__pt {
+	font-family: var(--fonte-titulo);
+	font-size: 0.9em;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.88);
+	font-variant-numeric: tabular-nums;
+	transition:
+		color 0.3s ease,
+		text-shadow 0.3s ease;
+}
+
+/* a entrada do "Você" é o momento mais importante: entra da esquerda com impacto
+   e um brilho roxo/magenta que assenta no verde normal da linha */
+.lp.js-pronto .rank__linha.me {
+	opacity: 0;
+}
+.lp.js-pronto .rank__linha.me.entrou {
+	opacity: 1;
+	animation:
+		voce-entra 0.55s var(--ease-out) both,
+		voce-pulso 1.1s ease-out both;
+}
+.lp.js-pronto .rank__linha.me.entrou .rank__av {
+	animation: voce-avatar 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes voce-entra {
+	0% {
+		opacity: 0;
+		transform: translateX(-65%) scaleX(1.12) scaleY(0.88);
+	}
+	55% {
+		opacity: 1;
+		transform: translateX(3%) scaleX(0.93) scaleY(1.05);
+	}
+	75% {
+		transform: translateX(-1%) scaleX(1.03) scaleY(0.99);
+	}
+	100% {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes voce-pulso {
+	0% {
+		box-shadow:
+			0 0 0 0 rgba(138, 31, 214, 0.95),
+			0 0 1.8em 0.4em rgba(255, 0, 255, 0.85);
+		background: rgba(170, 45, 235, 0.5);
+	}
+	45% {
+		box-shadow:
+			0 0 0 1.1em rgba(138, 31, 214, 0),
+			0 0 2.8em 0.8em rgba(255, 0, 255, 0.55);
+	}
+	100% {
+		box-shadow:
+			0 0 0 0 rgba(138, 31, 214, 0),
+			0 0 0 0 rgba(255, 0, 255, 0);
+		background: rgba(0, 255, 133, 0.16);
+	}
+}
+@keyframes voce-avatar {
+	0% {
+		transform: scale(1);
+	}
+	45% {
+		transform: scale(1.4);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+/* "+N pts" da ação, pingando no canto do card */
+.lp .rank__toast {
+	position: absolute;
+	top: -1.1em;
+	right: 1.3em;
+	z-index: 5;
+	padding: 0.35em 0.9em;
+	border-radius: 999px;
+	background: var(--verde);
+	color: var(--tinta);
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	opacity: 0;
+	transform: translateY(0.6em) scale(0.9);
+	transition:
+		opacity 0.25s ease,
+		transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	pointer-events: none;
+}
+.lp .rank__toast.show {
+	opacity: 1;
+	transform: none;
+}
+
+/* chips de pontos voando durante a rolagem: muita coisa acontecendo de uma vez */
+.lp .rank__flurry {
+	position: absolute;
+	inset: 0;
+	z-index: 6;
+	pointer-events: none;
+}
+.lp .rank__chip {
+	position: absolute;
+	display: flex;
+	gap: 0.5em;
+	align-items: baseline;
+	padding: 0.4em 0.85em;
+	border-radius: 999px;
+	background: var(--branco);
+	color: var(--tinta);
+	font-size: 0.9em;
+	font-weight: 600;
+	box-shadow: 0 0.6em 1.4em -0.4em rgba(0, 0, 0, 0.5);
+	opacity: 0;
+	transform: translateY(0.8em) scale(0.85);
+	transition:
+		opacity 0.22s ease,
+		transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lp .rank__chip b {
+	color: #00a957;
+	font-family: var(--fonte-titulo);
+}
+.lp .rank__chip.show {
+	opacity: 1;
+	transform: none;
+}
+
+/* convite do GameShow: sobe por cima do rodapé do card quando "Você" chega ao 1º */
+.lp .rank__convite {
+	position: absolute;
+	inset: auto 1.3em 1.3em;
+	z-index: 7;
+	display: flex;
+	flex-direction: column;
+	gap: 0.15em;
+	padding: 1.1em 1.3em;
+	border-radius: 1.1em;
+	text-align: center;
+	background: var(--verde);
+	color: var(--tinta);
+	box-shadow: 0 1.4em 2.6em -1em rgba(0, 0, 0, 0.6);
+	opacity: 0;
+	transform: translateY(120%);
+	transition:
+		opacity 0.3s ease,
+		transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+	pointer-events: none;
+}
+.lp .rank__convite strong {
+	font-family: var(--fonte-titulo);
+	font-size: 1.35em;
+	line-height: 1.1;
+}
+.lp .rank__convite span {
+	font-weight: 600;
+}
+.lp .rank__convite.show {
+	opacity: 1;
+	transform: none;
+}
+.lp .rank__confete {
+	position: fixed;
+	inset: 0;
+	z-index: 400;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.lp .publicos {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1.4em;
+	margin-top: 3em;
+}
+.lp .publico {
+	padding: 1.9em 2em;
+	border-radius: var(--raio-g);
+	background: rgba(255, 255, 255, 0.09);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+.lp .publico__tag {
+	display: block;
+	font-family: var(--fonte-titulo);
+	font-size: 0.85em;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--verde);
+}
+.lp .publico--ciano .publico__tag {
+	color: var(--ciano);
+}
+.lp .publico__titulo {
+	margin-top: 0.5em;
+	font-size: 1.6em;
+	font-style: oblique 4deg;
+	color: var(--branco);
+}
+.lp .publico__lista {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6em;
+	margin-top: 1em;
+	list-style: none;
+	color: var(--texto-claro);
+}
+.lp .publico__lista li {
+	position: relative;
+	padding-left: 1.4em;
+}
+.lp .publico__lista li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0.55em;
+	width: 0.55em;
+	height: 0.55em;
+	border-radius: 50%;
+	background: var(--verde);
+}
+.lp .publico--ciano .publico__lista li::before {
+	background: var(--ciano);
+}
+.lp .publico__premio {
+	margin-top: 1.2em;
+	padding: 0.9em 1.1em;
+	border-radius: var(--raio-m);
+	background: rgba(255, 255, 255, 0.12);
+	font-weight: 600;
+	line-height: 1.4;
+}
+.lp .publico__premio strong {
+	display: block;
+	margin-bottom: 0.25em;
+	font-family: var(--fonte-titulo);
+	font-size: 0.8em;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--verde);
+}
+.lp .publico--ciano .publico__premio strong {
+	color: var(--ciano);
+}
+.lp .publico__nota {
+	display: block;
+	margin-top: 0.8em;
+	font-size: 0.85em;
+	color: var(--texto-claro-fraco);
+}
+
+.lp .regua__titulo {
+	margin-top: 3.4em;
+	font-size: 1.5em;
+	color: var(--branco);
+}
+.lp .regua {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1px;
+	margin-top: 1.1em;
+	overflow: hidden;
+	border-radius: var(--raio-g);
+	background: rgba(255, 255, 255, 0.16);
+	box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+.lp .regua__item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1em;
+	padding: 1.1em 1.3em;
+	background: #14227a;
+}
+/* a barra é a proporção do ponto (60 = cheia); cresce ao entrar na tela */
+.lp .regua__barra {
+	position: absolute;
+	inset: 0 auto 0 0;
+	background: rgba(0, 255, 133, 0.2);
+	transform-origin: left;
+}
+.lp.js-pronto .regua .regua__barra {
+	transform: scaleX(0);
+}
+.lp.js-pronto .regua.is-revelado .regua__barra {
+	transform: scaleX(1);
+	transition: transform 1.1s var(--ease-out) 0.15s;
+}
+.lp .regua__acao {
+	position: relative;
+	font-weight: 600;
+	line-height: 1.3;
+}
+.lp .regua__nota {
+	display: block;
+	margin-top: 0.25em;
+	font-size: 0.78em;
+	font-weight: 400;
+	color: var(--texto-claro-fraco);
+}
+.lp .regua__pts {
+	position: relative;
+	flex: none;
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	font-size: 1.1em;
+	color: var(--verde);
+	font-variant-numeric: tabular-nums;
+}
+.lp .regua__rodape {
+	max-width: 62em;
+	margin-top: 1.4em;
+	font-size: 0.9em;
+	color: var(--texto-claro-fraco);
+}
+.lp .regua__rodape a {
+	text-decoration: underline;
+}
+
+/* =========================================================
+   5. PERGUNTAS
+   ========================================================= */
+.lp .faq {
+	background: var(--papel);
+	color: var(--tinta);
+}
+.lp .faq__grade {
+	display: grid;
+	grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+	gap: 4em;
+	align-items: start;
+}
+.lp .faq__titulo {
+	font-size: 2.5em;
+	font-style: oblique 6deg;
+}
+.lp .faq__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.8em;
+	margin-top: 1.6em;
+}
+.lp .faq__lista {
+	border-bottom: 1px solid rgba(10, 15, 46, 0.14);
+}
+.lp .faq__item {
+	border-top: 1px solid rgba(10, 15, 46, 0.14);
+}
+.lp .faq__item summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1.2em;
+	padding: 1.2em 0;
+	cursor: pointer;
+	list-style: none;
+	font-family: var(--fonte-titulo);
+	font-weight: 700;
+	font-size: 1.15em;
+	line-height: 1.25;
+}
+.lp .faq__item summary::-webkit-details-marker {
+	display: none;
+}
+.lp .faq__item summary::after {
+	content: '+';
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 1.9em;
+	height: 1.9em;
+	border-radius: 50%;
+	background: var(--tinta);
+	color: var(--verde);
+	font-size: 1.1em;
+	line-height: 1;
+	transition: transform 0.25s var(--ease-out);
+}
+.lp .faq__item[open] summary::after {
+	content: '–';
+	transform: rotate(180deg);
+}
+.lp .faq__item p {
+	max-width: 38em;
+	padding: 0 3em 1.4em 0;
+	color: var(--texto-papel);
+}
+
+/* =========================================================
+   6. FINAL
+   ========================================================= */
+.lp .final {
+	position: relative;
+	overflow: hidden;
+	padding: 6em 0 3em;
+	text-align: center;
+	background: radial-gradient(120% 120% at 50% 0%, #2e3ea8 0%, var(--azul-escuro) 40%, var(--tinta) 100%);
+}
+.lp .final__conteudo {
+	z-index: 2;
+}
+.lp .final__citacao {
+	max-width: 30em;
+	margin: 0 auto;
+	font-family: var(--fonte-titulo);
+	font-size: 1.3em;
+	font-style: italic;
+	font-weight: 500;
+	line-height: 1.35;
+	color: var(--texto-claro);
+}
+.lp .final__citacao span {
+	display: block;
+	margin-top: 0.6em;
+	font-size: 0.75em;
+	font-style: normal;
+	color: var(--texto-claro-fraco);
+}
+.lp .final__titulo {
+	max-width: 14em;
+	margin: 1.1em auto 0;
+	font-size: 3.2em;
+	font-style: oblique 8deg;
+	color: var(--branco);
+}
+.lp .final .cta-row {
+	margin-top: 2em;
+}
+.lp .rodape {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 1em 2em;
+	margin-top: 5em;
+	padding-top: 2em;
+	border-top: 1px solid rgba(255, 255, 255, 0.14);
+	font-size: 0.85em;
+	color: var(--texto-claro-fraco);
+}
+.lp .rodape__logo {
+	width: auto;
+	height: 2.2em;
+}
+.lp .rodape__links {
+	display: flex;
+	gap: 1.4em;
+}
+.lp .rodape__links a:hover {
+	color: var(--branco);
+}
+
+/* =========================================================
+   Modal do filme e CTA flutuante
+   ========================================================= */
+.lp .modal-video {
+	position: fixed;
+	inset: 0;
+	z-index: 300;
+	display: grid;
+	place-items: center;
+	padding: 4vmin;
+	background: rgba(6, 9, 28, 0.92);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.3s;
+}
+.lp .modal-video.is-aberto {
+	opacity: 1;
+	visibility: visible;
+}
+.lp .modal-video__caixa {
+	position: relative;
+	width: min(100%, 140vh);
+}
+.lp .modal-video video {
+	width: 100%;
+	max-height: 82vh;
+	border-radius: var(--raio-m);
+	background: #000;
+}
+.lp .modal-video__fechar {
+	position: absolute;
+	right: 0;
+	bottom: 100%;
+	margin-bottom: 0.6em;
+	padding: 0.5em 1.1em;
+	border-radius: 999px;
+	font-weight: 700;
+	background: rgba(255, 255, 255, 0.14);
+}
+.lp .cta-flutuante {
+	position: fixed;
+	inset: auto 0 0;
+	z-index: 150;
+	display: none;
+	padding: 0.8em 1em calc(0.8em + env(safe-area-inset-bottom));
+	background: linear-gradient(0deg, rgba(10, 15, 46, 0.96) 60%, rgba(10, 15, 46, 0));
+	transform: translateY(110%);
+	transition: transform 0.4s var(--ease-out);
+}
+.lp .cta-flutuante .btn {
+	width: 100%;
+}
+.lp .cta-flutuante.is-visivel {
+	transform: none;
+}
+
+/* =========================================================
+   CELULAR EM PÉ — empilha. Continua tudo em `em`.
+   (Bloco depois de todas as regras base: ordem no arquivo decide a cascata.)
+   ========================================================= */
+@media (max-width: 1000px) {
+	.lp .hero {
+		font-size: min(4.3vw, 2.1svh);
+		padding: 2em 0 1.6em;
+	}
+	.lp .hero__grid {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		width: 100%;
+		padding-inline: 1.4em;
+	}
+	/* a logo e o texto viram irmãos da escada, pra a escada poder ficar entre eles */
+	.lp .hero__texto {
+		display: contents;
+	}
+	.lp .hero__stage {
+		order: 7;
+		align-self: stretch;
+		margin-top: 1.4em;
+	}
+	.lp .mural {
+		width: 48em;
+		font-size: 0.42em;
+	}
+	.lp .hero__titulo {
+		order: 3;
+		font-size: 2.15em;
+	}
+	.lp .hero__dor {
+		display: none;
+	}
+	.lp .hero__sub {
+		order: 4;
+		margin-top: 0.9em;
+		font-size: 1.05em;
+	}
+	.lp .hero .cta-row {
+		order: 5;
+		flex-direction: column;
+		align-self: stretch;
+		margin-top: 1.3em;
+		font-size: 1.05em;
+	}
+	.lp .hero .cta-row .btn {
+		width: 100%;
+	}
+	.lp .hero .cta-nota {
+		order: 6;
+		margin-top: 0.8em;
+		font-size: 0.85em;
+	}
+
+	.lp .secao {
+		padding: 3.4em 0;
+	}
+	.lp .secao__miolo {
+		padding-inline: 1.3em;
+	}
+	.lp .faq__grade {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 2em;
+	}
+	.lp .espacos__grade,
+	.lp .regua,
+	.lp .palco {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.lp .espaco--larga {
+		grid-column: auto;
+	}
+	.lp .palco {
+		gap: 2.4em;
+	}
+	.lp .rank__tag {
+		display: none;
+	}
+	.lp .rank__vp {
+		height: 17em;
+	}
+	.lp .espacos__grade {
+		gap: 0.9em;
+	}
+	.lp .espaco {
+		min-height: 0;
+	}
+	.lp .espaco__texto {
+		margin-top: 0.2em;
+	}
+	.lp .passos {
+		gap: 1.3em;
+	}
+	.lp .regua__titulo {
+		margin-top: 2.4em;
+	}
+	.lp .espacos__titulo,
+	.lp .pontos__titulo,
+	.lp .vozes__titulo,
+	.lp .trilhas-lp__titulo,
+	.lp .faq__titulo {
+		font-size: 1.9em;
+	}
+	.lp .publicos,
+	.lp .virada {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1em;
+		margin-top: 2em;
+	}
+	.lp .vozes__topo,
+	.lp .trilhas-lp__topo {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.2em;
+		margin-bottom: 1.6em;
+	}
+	/* vozes viram carrossel de ponta a ponta, com o próximo card já aparecendo */
+	.lp .vozes__grade {
+		display: flex;
+		gap: 0.9em;
+		margin-inline: -1.3em;
+		padding-inline: 1.3em;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: 1.3em;
+		scrollbar-width: none;
+	}
+	.lp .voz {
+		flex: 0 0 15em;
+		scroll-snap-align: start;
+	}
+	.lp .numeros {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.6em 1em;
+		padding: 1.6em 1.4em;
+		margin-top: 2em;
+	}
+	.lp .numero__valor {
+		font-size: 2.1em;
+	}
+	.lp .numero__valor--texto {
+		font-size: 1.35em;
+	}
+	.lp .trilhas-lp__grade {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1em;
+	}
+	.lp .final {
+		padding: 3.6em 0 6em;
+	}
+	.lp .final__titulo {
+		font-size: 2.2em;
+	}
+	.lp .final .cta-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.lp .final .cta-row .btn {
+		white-space: normal;
+		width: 100%;
+	}
+	.lp .faq__item p {
+		padding-right: 0;
+	}
+	.lp .cta-flutuante {
+		display: block;
+	}
+}
+
+@media (max-width: 1000px) {
+	.lp .iniciativas__titulo {
+		font-size: 1.9em;
+	}
+	.lp .ini {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1.2em;
+	}
+	.lp .ini__cab {
+		position: static;
+		min-height: 0;
+	}
+	.lp .ini__grade {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.6em;
+	}
+	.lp .cartao__local {
+		display: none;
+	}
+	.lp .cartao__nome {
+		font-size: 0.78em;
+	}
+	.lp .ini + .ini {
+		margin-top: 2.4em;
+		padding-top: 2.4em;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lp .testemunhos__trilho,
+	.lp .orbita,
+	.lp .aurora,
+	.lp .hero__titulo .linha span {
+		animation: none;
+	}
+	.lp .tl-card,
+	.lp .faq__item summary::after {
+		transition: none;
+	}
+}
