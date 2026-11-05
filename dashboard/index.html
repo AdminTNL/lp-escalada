@@ -5958,6 +5958,26 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         if (stateMatch) return `UF${UF_NAME_TO_SIGLA[stateMatch]}`;
       }
 
+      // Instituto Federal (de Educacao, Ciencia e Tecnologia) -> sigla
+      // IF+estado + CAMPUS (ex. "IFAL Marechal Deodoro") -- diferente de
+      // universidade federal, os campi de um IF sao unidades bem distintas
+      // entre si (varias por estado), entao o apelido precisa manter o
+      // campus pra nao virar ambiguo/generico demais.
+      const federalInstPrefixMatch = /^INSTITUTO\s+FEDERAL(?:\s+DE\s+EDUCACAO,?\s+CIENCIA\s+E\s+TECNOLOGIA)?\s+D[EOA]\s+/.exec(normalized);
+      if (federalInstPrefixMatch) {
+        const afterPrefixIdx = federalInstPrefixMatch[0].length;
+        const remainder = normalized.slice(afterPrefixIdx);
+        const stateName = Object.keys(UF_NAME_TO_SIGLA).find(
+          (s) => remainder === s || remainder.startsWith(`${s} `) || remainder.startsWith(`${s}-`)
+        );
+        if (stateName) {
+          const sigla = `IF${UF_NAME_TO_SIGLA[stateName]}`;
+          let restIdx = afterPrefixIdx + stateName.length;
+          while (restIdx < normalized.length && /[\s-]/.test(normalized[restIdx])) restIdx++;
+          return restIdx < name.length ? `${sigla} ${titleCasePt(name.slice(restIdx), true)}` : sigla;
+        }
+      }
+
       for (const rule of INSTITUTION_PREFIX_ABBREVIATIONS) {
         const match = rule.pattern.exec(normalized);
         if (match) {
