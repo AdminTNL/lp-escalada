@@ -7460,18 +7460,19 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             source,
             // Fonte unica de verdade pro texto exibido -- multiplicadores/
             // convites sao nomes de pessoas fisicas (geralmente estudantes),
-            // exibe so os 2 primeiros nomes por privacidade; instituicao de
-            // ensino usa o apelido popular (UFAL, CE/EE + nome, etc., ver
-            // abbreviateInstitutionName) quando os nomes completos sao
-            // grandes demais (ex. "COLEGIO ESTADUAL DA POLICIA MILITAR DE
-            // GOIAS DE AGUAS LINDAS DE GOIAS"). `source` continua completo
-            // em todo lugar (key, fetch da API), so `displayName` e'
-            // truncado/abreviado -- centralizado aqui pra nao precisar
-            // caçar cada ponto de renderizacao (lista, modal, bubble chart,
-            // radar) individualmente.
-            displayName: isPersonSourceFamily(family)
-              ? truncatePersonName(source)
-              : (family === "instituicao" ? abbreviateInstitutionName(source) : source),
+            // exibe so os 2 primeiros nomes por privacidade. `source`
+            // continua completo em todo lugar (key, fetch da API, lista,
+            // modal, radar), so `displayName` e' truncado -- centralizado
+            // aqui pra nao precisar caçar cada ponto de renderizacao
+            // individualmente.
+            displayName: isPersonSourceFamily(family) ? truncatePersonName(source) : source,
+            // Apelido de Instituicao de Ensino (UFAL, CE/EE + nome, etc.,
+            // ver abbreviateInstitutionName) -- SO pro bubble chart (pedido
+            // explicito do Gabriel: nome completo em todo o resto, incluindo
+            // o modal de detalhamento -- o apelido existe so porque a bolha
+            // tem pouquissimo espaco pra texto, nao e' o nome "de verdade"
+            // da fonte em lugar nenhum).
+            bubbleLabel: family === "instituicao" ? abbreviateInstitutionName(source) : null,
             inscritos: 0,
             atendimentos: 0,
             atendidos: 0,
@@ -9820,14 +9821,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         }))
         .map((node) => {
           let radius = toRadius(node.row?.[sizeField]);
-          let layout = computeTextLayout((node.row?.displayName ?? node.row?.source), node.labelCount, radius);
+          let layout = computeTextLayout((node.row?.bubbleLabel ?? node.row?.displayName ?? node.row?.source), node.labelCount, radius);
           for (let i = 0; i < 6; i++) {
             if (layout.neededR <= radius + 0.5) break;
             radius = layout.neededR;
-            layout = computeTextLayout((node.row?.displayName ?? node.row?.source), node.labelCount, radius);
+            layout = computeTextLayout((node.row?.bubbleLabel ?? node.row?.displayName ?? node.row?.source), node.labelCount, radius);
           }
           node.r = Math.ceil(radius);
-          node.textLayout = computeTextLayout((node.row?.displayName ?? node.row?.source), node.labelCount, node.r);
+          node.textLayout = computeTextLayout((node.row?.bubbleLabel ?? node.row?.displayName ?? node.row?.source), node.labelCount, node.r);
           return node;
         })
         .sort((a, b) => Number(b.r || 0) - Number(a.r || 0));
@@ -9855,7 +9856,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const shrink = Math.sqrt((availableArea * PACKING_EFFICIENCY) / totalBubbleArea);
         for (const node of nodes) {
           node.r = Math.max(12, Math.round(node.r * shrink));
-          node.textLayout = computeTextLayout((node.row?.displayName ?? node.row?.source), node.labelCount, node.r);
+          node.textLayout = computeTextLayout((node.row?.bubbleLabel ?? node.row?.displayName ?? node.row?.source), node.labelCount, node.r);
         }
       }
 
