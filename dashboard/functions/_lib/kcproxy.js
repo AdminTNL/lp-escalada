@@ -1,11 +1,19 @@
 // Reverse proxy do Keycloak real pra dentro do nosso dominio -- o navegador
 // do gestor NUNCA visita keycloak-escalada.tnledu.shop diretamente (nem a
 // tela de login), pra nao sofrer o mesmo bloqueio de firewall que esse
-// dominio ja causa nas chamadas de API. Tecnica: fetch servidor-a-servidor
-// pro Keycloak real + reescrita de texto (Location/Set-Cookie/corpo
-// HTML-CSS-JS) trocando o hostname real pelo nosso. NAO depende de mudar
-// nenhuma config do Keycloak compartilhado (KC_HOSTNAME etc) -- se um dia
-// isso nao bastar (ver README), essa e' a unica peca que precisa mudar.
+// dominio ja causa nas chamadas de API.
+//
+// O Keycloak (KC_HOSTNAME removido, dinamico desde 2026-11-05) gera links
+// com o dominio certo quando recebe X-Forwarded-Host confiavel -- o Traefik
+// so aplica esse X-Forwarded-Host customizado (em vez do fixo real, que e'
+// o que o router padrao sempre manda) quando a requisicao carrega o header
+// secreto abaixo (ver labels traefik.http.routers.keycloak-dashboard-poc no
+// service keycloak_keycloak/Portainer). Sem esse header, cai no router
+// padrao (hostname real fixo) -- por isso TODA chamada deste proxy precisa
+// mandar o secret, inclusive pro broker do Google funcionar sem hop.
+//
+// A reescrita de texto abaixo (Location/Set-Cookie/corpo) fica como rede de
+// seguranca (idempotente se o Keycloak ja devolver o dominio certo).
 
 export const KEYCLOAK_ORIGIN = "https://keycloak-escalada.tnledu.shop";
 
@@ -16,7 +24,7 @@ const PASSTHROUGH_SKIP_HEADERS = new Set([
   "content-security-policy",
 ]);
 
-export async function proxyToKeycloak(request) {
+export async function proxyToKeycloak(request, env) {
   const url = new URL(request.url);
   const target = new URL(url.pathname + url.search, KEYCLOAK_ORIGIN);
   const keycloakHost = new URL(KEYCLOAK_ORIGIN).host;
@@ -26,6 +34,9 @@ export async function proxyToKeycloak(request) {
   headers.set("Host", keycloakHost);
   headers.set("X-Forwarded-Host", url.host);
   headers.set("X-Forwarded-Proto", "https");
+  if (env && env.DASHBOARD_PROXY_SECRET) {
+    headers.set("X-Dashboard-Proxy-Secret", env.DASHBOARD_PROXY_SECRET);
+  }
   headers.delete("cf-connecting-ip");
 
   const init = {

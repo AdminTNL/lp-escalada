@@ -20,7 +20,15 @@ function b64urlToBytes(str) {
 // KEYCLOAK_ORIGIN direto, sem precisar do proxy /realms. Verifica a
 // assinatura do id_token contra o JWKS do realm antes de confiar em
 // qualquer claim.
-async function verifyIdToken(idToken) {
+//
+// O issuer esperado e' o NOSSO dominio, nao o hostname real do Keycloak:
+// desde que KC_HOSTNAME ficou dinamico (2026-11-05) e o proxy /realms
+// manda o header que faz o Traefik forcar X-Forwarded-Host pro nosso
+// dominio, o Keycloak carrega esse hostname resolvido pra toda a sessao de
+// autenticacao (inclusive o claim `iss` do token final) -- mesmo essa
+// chamada de troca de token sendo direta, sem header, o issuer reflete o
+// que foi resolvido na etapa de autorizacao (proxied), nao o desta chamada.
+async function verifyIdToken(idToken, expectedIssuer) {
   const [headerB64, payloadB64, sigB64] = idToken.split(".");
   if (!headerB64 || !payloadB64 || !sigB64) throw new Error("id_token malformado");
   const header = JSON.parse(new TextDecoder().decode(b64urlToBytes(headerB64)));
@@ -49,8 +57,8 @@ async function verifyIdToken(idToken) {
 
   const now = Math.floor(Date.now() / 1000);
   if (!payload.exp || payload.exp < now) throw new Error("id_token expirado");
-  if (payload.iss !== `${KEYCLOAK_ORIGIN}/realms/${REALM}`) {
-    throw new Error("issuer inesperado: " + payload.iss);
+  if (payload.iss !== expectedIssuer) {
+    throw new Error("issuer inesperado: " + payload.iss + " (esperado " + expectedIssuer + ")");
   }
   const aud = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
   if (!aud.includes(CLIENT_ID)) throw new Error("audience nao inclui o client esperado");
@@ -99,15 +107,15 @@ export async function onRequestGet(context) {
 
   if (!tokenRes.ok) {
     const errText = await tokenRes.text();
-    return new Response("Falha ao trocar o codigo por token: " + errText, { status: 502 });
+    return new Response("Falha ao trocar o codigo por token (status " + tokenRes.status + "): " + errText, { status: 400 });
   }
   const tokenBody = await tokenRes.json();
 
   let claims;
   try {
-    claims = await verifyIdToken(tokenBody.id_token);
+    claims = await verifyIdToken(tokenBody.id_token, `${url.protocol}//${url.host}/realms/${REALM}`);
   } catch (err) {
-    return new Response("id_token invalido: " + err.message, { status: 502 });
+    return new Response("id_token invalido: " + err.message, { status: 400 });
   }
 
   if (!claims.email) {

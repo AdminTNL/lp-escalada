@@ -103,51 +103,72 @@ cd dashboard
 npx wrangler pages deploy . --project-name=escalada-dashboard --branch=main --commit-dirty=true
 ```
 
-**Importante**: o comando precisa rodar com o cwd DENTRO de `dashboard/`
-(não na raiz do repo) — o `wrangler pages deploy [directory]` busca a pasta
-`functions/` relativa ao cwd, não relativa ao `[directory]` passado. Rodar
-da raiz com `wrangler pages deploy dashboard` faz o Functions bundle pegar
-o `functions/` ERRADO (o da raiz do repo, só `api/trafego.js` da LP
-principal) — todas as rotas `/auth/*`/`/api/*` silenciosamente viram 404
-(caem no fallback SPA pro `index.html`), sem erro nenhum no deploy. Já
-aconteceu uma vez nesta POC, custou um ciclo de debug até achar a causa.
+**Importante (wrangler local)**: o comando precisa rodar com o cwd DENTRO de
+`dashboard/` (não na raiz do repo) — o `wrangler pages deploy [directory]`
+busca a pasta `functions/` relativa ao cwd, não relativa ao `[directory]`
+passado. Rodar da raiz com `wrangler pages deploy dashboard` faz o
+Functions bundle pegar o `functions/` ERRADO (o da raiz do repo, só
+`api/trafego.js` da LP principal) — todas as rotas `/auth/*`/`/api/*`
+silenciosamente viram 404 (caem no fallback SPA pro `index.html`), sem erro
+nenhum no deploy.
 
-## Limitação conhecida — login "Entrar com Google"
+**Importante (build via GitHub)**: o projeto Pages precisa de
+`build_config.root_dir="dashboard"` (NÃO `destination_dir`) pra resolver
+`functions/` certo num build disparado por push. `destination_dir` sozinho
+(o padrão usado por `lp-escalada-dev`, que nunca teve Functions próprias
+pra expor esse bug) faz o build do GitHub cometer o MESMO erro do wrangler
+local acima — já aconteceu nesta POC: um push normal (documentação, sem
+tocar em `functions/`) disparou o auto-deploy, que silenciosamente serviu
+a versão sem Functions por alguns minutos até o problema ser notado e a
+config corrigida via API (`PATCH .../pages/projects/escalada-dashboard`
+com `{"build_config":{"root_dir":"dashboard","destination_dir":""}}`).
+Verificar sempre `/auth/me` (deve devolver JSON, nunca HTML) depois de
+qualquer push nesta pasta.
 
-O login nativo (email/senha) fica 100% dentro de
-`dashboard.escaladagame.com.br` — validado de ponta a ponta. **Login
-social (Google) ainda tem um hop real pro domínio verdadeiro do Keycloak**
-depois que o Google autoriza (`keycloak-escalada.tnledu.shop/realms/
-escalada/broker/google/endpoint`).
+## RESOLVIDO — login "Entrar com Google" também 100% same-origin
 
-Causa raiz identificada (não é bug do proxy): o Keycloak está com
-`KC_HOSTNAME` fixo (`keycloak-escalada.tnledu.shop`), que faz ele ignorar o
-`X-Forwarded-Host` que o Traefik já envia corretamente (confirmado via
-access log do Traefik: o router novo — `keycloak-dashboard-poc@swarm` — é
-escolhido certo, o middleware manda o header certo, o Keycloak é quem
-ignora). Os dois routers do Traefik (`keycloak` e `keycloak-dashboard-poc`,
-ver labels do service `keycloak_keycloak` no Portainer) já forçam valores
-diferentes de `X-Forwarded-Host` cada um — removendo o `KC_HOSTNAME` fixo
-(deixando dinâmico) deveria bastar, SEM quebrar a Circle (cujo router já
-força o hostname real de qualquer forma). Confirmado também: Keycloak só é
-alcançável via esses 2 routers (sem porta publicada direta), então não há
-brecha nova.
+Login nativo (email/senha) E login social (Google) ficam 100% dentro de
+`dashboard.escaladagame.com.br` — os dois validados de ponta a ponta (via
+Playwright e via replay manual com `curl`/cookie jar), zero requisição pra
+`tnledu.shop` em qualquer um dos dois fluxos.
 
-**Tentativa real (2026-11-05) causou ~1min de indisponibilidade do
-Keycloak/Circle** (erro de autenticação no Postgres, aparentemente não
-relacionado — revertida a mudança e o problema persistiu por mais alguns
-ciclos antes de se resolver sozinho; senha confirmada correta via teste
-direto no Postgres). Provavelmente um soluço de orquestração do Swarm por
-emitir updates em sequência rápida, não uma consequência lógica da mudança.
-Mudança revertida, `KC_HOSTNAME` de volta ao valor fixo original. **Pendente
-de nova tentativa**, fora de horário de pico, sem outra mudança em paralelo.
+**O que foi feito** (2026-11-05, em 2 rodadas):
 
-Já aplicado nesta sessão (fica, independente da decisão acima): client OAuth
-do Google (`802193219150-rhvcnraa1cgh09ubrl3mehsup7kgdh5f.apps.googleusercontent.com`,
-mesmo usado pela Circle) ganhou um redirect URI extra
-(`https://dashboard.escaladagame.com.br/realms/escalada/broker/google/endpoint`)
-no Google Cloud Console, projeto "Auth na Circle" — necessário pro dia que o
-`KC_HOSTNAME` dinâmico for aplicado de vez.
+1. **`KC_HOSTNAME` fixo removido** do service `keycloak_keycloak`
+   (Portainer/`docker service update --env-rm KC_HOSTNAME`) — Keycloak passa
+   a resolver o hostname dinamicamente via `X-Forwarded-Host` (já confiava
+   nesse header, `KC_PROXY_HEADERS=xforwarded` já estava configurado). Os 2
+   routers do Traefik (`keycloak`, `keycloak-dashboard-poc`) continuam
+   forçando valores diferentes de `X-Forwarded-Host` cada um — a Circle
+   nunca foi afetada, confirmado antes/depois.
+2. **Client OAuth do Google** (`802193219150-rhvcnraa1cgh09ubrl3mehsup7kgdh5f.apps.googleusercontent.com`,
+   mesmo usado pela Circle, projeto "Auth na Circle" no Google Cloud
+   Console) ganhou um redirect URI extra:
+   `https://dashboard.escaladagame.com.br/realms/escalada/broker/google/endpoint`.
+3. **Bug real achado na 1ª rodada**: a regra do Traefik (`keycloak-
+   dashboard-poc`, que só libera `X-Forwarded-Host` customizado quando a
+   requisição carrega o header secreto `X-Dashboard-Proxy-Secret`) estava
+   certa, mas o proxy (`functions/_lib/kcproxy.js`) **nunca mandava esse
+   header de verdade** -- só existia no teste manual via `curl`. Fix: secret
+   novo `DASHBOARD_PROXY_SECRET` (Cloudflare Pages secret, mesmo valor do
+   env var do Traefik/Portainer) + `kcproxy.js` manda o header em toda
+   chamada pro Keycloak real.
+4. **Efeito colateral do fix #3**: como a autorização completa (incluindo o
+   `iss` do id_token final) agora reflete o hostname resolvido na etapa de
+   autorização (o nosso, não mais o real), a verificação de issuer em
+   `functions/auth/callback.js` (`verifyIdToken`) precisou trocar de
+   hardcoded `KEYCLOAK_ORIGIN` pra dinâmico (`${url.host}`) -- sem essa
+   troca, TANTO o login nativo quanto o Google passaram a falhar com
+   "issuer inesperado" (achado e corrigido na validação desta mesma rodada).
+
+**Tentativa de remover `KC_HOSTNAME` causou ~1min de indisponibilidade do
+Keycloak/Circle nas duas vezes que foi aplicada** (erro de autenticação no
+Postgres, idêntico nas duas tentativas, se resolveu sozinho em ambas antes
+de qualquer revert ter efeito real -- confirmado não relacionado ao
+`KC_HOSTNAME`, provavelmente um soluço de orquestração do Swarm ao aplicar
+qualquer `docker service update` nesse serviço). Se for repetir esse tipo de
+mudança no futuro, esperar esse soluço inicial (~45-60s, 2 falhas) antes de
+assumir que algo quebrou de vez.
 
 ## Fora do escopo desta POC
 
