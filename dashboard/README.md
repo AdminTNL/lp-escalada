@@ -257,6 +257,14 @@ convite/regional (usam `navigator.clipboard.writeText`, que não dispara o
 evento `copy` do DOM — mecanismo diferente, fora de escopo a pedido
 explícito do Gabriel).
 
+**Exportar PDF de fonte também registrado**: `exportSourceDetailReport()`
+usa `window.print()` (motor de impressão nativo do navegador) — 100%
+client-side, sem nenhuma chamada de rede, então não tinha nenhum log
+natural (diferente de "baixar contatos", que já passa por
+`report=fonte_contatos`). Ganhou `logEventoCliente('export_pdf_fonte', ...)`
+logo antes de `window.print()`, com `fonte`/`family`/`uf`/`date_from`/
+`date_to` do contexto do modal aberto.
+
 **Bug de encoding achado e corrigido nesta rodada** (afeta qualquer
 `detalhamento` com acento, não só este): o node `HTTP Request` nativo do
 n8n corrompia texto UTF-8 multibyte tanto montando a chamada pro Supabase

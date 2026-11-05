@@ -12283,6 +12283,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       document.body.classList.add("print-source-detail-mode");
       _restoreForeignChrome = hideForeignChrome();
       await waitForPrintImages();
+      // Log ANTES do window.print(): em alguns navegadores o dialogo de
+      // impressao bloqueia a UI thread até ser fechado, e o fetch
+      // (keepalive) precisa ter saido da fila antes disso.
+      const sdRow = state.sourceDetailActiveRow;
+      logEventoCliente("export_pdf_fonte", {
+        fonte: sdRow?.source || null,
+        family: normalizeSourceFamily(sdRow?.family || state.sourceFamily),
+        uf: sdRow?.uf || state.filters?.uf || null,
+        date_from: state.sourceDetailPeriod?.dateFrom || null,
+        date_to: state.sourceDetailPeriod?.dateTo || null,
+      });
       window.print();
     }
 
