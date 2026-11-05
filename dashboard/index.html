@@ -21874,10 +21874,6 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             <div class="text-white/70 text-[11px] mt-1">Painel institucional</div>
           </div>
         </div>
-        <div id="dashSessionBar" class="flex items-center justify-between gap-2 pb-3 mb-1 border-b border-white/10 text-[11px] text-white/70">
-          <span id="dashSessionEmail" class="truncate"></span>
-          <a href="/auth/logout" class="text-white/80 hover:text-white underline shrink-0">Sair</a>
-        </div>
         <div class="sidebar-section-label">Painel</div>
 
         <nav id="sidebarNav" class="sidebar-nav flex flex-col gap-1" aria-label="Navegação do painel">
@@ -21950,6 +21946,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             </span>
           </a>
         </nav>
+
+        <div id="dashSessionBar" class="mt-auto pt-3 border-t border-white/10 flex items-center gap-2 text-[11px] text-white/70">
+          <i data-lucide="circle-user" class="w-4 h-4 shrink-0"></i>
+          <span id="dashSessionEmail" class="truncate flex-1"></span>
+          <a href="/auth/logout" class="text-white/80 hover:text-white underline shrink-0">Sair</a>
+        </div>
       </div>
 
     </aside>
