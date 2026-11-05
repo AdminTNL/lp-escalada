@@ -3572,6 +3572,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-size: 0.88rem;
     }
 
+    /* #meusConvitesList e' display:grid (colunas de ~240-300px pros
+       cards) -- sem isso, o aviso vira um item de grid normal, preso na
+       1a coluna estreita, e o text-align:center acima so centraliza o
+       texto DENTRO dessa coluna estreita (fica grudado na esquerda do
+       card inteiro). grid-column:1/-1 faz ele ocupar a largura toda.
+       Achado real (screenshot), pedido do Gabriel: "Nenhum link ativo no
+       momento." aparecia no canto esquerdo em vez de centralizado. */
+    #meusConvitesList .meus-convites-empty-state {
+      grid-column: 1 / -1;
+    }
+
     .kit-jump-chip-icon {
       display: inline-flex;
       align-items: center;
