@@ -7059,6 +7059,15 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         totalLabel: "Convites ativos",
         emptyMessage: "Nenhum convite classificado no recorte atual.",
         coverage: (items, inscritos, atendimentos) => `${fmtInt(atendimentos)} atendimentos e ${fmtInt(inscritos)} inscritos em ${fmtInt(items)} convites.`
+      },
+      instituicao: {
+        label: "Instituição de Ensino",
+        chartTitle: `Top ${SOURCE_BUBBLE_LIMIT} instituições de ensino`,
+        listTitle: "Ranking por Instituição de Ensino",
+        listHint: "Clique em uma linha para abrir detalhes.",
+        totalLabel: "Instituições ativas",
+        emptyMessage: "Nenhuma instituição de ensino identificada no recorte atual.",
+        coverage: (items, inscritos, atendimentos) => `${fmtInt(atendimentos)} atendimentos e ${fmtInt(inscritos)} inscritos em ${fmtInt(items)} instituições de ensino.`
       }
     };
 
@@ -7070,6 +7079,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       if (key === "multiplicadores" || key === "multiplicador") return "multiplicadores";
       if (key === "embaixadores" || key === "embaixador") return "embaixadores";
       if (key === "convites" || key === "convite") return "convites";
+      if (key === "instituicao" || key === "instituicoes") return "instituicao";
       return "geral";
     }
 
@@ -21915,6 +21925,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               <a href="?source_family=multiplicadores#sources:multiplicadores" data-source-family="multiplicadores" aria-pressed="false">Multiplicadores</a>
               <a href="?source_family=embaixadores#sources:embaixadores" data-source-family="embaixadores" aria-pressed="false">Embaixadores</a>
               <a href="?source_family=convites#sources:convites" data-source-family="convites" aria-pressed="false">Convites</a>
+              <a href="?source_family=instituicao#sources:instituicao" data-source-family="instituicao" aria-pressed="false">Instituição de Ensino</a>
             </div>
           </div>
           <a href="#kit" data-nav="kit">
@@ -22053,6 +22064,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               <a href="?source_family=multiplicadores#sources:multiplicadores" class="period-shortcuts-item" data-source-family="multiplicadores" role="menuitem" aria-pressed="false">Multiplicadores</a>
               <a href="?source_family=embaixadores#sources:embaixadores" class="period-shortcuts-item" data-source-family="embaixadores" role="menuitem" aria-pressed="false">Embaixadores</a>
               <a href="?source_family=convites#sources:convites" class="period-shortcuts-item" data-source-family="convites" role="menuitem" aria-pressed="false">Convites</a>
+              <a href="?source_family=instituicao#sources:instituicao" class="period-shortcuts-item" data-source-family="instituicao" role="menuitem" aria-pressed="false">Instituição de Ensino</a>
             </div>
           </details>
           <button id="btnRegionaisLinksTop" class="btn btn-sm hidden" type="button" style="background:#0a0a0a;border-color:#0a0a0a;color:#fff">
