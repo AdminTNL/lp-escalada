@@ -48,10 +48,17 @@ export async function proxyToKeycloak(request) {
       continue;
     }
     if (lower === "location") {
-      outHeaders.set(
-        "location",
-        value.split(KEYCLOAK_ORIGIN).join(ourOrigin).split(keycloakHost).join(url.host)
-      );
+      // So reescreve quando o PROPRIO redirect aponta pro Keycloak real (o
+      // Keycloak redirecionando pra si mesmo) -- nunca um replace cego no
+      // valor inteiro, porque um redirect pro broker do Google carrega o
+      // redirect_uri real do Keycloak como QUERY PARAM pro lado de fora
+      // (precisa chegar intacto em accounts.google.com, que so aceita o
+      // redirect_uri exato cadastrado no Google Cloud Console).
+      let loc = value;
+      if (loc.startsWith(KEYCLOAK_ORIGIN)) {
+        loc = ourOrigin + loc.slice(KEYCLOAK_ORIGIN.length);
+      }
+      outHeaders.set("location", loc);
       continue;
     }
     outHeaders.append(key, value);
