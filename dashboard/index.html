@@ -7150,6 +7150,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       if (key === "embaixadores" || key === "embaixador") return "embaixadores";
       if (key === "convites" || key === "convite") return "convites";
       if (key === "instituicao" || key === "instituicoes") return "instituicao";
+      // Regionais (painel de territorio) -- clicar numa regional/
+      // microrregiao/municipio abre o MESMO modal de detalhe de fonte, so
+      // que agrupado por territorio em vez de tag/campo de perfil. So usado
+      // via `row.family` explicito (ver renderRegionaisHotlist), nunca
+      // aparece na navegacao normal de Fontes.
+      if (key === "regional" || key === "regionalcliente" || key === "regional_cliente") return "regional";
+      if (key === "microrregiao" || key === "microrregioes") return "microrregiao";
+      if (key === "municipio" || key === "municipios") return "municipio";
       return "geral";
     }
 
@@ -12304,10 +12312,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const family = normalizeSourceFamily(row?.family || state.sourceFamily);
       const dateFrom = state.sourceDetailPeriod?.dateFrom || state.filters?.dateFrom;
       const dateTo = state.sourceDetailPeriod?.dateTo || state.filters?.dateTo;
+      // row.uf: override explicito (ver uso em Regionais -- a UF certa e' a
+      // do territorio clicado, state.regionaisSelectedUf, nao o filtro
+      // global de UF da pagina, que pode estar vazio ou numa UF diferente).
+      const uf = row?.uf || state.filters?.uf;
       showToast("Preparando contatos...", "info");
       try {
         const email = await waitForGestorEmail();
-        const data = await fetchFonteContatos({ family, fonte, dateFrom, dateTo, uf: state.filters?.uf, publico: state.filters?.publico, email });
+        const data = await fetchFonteContatos({ family, fonte, dateFrom, dateTo, uf, publico: state.filters?.publico, email });
         if (data.ok === false && data.motivo === "uf_bloqueada") {
           showToast("Essa fonte não é da sua UF — contato indisponível.", "warning");
           return;
@@ -12339,6 +12351,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const family = normalizeSourceFamily(row?.family || state.sourceFamily);
       const fonte = String(row?.source || "").trim();
       if (!fonte) return;
+      // row.uf: override explicito (ver comentario em handleBaixarContatos).
+      const uf = row?.uf || state.filters?.uf;
 
       const dateFrom = options.dateFrom || state.sourceDetailPeriod?.dateFrom || state.filters?.dateFrom;
       const dateTo = options.dateTo || state.sourceDetailPeriod?.dateTo || state.filters?.dateTo;
@@ -12346,7 +12360,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       state.sourceDetailPeriod = { dateFrom, dateTo, presetKey };
       syncSourceDetailPeriodLabel();
 
-      const key = getSourceDetailTimelineRequestKey(family, fonte, dateFrom, dateTo, state.filters?.uf, state.filters?.publico);
+      const key = getSourceDetailTimelineRequestKey(family, fonte, dateFrom, dateTo, uf, state.filters?.publico);
       if (state.sourceDetailTimeline?.key === key) {
         renderSourceDetailTimeline(row);
         return;
@@ -12355,7 +12369,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       state.sourceDetailTimeline = { key, status: "loading", data: null };
       renderSourceDetailTimeline(row);
 
-      fetchSourceDetalhe({ family, fonte, dateFrom, dateTo, uf: state.filters?.uf, publico: state.filters?.publico })
+      fetchSourceDetalhe({ family, fonte, dateFrom, dateTo, uf, publico: state.filters?.publico })
         .then((data) => {
           if (state.sourceDetailTimeline?.key !== key) return;
           state.sourceDetailTimeline = { key, status: "ready", data };
@@ -19043,7 +19057,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       if (opts.focusedKey && key === opts.focusedKey) classes.push("is-focused");
       const styleAttr = opts.rowStyle ? ` style="${opts.rowStyle}"` : "";
       return `
-          <button type="button" class="${classes.join(" ")}" data-key="${escapeHtml(key)}"${styleAttr}>
+          <button type="button" class="${classes.join(" ")}" data-key="${escapeHtml(key)}" data-name="${escapeHtml(regionaisRowName(r))}"${styleAttr}>
             ${badgeHtml}
             <span class="regionais-hotlist-info">
               <span class="regionais-hotlist-name">${escapeHtml(regionaisRowName(r))}</span>
@@ -19237,18 +19251,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           if (scope === "multiplicador") return;
           const btn = e.target.closest(".regionais-hotlist-row");
           if (!btn || !el.contains(btn)) return;
-          const key = btn.dataset.key || "";
-          const mapCtx = maps.get("mapRegionais");
-          if (scope === "municipio") {
-            mapCtx?.regionaisFocusOnMunicipio?.(key);
-          } else if (scope === "microrregiao") {
-            mapCtx?.regionaisFocusOnMicrorregiao?.(key);
-          } else {
-            mapCtx?.regionaisFocusOnRegionalCliente?.(key);
-          }
-          if (window.matchMedia("(max-width: 1024px)").matches) {
-            document.getElementById("mapRegionais")?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
+          // RESOLVIDO (2026-11-05, pedido do Gabriel): clicar numa linha NAO
+          // revela mais o territorio no mapa -- abre o modal de detalhe de
+          // fonte (mesmo usado em Fontes), agrupado por regional/
+          // microrregiao/municipio em vez de tag/campo de perfil. `name`
+          // (texto exibido) e' o p_fonte; `scope` vira a `family`; `uf` fica
+          // travada na UF que esse painel de Regionais ja esta mostrando
+          // (state.regionaisSelectedUf), nao no filtro global da pagina.
+          const name = btn.dataset.name || "";
+          if (!name) return;
+          openSourceDetailModal({
+            source: name,
+            displayName: name,
+            family: scope,
+            uf: state.regionaisSelectedUf || null,
+          });
         });
       }
       // Listener de scroll pra virtualizacao -- preso 1x (mesmo guard de
