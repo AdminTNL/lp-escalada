@@ -8386,6 +8386,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       throw new Error("API failed after retries.");
     }
 
+    // Auditoria de eventos client-side que o backend nao tem visibilidade
+    // natural (ex: usuario selecionou texto e copiou com Ctrl+C, sem passar
+    // por nenhum botao/handler dedicado) -- fire-and-forget, nunca trava a
+    // UI (keepalive garante que a requisicao completa mesmo que a pagina
+    // navegue logo depois).
+    function logEventoCliente(acao, detalhamento) {
+      try {
+        fetch("/api/log-evento", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ acao, detalhamento: detalhamento || null }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch (e) {
+        console.warn("[UI] [audit] log-evento failed", { err: String(e) });
+      }
+    }
+
     async function loadData() {
       const params = getRpcParams(state.filters);
       const t0 = performance.now();
@@ -21713,6 +21731,31 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const btnReset = document.getElementById("btnResetFilters");
       const ufWelcomeModal = document.getElementById("ufWelcomeModal");
       const sourceDetailModal = document.getElementById("sourceDetailModal");
+      const sourceDetailContactEl = document.getElementById("sourceDetailContact");
+      // Dado de contato do multiplicador/embaixador (email/telefone, so'
+      // aparece aqui quando o backend libera pra UF do gestor) nao tem
+      // botao de "copiar" proprio -- a pessoa so seleciona o texto e aperta
+      // Ctrl+C. O evento `copy` do navegador dispara pra qualquer selecao
+      // copiada na pagina inteira, por isso escopamos pelo elemento onde a
+      // selecao realmente ocorreu (range.commonAncestorContainer), nao por
+      // conteudo/regex -- ja sabemos exatamente onde esse dado aparece.
+      if (sourceDetailContactEl) {
+        document.addEventListener("copy", () => {
+          const sel = window.getSelection();
+          if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+          const range = sel.getRangeAt(0);
+          if (!sourceDetailContactEl.contains(range.commonAncestorContainer)) return;
+          const texto = sel.toString().trim();
+          if (!texto) return;
+          const row = state.sourceDetailActiveRow;
+          logEventoCliente("copy_contato_multiplicador", {
+            fonte: row?.source || null,
+            family: normalizeSourceFamily(row?.family || state.sourceFamily),
+            uf: row?.uf || state.filters?.uf || null,
+            texto,
+          });
+        });
+      }
       const btnCloseSourceDetail = document.getElementById("btnCloseSourceDetail");
       const btnExportSourceDetailPdf = document.getElementById("btnExportSourceDetailPdf");
       const btnCloseUfWelcome = document.getElementById("btnCloseUfWelcome");

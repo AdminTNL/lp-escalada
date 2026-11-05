@@ -242,6 +242,29 @@ Validado de ponta a ponta em produção (Playwright, conta real
 logout → linha `logout`. Nenhuma lentidão perceptível (fire-and-forget via
 `waitUntil`).
 
+**Cópia de contato de multiplicador (sem botão/handler dedicado)**: o
+email/telefone de um multiplicador (campo `#sourceDetailContact`, dentro
+do modal de detalhamento de fonte, só preenchido quando o backend libera
+pra UF do gestor) não tem botão de "copiar" — a pessoa só seleciona o
+texto e aperta Ctrl+C. Um único `document.addEventListener('copy', ...)`
+cobre isso (o evento dispara pra qualquer cópia na página, escopado aqui
+pelo elemento onde a seleção ocorreu, não por regex de conteúdo) e manda
+`acao:'copy_contato_multiplicador'` (com `fonte`/`family`/`uf`/`texto`)
+pro endpoint novo `/api/log-evento` — dedicado a eventos client-side que o
+backend não tem visibilidade natural nenhuma, reaproveitando o mesmo
+`logAcesso`. Deliberadamente NÃO cobre os botões "Copiar link" de
+convite/regional (usam `navigator.clipboard.writeText`, que não dispara o
+evento `copy` do DOM — mecanismo diferente, fora de escopo a pedido
+explícito do Gabriel).
+
+**Bug de encoding achado e corrigido nesta rodada** (afeta qualquer
+`detalhamento` com acento, não só este): o node `HTTP Request` nativo do
+n8n corrompia texto UTF-8 multibyte tanto montando a chamada pro Supabase
+quanto parseando a resposta — corrigido no workflow (Code node com
+`this.helpers.httpRequest`, bypassando o node nativo) + transporte do
+`detalhamento` em base64. Detalhe completo na skill `n8n-flows` (regra 5),
+não neste README — é um bug de infraestrutura do n8n, não deste painel.
+
 ## Fora do escopo desta POC
 
 - Corrigir a falta de autenticação real do webhook `dash-escalada`/RPCs pra
