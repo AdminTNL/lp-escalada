@@ -1837,6 +1837,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       top: 10px;
       right: 10px;
       z-index: 3;
+      /* Sem isso, o <details> (bloco) herda a line-height padrao do texto
+         (~24px) pro seu unico filho inline-flex de 18px (.metric-help-
+         trigger) -- cria ~6px de "folga" extra embaixo do circulo que
+         empurra ele pra baixo, desalinhando com qualquer botao vizinho de
+         18px de verdade (ex. .sources-tour-replay-btn). line-height:0
+         colapsa essa folga, o <details> passa a medir exatamente os 18px
+         do filho. Achado medindo pixel real (nao so CSS/DOM), pedido do
+         Gabriel: o "?" do Radar de fontes ficava ~5-6px mais baixo que o
+         botao de play ao lado (mesmo os dois tendo top:10px/18px no CSS).
+      */
+      line-height: 0;
     }
 
     .metric-help summary {
