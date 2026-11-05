@@ -1,4 +1,5 @@
 import { parseCookies, verifySession } from "./_lib/session.js";
+import { logAcesso } from "./_lib/audit.js";
 
 const SESSION_COOKIE = "esc_dash_session";
 
@@ -10,7 +11,7 @@ const SESSION_COOKIE = "esc_dash_session";
 const PUBLIC_PREFIXES = ["/auth/", "/realms/", "/resources/", "/assets/", "/cdn-cgi/"];
 
 export async function onRequest(context) {
-  const { request, next, env } = context;
+  const { request, next, env, waitUntil } = context;
   const url = new URL(request.url);
 
   if (PUBLIC_PREFIXES.some((p) => url.pathname.startsWith(p))) {
@@ -29,6 +30,8 @@ export async function onRequest(context) {
     const redirect = encodeURIComponent(url.pathname + url.search);
     return Response.redirect(`${url.origin}/auth/login?redirect=${redirect}`, 302);
   }
+
+  waitUntil(logAcesso(request, { email: session.email, acao: "page_view", rota: url.pathname }));
 
   return next();
 }

@@ -1,4 +1,5 @@
 import { parseCookies, verifySession } from "../_lib/session.js";
+import { logAcesso } from "../_lib/audit.js";
 
 const SESSION_COOKIE = "esc_dash_session";
 const N8N_UPLOAD_ENDPOINT = "https://webhookn8n.tnledu.shop/webhook/destaques-engajamento-upload-foto";
@@ -9,7 +10,7 @@ const N8N_UPLOAD_ENDPOINT = "https://webhookn8n.tnledu.shop/webhook/destaques-en
 // repassa pro n8n real servidor-a-servidor -- sempre forcando o email_admin
 // da sessao verificada, nunca o que o cliente mandar.
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const cookies = parseCookies(request.headers.get("Cookie"));
   const session = await verifySession(cookies[SESSION_COOKIE], env.SESSION_SECRET);
 
@@ -51,6 +52,14 @@ export async function onRequestPost(context) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: upstreamBody.toString(),
   });
+
+  waitUntil(
+    logAcesso(request, {
+      email: session.email,
+      acao: "upload_destaque",
+      detalhamento: { circle_id: String(circle_id), ext: String(ext) },
+    })
+  );
 
   return new Response(JSON.stringify({ ok: upstreamRes.ok, status: upstreamRes.status }), {
     status: upstreamRes.ok ? 200 : 502,

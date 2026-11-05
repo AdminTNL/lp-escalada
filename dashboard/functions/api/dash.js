@@ -1,4 +1,5 @@
 import { parseCookies, verifySession } from "../_lib/session.js";
+import { logAcesso } from "../_lib/audit.js";
 
 const SESSION_COOKIE = "esc_dash_session";
 const N8N_DASH_WEBHOOK = "https://webhookn8n.tnledu.shop/webhook/dash-escalada";
@@ -8,7 +9,7 @@ const N8N_DASH_WEBHOOK = "https://webhookn8n.tnledu.shop/webhook/dash-escalada";
 // email/p_email/email_admin que o cliente tente mandar pelo email
 // verificado da sessao -- nunca aceita identidade vinda do navegador.
 export async function onRequestGet(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const cookies = parseCookies(request.headers.get("Cookie"));
   const session = await verifySession(cookies[SESSION_COOKIE], env.SESSION_SECRET);
 
@@ -32,6 +33,22 @@ export async function onRequestGet(context) {
 
   const upstreamRes = await fetch(upstream.toString(), { method: "GET" });
   const body = await upstreamRes.text();
+
+  const report = url.searchParams.get("report");
+  const detalhamento = {};
+  for (const [key, value] of url.searchParams.entries()) {
+    const lower = key.toLowerCase();
+    if (lower === "email" || lower === "p_email" || lower === "email_admin" || lower === "report") continue;
+    detalhamento[key] = value;
+  }
+  waitUntil(
+    logAcesso(request, {
+      email: session.email,
+      acao: "api_call",
+      report,
+      detalhamento: Object.keys(detalhamento).length ? detalhamento : null,
+    })
+  );
 
   return new Response(body, {
     status: upstreamRes.status,

@@ -1,5 +1,6 @@
 import { KEYCLOAK_ORIGIN } from "../_lib/kcproxy.js";
 import { parseCookies, signSession } from "../_lib/session.js";
+import { logAcesso } from "../_lib/audit.js";
 
 const REALM = "escalada";
 const CLIENT_ID = "dashboard-escaladagame";
@@ -67,7 +68,7 @@ async function verifyIdToken(idToken, expectedIssuer) {
 }
 
 export async function onRequestGet(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -139,6 +140,8 @@ export async function onRequestGet(context) {
   clearAuxCookies.forEach((c) => headers.append("Set-Cookie", c));
   const safeRedirect = postLoginRedirect.startsWith("/") ? postLoginRedirect : "/";
   headers.set("Location", safeRedirect);
+
+  waitUntil(logAcesso(request, { email: claims.email, acao: "login" }));
 
   return new Response(null, { status: 302, headers });
 }

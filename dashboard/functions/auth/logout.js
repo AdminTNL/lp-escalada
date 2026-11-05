@@ -1,9 +1,19 @@
+import { parseCookies, verifySession } from "../_lib/session.js";
+import { logAcesso } from "../_lib/audit.js";
+
 const REALM = "escalada";
 const CLIENT_ID = "dashboard-escaladagame";
+const SESSION_COOKIE = "esc_dash_session";
 
 export async function onRequestGet(context) {
-  const { request } = context;
+  const { request, env, waitUntil } = context;
   const url = new URL(request.url);
+
+  const cookies = parseCookies(request.headers.get("Cookie"));
+  const session = await verifySession(cookies[SESSION_COOKIE], env.SESSION_SECRET);
+  if (session) {
+    waitUntil(logAcesso(request, { email: session.email, acao: "logout" }));
+  }
 
   const headers = new Headers();
   headers.append("Set-Cookie", "esc_dash_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax");

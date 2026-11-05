@@ -187,6 +187,61 @@ qualquer `docker service update` nesse serviço). Se for repetir esse tipo de
 mudança no futuro, esperar esse soluço inicial (~45-60s, 2 falhas) antes de
 assumir que algo quebrou de vez.
 
+## Auditoria de acesso (2026-11-05)
+
+Como o painel agora exige login real e expõe dados sensíveis (PII de
+inscritos, contatos, UF por UF), todo acesso é registrado server-side em
+`public.dashboard_log_acessos` (repo `B.O-s-Escalada`,
+`supabase/functions/dashboard_auditoria/01_dashboard_log_acessos.sql`) —
+`email`, `acao`, `rota`/`report`, `detalhamento` (jsonb, nunca
+senha/token), `ip`, `user_agent`, `referer`, `criado_em`.
+
+**Por que não reaproveitar nem "sessão da plataforma" (`sessao_plataforma/`
+no repo B.O-s-Escalada) nem o padrão de heartbeat em geral**: aquele
+mecanismo existe porque a Circle não tem sessão de servidor verificada — é
+inferência de presença no cliente. Aqui já existe sessão real (cookie
+`esc_dash_session`, assinado, emitido só por login via Keycloak), então
+login/logout reais já são fronteira de sessão confiável e cada chamada de
+API já passa pelo middleware que resolve o email verificado — mais perto do
+padrão de auditoria de ferramenta (`automater-de-envios/src/functions/
+_audit.js`): logar uma ação discreta por vez, identidade já verificada.
+
+**Instrumentação** — helper `functions/_lib/audit.js` (`logAcesso(request,
+{email, acao, rota, report, detalhamento})`), sempre chamado via
+`waitUntil(...)` (fire-and-forget, nunca atrasa nem derruba a resposta real
+— só `console.warn` em erro) e sempre fazendo um `fetch` GET pro mesmo
+webhook n8n que já serve o resto do dashboard
+(`report=log_acesso` → RPC `dashboard_registrar_acesso`):
+
+- `functions/_middleware.js` → `acao:'page_view'`, `rota: url.pathname`,
+  depois de confirmar sessão válida (cobre hard refresh/carregamento de
+  página; navegação interna da SPA via hash não bate no servidor).
+- `functions/auth/callback.js` → `acao:'login'`, depois de `signSession`.
+- `functions/auth/logout.js` → `acao:'logout'` (lê a sessão ANTES de
+  invalidar o cookie, senão perde o email de quem saiu).
+- `functions/api/dash.js` → `acao:'api_call'`, `report:` o `?report=`
+  pedido, `detalhamento:` os demais query params (exceto
+  email/p_email/email_admin/report). **Ponto de maior valor**: cada troca
+  de página na SPA já dispara um `report` característico
+  (main/sources/fonte_detalhe/regionais_stats/gestor_convites/
+  destaques_*), então isso também cobre "quais rotas visita" na prática,
+  sem precisar de rastreio de rota no cliente (decisão deliberada: não
+  replicar `estudo-de-rotas.js`/hook de `pushState` nesta rodada).
+- `functions/api/destaques-upload.js` → `acao:'upload_destaque'`,
+  `detalhamento:{circle_id,ext}`.
+
+Consulta (sem tela própria no painel por ora — decisão deliberada, "só
+registrar" no escopo desta rodada): RPC `dashboard_log_acessos_listar`
+(filtros opcionais `p_email`/`p_acao`/`p_date_from`/`p_date_to`/`p_limit`)
+ou SQL direto em `database.tnledu.shop/pg/query`.
+
+Validado de ponta a ponta em produção (Playwright, conta real
+`admin@tironalua.com`): login via Google → linha `login`; navegação real
+(Visão geral/Fontes/Meus convites) → linhas `page_view`+`api_call` com
+`report` e `detalhamento` certos (`ip`/`user_agent`/`referer` populados);
+logout → linha `logout`. Nenhuma lentidão perceptível (fire-and-forget via
+`waitUntil`).
+
 ## Fora do escopo desta POC
 
 - Corrigir a falta de autenticação real do webhook `dash-escalada`/RPCs pra
