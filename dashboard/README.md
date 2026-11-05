@@ -77,6 +77,23 @@ B.O-s-Escalada) ganharem uma feature nova**, ela precisa ser reportada
 manualmente aqui — não há sincronização automática entre os dois. Ao
 portar, reaplicar as mesmas 4 mudanças acima no trecho novo.
 
+## Features que nasceram primeiro aqui (ainda não portadas pra Circle)
+
+- **2026-11-05 — família "Instituição de Ensino" na página de Fontes**:
+  agrupa participantes pelo campo de perfil `instituicao_ensino` (não por
+  tag/regex, como geral/eventos/embaixadores/convites) — dimensão
+  independente das outras famílias, uma pessoa pode aparecer em
+  "instituicao" e em qualquer outra ao mesmo tempo. Backend em
+  `dashboard_fontes_v2_interno.sql` (repo `B.O-s-Escalada`, commit
+  `ed96d1c`); frontend aqui em `SOURCE_FAMILY_META`/
+  `normalizeSourceFamily()` + 2 pontos de navegação (subnav da sidebar e
+  dropdown de família). **Essa versão (standalone) recebeu a feature
+  primeiro** — ainda não foi replicada em `prod/head.html`/`prod/body.html`
+  da Circle. A chamada de detalhe por instituição (clique numa linha do
+  ranking) cai graciosamente num "0 participantes": `dashboard_fonte_detalhe_v1.sql`
+  não foi tocado nesta rodada (não tem um caminho de detalhe próprio pra
+  instituição), fora de escopo por decisão deliberada.
+
 ## Setup (já feito, documentado pra rodar de novo/em outro lugar)
 
 - **Keycloak** (realm `escalada`): client novo `dashboard-escaladagame`
