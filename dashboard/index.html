@@ -1850,6 +1850,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       line-height: 0;
     }
 
+    /* Override so' pro "?" do Radar de fontes -- o resto dos .metric-help
+       do site fica com o top/right padrao (cada card/KPI que os usa tem
+       seu proprio layout, nao necessariamente o mesmo padding de 16px
+       dessa card especifica). Mesmo raciocinio do .sources-tour-replay-btn
+       acima: top/right iguais ao padding do card (16px, mesmo inset do
+       titulo "Radar de fontes"). */
+    .metric-help-radar {
+      top: 16px;
+      right: 16px;
+    }
+
     .metric-help summary {
       list-style: none;
     }
@@ -2061,8 +2072,15 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
     .sources-tour-replay-btn {
       position: absolute;
-      top: 10px;
-      right: 38px;
+      /* top/right iguais ao padding do card (16px, mesmo inset que o
+         titulo "Radar de fontes" usa) + 18px do "?" ao lado + 10px de
+         respiro entre os dois -- pedido do Gabriel 2026-11-06: os icones
+         ficavam mais pro topo do card (10px) do que o titulo (16px),
+         meio desalinhados verticalmente dele. Unico uso desta classe no
+         arquivo, seguro mudar aqui direto (nao e' uma classe compartilhada
+         por outros cards, ao contrario de .metric-help). */
+      top: 16px;
+      right: 44px;
       z-index: 3;
       width: 18px;
       height: 18px;
@@ -22749,7 +22767,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             <button id="btnSourcesTourReplay" type="button" class="sources-tour-replay-btn" title="Rever tour guiado" aria-label="Rever tour guiado">
               <i data-lucide="play-circle" class="w-4 h-4"></i>
             </button>
-            <details class="metric-help">
+            <details class="metric-help metric-help-radar">
               <summary class="metric-help-trigger" aria-label="Como ler o Radar de fontes">?</summary>
               <div id="sourceRadarHelpText" class="metric-help-popover"></div>
             </details>
