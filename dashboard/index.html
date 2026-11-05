@@ -5899,6 +5899,76 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         .toUpperCase();
     }
 
+    // Apelido de Instituicao de Ensino -- pedido do Gabriel (2026-11-05):
+    // nomes completos cadastrados (ex. "UNIVERSIDADE FEDERAL DE ALAGOAS",
+    // "COLEGIO ESTADUAL DA POLICIA MILITAR DE GOIAS DE AGUAS LINDAS DE
+    // GOIAS") sao grandes demais pro bubble chart/lista truncarem com
+    // sentido -- troca pelo apelido popular "sempre que possivel" (padrao
+    // mecanico e confiavel, nao um corte cego de texto):
+    //   - universidade federal -> sigla oficial UF+estado (UFAL, UFPE,
+    //     UFSC...), reaproveitando UF_NAME_TO_SIGLA (ja usado pro mapa).
+    //   - prefixos de escola estadual/municipal -> CE/EE/CM/EM + resto do
+    //     nome, em Title Case.
+    // `public.schools` (fonte do autocomplete do cadastro) guarda nomes
+    // sem acento (padrao do censo do INEP) -- o apelido sai sem acento
+    // tambem quando o nome de origem nao tem (ex. "Goias", nao "Goi\u00e1s");
+    // nao ha de onde recuperar o acento original.
+    // `continuation=true` trata a palavra de indice 0 como se NAO fosse
+    // inicio de frase -- usado quando o texto vem logo depois de um
+    // prefixo abreviado ("EM " + resto), pra nao capitalizar um "de"/"da"
+    // que sobrou bem no comeco do resto (ex. "EM De Educacao..." errado,
+    // "EM de Educacao..." certo).
+    function titleCasePt(value, continuation = false) {
+      const lowerConnectors = new Set(["de", "da", "do", "das", "dos", "e"]);
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word, idx) => ((idx > 0 || continuation) && lowerConnectors.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+        .join(" ");
+    }
+
+    const INSTITUTION_PREFIX_ABBREVIATIONS = [
+      { pattern: /^COLEGIO\s+ESTADUAL\s+(.+)$/, abbr: "CE" },
+      { pattern: /^ESCOLA\s+ESTADUAL\s+(.+)$/, abbr: "EE" },
+      { pattern: /^COLEGIO\s+MUNICIPAL\s+(.+)$/, abbr: "CM" },
+      { pattern: /^ESCOLA\s+MUNICIPAL\s+(.+)$/, abbr: "EM" },
+      { pattern: /^CENTRO\s+UNIVERSITARIO\s+(.+)$/, abbr: "C.Uni." },
+    ];
+
+    function abbreviateInstitutionName(rawName) {
+      const name = String(rawName || "").trim();
+      if (!name) return name;
+      // Casa contra a versao sem acento/maiuscula (mesmo comprimento
+      // caractere-a-caractere que `name`, so troca acentuados por sua
+      // base) -- extrai o INDICE do resto a partir do grupo casado, depois
+      // reaplica esse indice no `name` original (nunca no normalizado).
+      const normalized = normalizeTextKey(name);
+
+      const federalMatch = /^UNIVERSIDADE\s+FEDERAL\s+D[EOA]\s+(.+)$/.exec(normalized);
+      if (federalMatch) {
+        // O resto pode vir com sufixo de campus (ex. "ALAGOAS - CAMPUS
+        // CECA (RIO LARGO)") -- acha o nome de estado conhecido no INICIO
+        // do resto, nao exige que o resto INTEIRO seja só o nome do estado.
+        const remainder = federalMatch[1];
+        const stateMatch = Object.keys(UF_NAME_TO_SIGLA).find(
+          (stateName) => remainder === stateName || remainder.startsWith(`${stateName} `)
+        );
+        if (stateMatch) return `UF${UF_NAME_TO_SIGLA[stateMatch]}`;
+      }
+
+      for (const rule of INSTITUTION_PREFIX_ABBREVIATIONS) {
+        const match = rule.pattern.exec(normalized);
+        if (match) {
+          const rest = name.slice(name.length - match[1].length);
+          return `${rule.abbr} ${titleCasePt(rest, true)}`;
+        }
+      }
+
+      return titleCasePt(name);
+    }
+
     function isProfessorPublicValue(value) {
       const key = normalizeTextKey(value);
       return key === "PROFESSOR" || key === "PROFESSORES";
@@ -7362,12 +7432,18 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             source,
             // Fonte unica de verdade pro texto exibido -- multiplicadores/
             // convites sao nomes de pessoas fisicas (geralmente estudantes),
-            // exibe so os 2 primeiros nomes por privacidade. `source`
-            // continua completo em todo lugar (key, fetch da API), so
-            // `displayName` e truncado -- centralizado aqui pra nao precisar
+            // exibe so os 2 primeiros nomes por privacidade; instituicao de
+            // ensino usa o apelido popular (UFAL, CE/EE + nome, etc., ver
+            // abbreviateInstitutionName) quando os nomes completos sao
+            // grandes demais (ex. "COLEGIO ESTADUAL DA POLICIA MILITAR DE
+            // GOIAS DE AGUAS LINDAS DE GOIAS"). `source` continua completo
+            // em todo lugar (key, fetch da API), so `displayName` e'
+            // truncado/abreviado -- centralizado aqui pra nao precisar
             // caçar cada ponto de renderizacao (lista, modal, bubble chart,
             // radar) individualmente.
-            displayName: isPersonSourceFamily(family) ? truncatePersonName(source) : source,
+            displayName: isPersonSourceFamily(family)
+              ? truncatePersonName(source)
+              : (family === "instituicao" ? abbreviateInstitutionName(source) : source),
             inscritos: 0,
             atendimentos: 0,
             atendidos: 0,
@@ -8443,6 +8519,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       sourceRowsByKey: new Map(),
       selectedSourceKey: "",
       sourceFamily: "geral",
+      // Ordenacao do bubble chart + lista de Fontes -- "atendimentos"
+      // (padrao, mesma ordem que o backend ja usa) ou "inscritos"
+      // ("quantidade de pessoas", pedido do Gabriel 2026-11-05).
+      sourceSortBy: "atendimentos",
       sourcesRaw: null,
       sourcesDataKey: "",
       sourcesPendingKey: "",
@@ -8675,6 +8755,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       });
       renderSourcesPage(setText, setHtml, sourceAnalytics);
       syncSourceFamilyControls();
+      syncSourceSortControls();
       syncSidebarSourcesGroup();
       renderIconsNow();
       hydrateSourcesForCurrentPage({ page: "sources" });
@@ -9544,6 +9625,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const limit = Number.isFinite(options?.limit) ? options.limit : SOURCE_BUBBLE_LIMIT;
       const safeRows = Array.isArray(rows) ? rows.slice(0, limit) : [];
       const onPointClick = typeof options?.onPointClick === "function" ? options.onPointClick : null;
+      // Campo que define o TAMANHO da bolha -- "atendimentos" por padrao,
+      // mas acompanha o toggle "Ordenar por" de Fontes quando informado
+      // (sizeField: "inscritos"), senao bolha e ranking contam historias
+      // diferentes ao mesmo tempo na tela.
+      const sizeField = typeof options?.sizeField === "string" && options.sizeField ? options.sizeField : "atendimentos";
       canvas.style.width = "100%";
       canvas.style.height = "100%";
       const dpr = Math.max(1, Math.min(2, Number(window.devicePixelRatio || 1)));
@@ -9598,8 +9684,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         return;
       }
 
-      const attendValues = safeRows.map((row) => Math.max(0, Number(row?.atendimentos || 0)));
-      const maxAtend = Math.max(...attendValues);
+      const sizeValues = safeRows.map((row) => Math.max(0, Number(row?.[sizeField] || 0)));
+      const maxSizeValue = Math.max(...sizeValues);
       const minR = clamp(Math.min(width, height) * 0.09, 18, 34);
       const maxR = clamp(Math.min(width, height) * 0.24, minR + 8, 96);
       // Area proporcional ao valor (raio = sqrt(valor)), ancorada em ZERO --
@@ -9608,10 +9694,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // escondendo a proporcao real entre eles (5x o valor virava so 13% de
       // diametro a mais, reportado pelo Gabriel). O piso minR fica só como
       // legibilidade minima do rotulo em valores baixos/zero.
-      const radiusScale = maxAtend > 0 ? (maxR - minR) / Math.sqrt(maxAtend) : 0;
-      const toRadius = (atendimentos) => {
-        const value = Math.max(0, Number(atendimentos || 0));
-        if (maxAtend <= 0) return minR;
+      const radiusScale = maxSizeValue > 0 ? (maxR - minR) / Math.sqrt(maxSizeValue) : 0;
+      const toRadius = (sizeValue) => {
+        const value = Math.max(0, Number(sizeValue || 0));
+        if (maxSizeValue <= 0) return minR;
         return Math.round(minR + radiusScale * Math.sqrt(value));
       };
       const shortLabel = (value, max = 30) => {
@@ -9699,13 +9785,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           row,
           color: chartPalette[idx % chartPalette.length],
           r: 0,
-          labelCount: fmtInt(Number(row?.atendimentos || 0)),
+          labelCount: fmtInt(Number(row?.[sizeField] || 0)),
           textLayout: null,
           x: width / 2,
           y: height / 2,
         }))
         .map((node) => {
-          let radius = toRadius(node.row?.atendimentos);
+          let radius = toRadius(node.row?.[sizeField]);
           let layout = computeTextLayout((node.row?.displayName ?? node.row?.source), node.labelCount, radius);
           for (let i = 0; i < 6; i++) {
             if (layout.neededR <= radius + 0.5) break;
@@ -13548,6 +13634,42 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }, 400);
     }
 
+    // Toggle "Atendimentos" / "Pessoas" (= inscritos) acima dos 3 KPIs do
+    // card "Resumo de fontes" -- reordena bubble chart e lista juntos, sem
+    // reconsultar o backend (que ja manda o ranking completo, so troca o
+    // criterio de ordenacao client-side). Critério secundário = o outro
+    // campo, pra manter desempate estável e previsível.
+    const SOURCE_SORT_FIELDS = { atendimentos: "atendimentos", inscritos: "inscritos" };
+    function sortSourceRows(list, sortBy) {
+      const arr = Array.isArray(list) ? list.slice() : [];
+      const primary = SOURCE_SORT_FIELDS[sortBy] || "atendimentos";
+      const secondary = primary === "inscritos" ? "atendimentos" : "inscritos";
+      arr.sort((a, b) => {
+        const diffPrimary = Number(b?.[primary] || 0) - Number(a?.[primary] || 0);
+        if (diffPrimary !== 0) return diffPrimary;
+        const diffSecondary = Number(b?.[secondary] || 0) - Number(a?.[secondary] || 0);
+        if (diffSecondary !== 0) return diffSecondary;
+        return String(a?.source || "").localeCompare(String(b?.source || ""), "pt-BR");
+      });
+      return arr;
+    }
+
+    function setSourceSortBy(nextSortBy) {
+      const normalized = SOURCE_SORT_FIELDS[nextSortBy] ? nextSortBy : "atendimentos";
+      if (state.sourceSortBy === normalized) return;
+      state.sourceSortBy = normalized;
+      syncSourceSortControls();
+      renderActiveSourcesFamily();
+    }
+
+    function syncSourceSortControls() {
+      document.querySelectorAll("[data-source-sort]").forEach((btn) => {
+        const isActive = btn.getAttribute("data-source-sort") === state.sourceSortBy;
+        btn.classList.toggle("is-active", isActive);
+        btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
     function renderSourcesPage(setText, setHtml, analytics) {
       const family = normalizeSourceFamily(analytics?.family || state.sourceFamily);
       const familyMeta = analytics?.meta || getSourceFamilyMeta(family);
@@ -13556,13 +13678,19 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const selectedUfRaw = sanitizeFilterValue(state?.filters?.uf);
       const selectedUfCode = resolveUfCode(selectedUfRaw);
       const rowsRaw = filterVisibleSourceRows(Array.isArray(analytics?.rows) ? analytics.rows : []);
-      const rows = !analytics?.preFiltered && selectedUfRaw
-        ? rowsRaw.filter((row) => sourceRowMatchesSelectedUf(row, selectedUfCode, selectedUfRaw))
-        : rowsRaw;
+      const rows = sortSourceRows(
+        !analytics?.preFiltered && selectedUfRaw
+          ? rowsRaw.filter((row) => sourceRowMatchesSelectedUf(row, selectedUfCode, selectedUfRaw))
+          : rowsRaw,
+        state.sourceSortBy
+      );
       const top10Raw = filterVisibleSourceRows(Array.isArray(analytics?.top10) ? analytics.top10 : []);
-      const top10 = selectedUfRaw
-        ? rows.slice(0, SOURCE_BUBBLE_LIMIT)
-        : (top10Raw.length ? top10Raw : rows.slice(0, SOURCE_BUBBLE_LIMIT));
+      const top10 = sortSourceRows(
+        selectedUfRaw
+          ? rows.slice(0, SOURCE_BUBBLE_LIMIT)
+          : (top10Raw.length ? top10Raw : rows.slice(0, SOURCE_BUBBLE_LIMIT)),
+        state.sourceSortBy
+      );
       const byKey = new Map();
       for (const row of rows) {
         const key = sourceKeyFromName(row?.source);
@@ -13586,6 +13714,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       setText("sourcesAvgConv", totalInscritos > 0 || rows.length ? fmtPct(avgConversao) : "--");
       renderSourcesBubbleChart("chartSourcesBubble", top10, {
         onPointClick: (row) => openSourceDetailModal(row),
+        sizeField: SOURCE_SORT_FIELDS[state.sourceSortBy] || "atendimentos",
       });
 
       renderSourceRadar(family, rows);
@@ -21023,6 +21152,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       bindSourcesListInteractions();
       syncSourceFamilyControls();
 
+      const bindSourceSortToggle = (id, sortBy) => {
+        const btn = document.getElementById(id);
+        if (!btn || btn.dataset.boundClick === "1") return;
+        btn.dataset.boundClick = "1";
+        btn.addEventListener("click", () => setSourceSortBy(sortBy));
+      };
+      bindSourceSortToggle("btnSourceSortAtendimentos", "atendimentos");
+      bindSourceSortToggle("btnSourceSortInscritos", "inscritos");
+      syncSourceSortControls();
+
       const bindCompetencyToggle = (id, mode) => {
         const btn = document.getElementById(id);
         if (!btn || btn.dataset.boundClick === "1") return;
@@ -22443,6 +22582,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           <div class="col-span-12 lg:col-span-4 card sources-summary-card">
             <h2 class="section-title">Resumo de fontes</h2>
             <div class="text-sm text-slate-600">Indicadores agregados do recorte atual.</div>
+            <div class="flex items-center gap-2 flex-wrap mt-2">
+              <span class="text-xs text-slate-500">Ordenar por</span>
+              <button id="btnSourceSortAtendimentos" type="button" class="btn btn-sm btn-ghost is-active" data-source-sort="atendimentos" aria-pressed="true">Atendimentos</button>
+              <button id="btnSourceSortInscritos" type="button" class="btn btn-sm btn-ghost" data-source-sort="inscritos" aria-pressed="false">Inscritos</button>
+            </div>
             <div class="sources-summary-grid">
               <div class="metric sources-summary-metric">
                 <span class="label">Conversao media</span>
