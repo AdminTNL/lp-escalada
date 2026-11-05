@@ -14079,7 +14079,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         setText("terrCities", selectedUfCode ? `${fmtInt(Number(state.territoryCitySummary?.cityCount || 0))} cidades` : "—");
         setText("terrUsers", fmtInt(inscritos));
         setText("terrAtendDay", fmtInt(Math.round(atStats.avg)));
-        setText("terrInstituicoes", fmtInt(Number(raw?.meta?.coverage?.instituicoes_distintas || 0)));
+        setText(
+          "terrInstituicoes",
+          selectedUfCode ? fmtInt(Number(raw?.meta?.coverage?.instituicoes_distintas || 0)) : "—"
+        );
         renderTerritoryCoverageLabel(setText, selectedUfCode);
         setText("terrUfCoverage", selectedUfCode ? (state.territoryCitySummary?.coverageText || "--") : ufCoverage.text);
         if (selectedUfCode) renderMapPoints("mapTerritory", geoPoints);
