@@ -94,6 +94,13 @@ portar, reaplicar as mesmas 4 mudanças acima no trecho novo.
   não foi tocado nesta rodada (não tem um caminho de detalhe próprio pra
   instituição), fora de escopo por decisão deliberada.
 
+- **2026-11-05 — métrica "Instituições de ensino" em Território > Cobertura
+  territorial**: contagem de `instituicao_ensino` distintas entre quem teve
+  atendimento no período filtrado (mesmo escopo das outras métricas de
+  cobertura do mesmo card — UFs/cidades ativas, não inscritos). Campo novo
+  `meta.coverage.instituicoes_distintas` em `dashboard_executivo_v2_interno.sql`
+  (repo `B.O-s-Escalada`), consumido em `renderAggregated()` (`terrInstituicoes`).
+
 ## Setup (já feito, documentado pra rodar de novo/em outro lugar)
 
 - **Keycloak** (realm `escalada`): client novo `dashboard-escaladagame`

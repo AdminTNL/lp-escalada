@@ -14079,6 +14079,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         setText("terrCities", selectedUfCode ? `${fmtInt(Number(state.territoryCitySummary?.cityCount || 0))} cidades` : "—");
         setText("terrUsers", fmtInt(inscritos));
         setText("terrAtendDay", fmtInt(Math.round(atStats.avg)));
+        setText("terrInstituicoes", fmtInt(Number(raw?.meta?.coverage?.instituicoes_distintas || 0)));
         renderTerritoryCoverageLabel(setText, selectedUfCode);
         setText("terrUfCoverage", selectedUfCode ? (state.territoryCitySummary?.coverageText || "--") : ufCoverage.text);
         if (selectedUfCode) renderMapPoints("mapTerritory", geoPoints);
@@ -22675,6 +22676,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               <div class="metric">
                 <span class="label">Atend./dia</span>
                 <span id="terrAtendDay" class="value">&mdash;</span>
+              </div>
+              <div class="metric">
+                <span class="label">Instituições de ensino</span>
+                <span id="terrInstituicoes" class="value">&mdash;</span>
               </div>
               <div class="metric">
                 <span id="terrCoverageLabel" class="label">Cobertura por UF (atendimentos)</span>
