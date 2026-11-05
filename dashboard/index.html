@@ -3816,7 +3816,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
        dos botoes de acao (fixos no canto, ver abaixo). */
     #meusConvitesList .convite-card-info {
       grid-row: 1;
-      padding-right: 76px;
+      padding-right: 118px;
+    }
+
+    #meusConvitesList .convite-card.is-inativo {
+      opacity: 0.6;
     }
 
     #meusConvitesList .convite-card-stats {
@@ -3846,6 +3850,45 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     #meusConvitesList .convite-card-metric .convite-card-total {
       font-size: 1.5rem;
       line-height: 1.1;
+    }
+
+    /* Busca (ao lado de "Meus links") + toggle "Ver links desativados"
+       (a esquerda da contagem) -- pedido do Gabriel 2026-11-05. */
+    .meus-convites-search {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(226, 233, 255, 0.5);
+    }
+    .meus-convites-search input {
+      border: none;
+      background: transparent;
+      outline: none;
+      color: rgba(242, 246, 255, 0.92);
+      font-size: 0.78rem;
+      width: 140px;
+    }
+    .meus-convites-search input::placeholder {
+      color: rgba(226, 233, 255, 0.4);
+    }
+
+    .meus-convites-toggle-inativos {
+      border: none;
+      background: transparent;
+      padding: 0;
+      color: var(--brand-cyan);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+    }
+    .meus-convites-toggle-inativos:hover {
+      color: rgba(242, 246, 255, 0.92);
     }
 
     #meusConvitesList .convite-card-metric-label {
@@ -8625,6 +8668,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       meusConvites: [],
       meusConvitesError: "",
       meusConvitesCharts: new Map(),
+      // Ativação/desativação de links (2026-11-05, pedido do Gabriel):
+      // state.meusConvites ja vem com TODOS os links (ativos e
+      // desativados, ver meus_convites_gestor_stats) -- esses 2 campos so
+      // controlam o que a LISTA mostra agora, sem precisar de outra
+      // chamada ao backend.
+      meusConvitesShowInativos: false,
+      meusConvitesSearch: "",
       regionaisStatus: "idle",
       regionais: [],
       regionaisMunicipios: [],
@@ -15232,7 +15282,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
       const listEl = document.getElementById("meusConvitesList");
       const hintEl = document.getElementById("meusConvitesHint");
+      const toggleBtn = document.getElementById("btnMeusConvitesToggleInativos");
       if (!listEl) return;
+
+      // Ativos/desativados: state.meusConvites sempre tem os 2 juntos (ver
+      // loadMeusConvites/meus_convites_gestor_stats) -- a aba so decide
+      // qual metade mostrar. "ativo" pode vir null/undefined em linhas
+      // antigas (coalesce pro default true, igual a coluna no banco).
+      const ativos = state.meusConvites.filter((c) => c.ativo !== false);
+      const inativos = state.meusConvites.filter((c) => c.ativo === false);
+      if (toggleBtn) {
+        toggleBtn.textContent = state.meusConvitesShowInativos
+          ? "← Ver links ativos"
+          : `Ver links desativados (${fmtInt(inativos.length)})`;
+        toggleBtn.classList.toggle("hidden", !state.meusConvitesShowInativos && !inativos.length);
+      }
 
       if (state.meusConvitesStatus === "loading") {
         listEl.innerHTML = renderMeusConvitesEmptyState("Carregando seus links...");
@@ -15250,7 +15314,26 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         return;
       }
 
-      if (hintEl) hintEl.textContent = `${fmtInt(state.meusConvites.length)} link(s)`;
+      const scoped = state.meusConvitesShowInativos ? inativos : ativos;
+      const query = String(state.meusConvitesSearch || "").trim().toLowerCase();
+      const visible = query ? scoped.filter((c) => String(c.rotulo || "").toLowerCase().includes(query)) : scoped;
+
+      if (hintEl) {
+        hintEl.textContent = query
+          ? `${fmtInt(visible.length)} de ${fmtInt(scoped.length)} link(s)`
+          : `${fmtInt(scoped.length)} link(s)`;
+      }
+
+      if (!scoped.length) {
+        listEl.innerHTML = renderMeusConvitesEmptyState(
+          state.meusConvitesShowInativos ? "Nenhum link desativado." : "Nenhum link ativo no momento."
+        );
+        return;
+      }
+      if (!visible.length) {
+        listEl.innerHTML = renderMeusConvitesEmptyState(`Nenhum link encontrado pra "${state.meusConvitesSearch.trim()}".`);
+        return;
+      }
 
       // UF nao aparece mais aqui (cada gestor so cria link pra propria UF
       // desde 11_regionais_e_convites_trava_uf.sql -- o chip era redundante,
@@ -15258,13 +15341,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // refletem o periodo ativo da pagina (inscritos_periodo/
       // atendimentos_periodo, ver 12_meus_convites_metricas_periodo.sql),
       // nao mais o total historico fixo.
-      listEl.innerHTML = state.meusConvites.map((c) => {
+      listEl.innerHTML = visible.map((c) => {
         const categoriaChip = `<span class="chip soft">${escapeHtml(categoriaLabel(c.categoria))}</span>`;
         // O gestor só vê/copia/compartilha o encurtado (escalada.me/<slug>),
         // igual à pagina de convites v4. url_bridge é só o destino interno.
         const link = conviteLink(c);
+        const isAtivo = c.ativo !== false;
+        // Lixeira desativa (sem apagar -- preserva historico/metricas);
+        // na aba de desativados vira um botao de restaurar. Pedido do
+        // Gabriel 2026-11-05.
+        const toggleBtn = isAtivo
+          ? `<button type="button" class="btn btn-sm btn-outline btn-icon" data-toggle-ativo-convite="${escapeHtml(c.id)}" data-next-ativo="false" title="Desativar link" aria-label="Desativar link">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>`
+          : `<button type="button" class="btn btn-sm btn-outline btn-icon" data-toggle-ativo-convite="${escapeHtml(c.id)}" data-next-ativo="true" title="Reativar link" aria-label="Reativar link">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>`;
         return `
-          <div class="convite-card" data-convite-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="Ver detalhes de ${escapeHtml(c.rotulo)}">
+          <div class="convite-card${isAtivo ? "" : " is-inativo"}" data-convite-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="Ver detalhes de ${escapeHtml(c.rotulo)}">
             <div class="convite-card-info">
               <div class="convite-card-title">${escapeHtml(c.rotulo)} ${categoriaChip}</div>
             </div>
@@ -15285,6 +15379,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               <button type="button" class="btn btn-sm btn-outline btn-icon" data-qr-convite="${escapeHtml(link)}" data-qr-filename="${escapeHtml(c.slug)}-qr.png" title="Baixar QR code" aria-label="Baixar QR code">
                 <i data-lucide="qr-code" class="w-4 h-4"></i>
               </button>
+              ${toggleBtn}
             </div>
           </div>`;
       }).join("");
@@ -15316,12 +15411,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           });
         };
         card.addEventListener("click", (e) => {
-          if (e.target.closest("[data-copy-convite], [data-qr-convite]")) return;
+          if (e.target.closest("[data-copy-convite], [data-qr-convite], [data-toggle-ativo-convite]")) return;
           open();
         });
         card.addEventListener("keydown", (e) => {
           if (e.key !== "Enter" && e.key !== " ") return;
-          if (e.target.closest("[data-copy-convite], [data-qr-convite]")) return;
+          if (e.target.closest("[data-copy-convite], [data-qr-convite], [data-toggle-ativo-convite]")) return;
           e.preventDefault();
           open();
         });
@@ -15346,6 +15441,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         if (btn.dataset.boundClick === "1") return;
         btn.dataset.boundClick = "1";
         btn.addEventListener("click", () => handleDownloadConviteQr(btn));
+      });
+
+      listEl.querySelectorAll("[data-toggle-ativo-convite]").forEach((btn) => {
+        if (btn.dataset.boundClick === "1") return;
+        btn.dataset.boundClick = "1";
+        btn.addEventListener("click", () => handleToggleConviteAtivo(btn));
       });
     }
 
@@ -15813,6 +15914,38 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         showToast("Não foi possível criar o link agora.", "warning");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
+    // Ativa/desativa um link de "Meus Convites" sem apagar a linha (botao
+    // de lixeira/restaurar no card) -- pedido do Gabriel 2026-11-05.
+    // Atualiza state.meusConvites local (sem recarregar do zero) e
+    // re-renderiza -- a RPC ja devolve o estado final confirmado.
+    async function handleToggleConviteAtivo(btn) {
+      const id = btn.getAttribute("data-toggle-ativo-convite");
+      const nextAtivo = btn.getAttribute("data-next-ativo") === "true";
+      if (!id) return;
+      const email = gestorEmail();
+      if (!email) {
+        showToast("Não foi possível identificar seu usuário. Recarregue a página.", "warning");
+        return;
+      }
+      btn.disabled = true;
+      try {
+        const raw = await callDashboardApi("gestor_convite_ativo", { email, id, ativo: nextAtivo });
+        const payload = unwrapApiPayload(raw);
+        if (!payload || payload.ok === false) {
+          throw new Error(payload?.error || "recusado pelo servidor");
+        }
+        const item = state.meusConvites.find((c) => String(c.id) === String(id));
+        if (item) item.ativo = nextAtivo;
+        showToast(nextAtivo ? "Link reativado." : "Link desativado.", "success");
+        renderMeusConvitesPage();
+      } catch (e) {
+        console.error("[UI] [convites] toggle ativo failed", { err: String(e) });
+        showToast("Não foi possível atualizar o link agora.", "warning");
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -21619,6 +21752,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         meusConvitesForm.dataset.bound = "1";
         meusConvitesForm.addEventListener("submit", handleCriarConviteGestor);
       }
+      const btnMeusConvitesToggleInativos = document.getElementById("btnMeusConvitesToggleInativos");
+      if (btnMeusConvitesToggleInativos && !btnMeusConvitesToggleInativos.dataset.bound) {
+        btnMeusConvitesToggleInativos.dataset.bound = "1";
+        btnMeusConvitesToggleInativos.addEventListener("click", () => {
+          state.meusConvitesShowInativos = !state.meusConvitesShowInativos;
+          renderMeusConvitesPage();
+        });
+      }
+      const meusConvitesSearchInput = document.getElementById("meusConvitesSearch");
+      if (meusConvitesSearchInput && !meusConvitesSearchInput.dataset.bound) {
+        meusConvitesSearchInput.dataset.bound = "1";
+        meusConvitesSearchInput.addEventListener("input", () => {
+          state.meusConvitesSearch = meusConvitesSearchInput.value;
+          renderMeusConvitesPage();
+        });
+      }
 
       const destaquesNovoBtn = document.getElementById("destaquesNovoBtn");
       if (destaquesNovoBtn && !destaquesNovoBtn.dataset.bound) {
@@ -22716,9 +22865,18 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           </div>
 
           <div class="col-span-12 card p-5">
-            <div class="flex items-center justify-between mb-3">
-              <h2 class="section-title">Meus links</h2>
-              <span id="meusConvitesHint" class="text-xs text-slate-500"></span>
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div class="flex items-center gap-3 flex-wrap">
+                <h2 class="section-title">Meus links</h2>
+                <div class="meus-convites-search">
+                  <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                  <input id="meusConvitesSearch" type="search" placeholder="Buscar link..." aria-label="Buscar link" />
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <button type="button" id="btnMeusConvitesToggleInativos" class="meus-convites-toggle-inativos"></button>
+                <span id="meusConvitesHint" class="text-xs text-slate-500"></span>
+              </div>
             </div>
             <div id="meusConvitesList" class="meus-convites-list"></div>
           </div>
