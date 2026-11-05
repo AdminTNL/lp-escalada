@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard Escalada — teste de login</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#0f1115; color:#f2f2f2; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+  #app { text-align:center; }
+  button { font-size:16px; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; margin-top:16px; }
+  #btnLogin { background:#2563eb; color:#fff; }
+  #btnLogout { background:#374151; color:#fff; }
+</style>
+</head>
+<body>
+  <div id="app">
+    <p id="status">Verificando sessão…</p>
+    <button id="btnLogin" style="display:none">Entrar</button>
+    <button id="btnLogout" style="display:none">Sair</button>
+  </div>
+  <script>
+    async function init() {
+      const statusEl = document.getElementById("status");
+      const btnLogin = document.getElementById("btnLogin");
+      const btnLogout = document.getElementById("btnLogout");
+      try {
+        const res = await fetch("/auth/me", { credentials: "same-origin" });
+        if (res.ok) {
+          const data = await res.json();
+          statusEl.textContent = "Logado como " + data.email;
+          btnLogout.style.display = "inline-block";
+        } else {
+          statusEl.textContent = "Não logado.";
+          btnLogin.style.display = "inline-block";
+        }
+      } catch (err) {
+        statusEl.textContent = "Erro ao checar sessão: " + err.message;
+      }
+      btnLogin.addEventListener("click", () => {
+        location.href = "/auth/login?redirect=" + encodeURIComponent(location.pathname);
+      });
+      btnLogout.addEventListener("click", () => {
+        location.href = "/auth/logout";
+      });
+    }
+    init();
+  </script>
+</body>
+</html>
