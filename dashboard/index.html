@@ -14463,8 +14463,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     // faz polling pra quem precisa esperar a resposta chegar).
     let __dashSession = null;
     const __dashSessionReady = fetch("/auth/me", { credentials: "same-origin" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { __dashSession = data && data.authenticated ? data : null; })
+      .then((res) => (res.ok ? res.json() : { authenticated: false, __networkOk: true }))
+      .then((data) => {
+        __dashSession = data && data.authenticated ? data : null;
+        if (!__dashSession && data && data.__networkOk) {
+          // Sem sessao valida e sem escape hatch de teste local (ver
+          // dev/local.html no repo original) -- manda pro login em vez de
+          // deixar o dashboard tentar (e falhar) carregar dados sem
+          // identidade nenhuma.
+          let hasLocalEscapeHatch = false;
+          try { hasLocalEscapeHatch = !!localStorage.getItem("escaladaEmail"); } catch (_) {}
+          if (!hasLocalEscapeHatch) {
+            location.href = "/auth/login?redirect=" + encodeURIComponent(location.pathname + location.search);
+            return;
+          }
+        }
+        const emailEl = document.getElementById("dashSessionEmail");
+        if (emailEl) emailEl.textContent = __dashSession ? __dashSession.email : "";
+      })
       .catch(() => { __dashSession = null; });
 
     // Este painel roda em dashboard.escaladagame.com.br, autenticado via
@@ -21857,6 +21873,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             <div class="text-white text-sm font-semibold leading-none">Escalada Sebrae</div>
             <div class="text-white/70 text-[11px] mt-1">Painel institucional</div>
           </div>
+        </div>
+        <div id="dashSessionBar" class="flex items-center justify-between gap-2 pb-3 mb-1 border-b border-white/10 text-[11px] text-white/70">
+          <span id="dashSessionEmail" class="truncate"></span>
+          <a href="/auth/logout" class="text-white/80 hover:text-white underline shrink-0">Sair</a>
         </div>
         <div class="sidebar-section-label">Painel</div>
 
