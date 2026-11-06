@@ -8406,6 +8406,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       municipal: "#38bdf8",
       privada: "#94a3b8",
     };
+    const INSTITUTION_DEP_LABEL = {
+      federal: "Federal",
+      estadual: "Estadual",
+      municipal: "Municipal",
+      privada: "Privada",
+    };
 
     function institutionDepsVisibleForLevel(level) {
       if (level === "regional") return new Set(["federal"]);
@@ -16943,22 +16949,32 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           if (!norm || !visibleDeps.has(row.dep)) continue;
           const bounds = municipioBoundsByNorm.get(norm);
           if (!bounds) continue;
-          institutionMarkersLayer.addLayer(
-            L.circleMarker(bounds.getCenter(), {
-              radius: 6,
-              weight: 1,
-              color: "#0b1220",
-              fillColor: INSTITUTION_DEP_COLOR[row.dep] || "#94a3b8",
-              fillOpacity: 0.9,
-              // interactive:false de proposito -- o pin NUNCA pode
-              // bloquear o clique no poligono de territorio por baixo
-              // dele (pedido explicito do Gabriel: nao pode atrapalhar a
-              // navegacao entre niveis). Sem tooltip/popup nesta rodada
-              // por causa disso -- so cor por dependencia administrativa.
-              interactive: false,
-              pane: "markerPane",
-            })
+          const depLabel = INSTITUTION_DEP_LABEL[row.dep] || row.dep || "";
+          const marker = L.circleMarker(bounds.getCenter(), {
+            radius: 6,
+            weight: 1,
+            color: "#0b1220",
+            fillColor: INSTITUTION_DEP_COLOR[row.dep] || "#94a3b8",
+            fillOpacity: 0.9,
+            // interactive:true (ao contrario da 1a versao desta feature):
+            // o Gabriel pediu pra ver nome/pessoas/atendimentos da IE, e
+            // isso so e possivel com o marker recebendo clique (Leaflet
+            // nao dispara popup/tooltip em layer non-interactive). O
+            // trade-off aceito: clicar EXATAMENTE em cima do pin (raio de
+            // 6px) abre o popup da IE em vez de fazer drill-down do
+            // territorio por baixo -- clicar em qualquer outro ponto do
+            // MESMO poligono (a maior parte da area) continua navegando
+            // normal entre niveis, sem nenhuma mudanca de comportamento.
+            interactive: true,
+            pane: "markerPane",
+          }).bindPopup(
+            `<div style="font-size:13px;line-height:1.5;min-width:160px;">` +
+              `<strong>${escapeHtml(row.nome || "")}</strong><br>` +
+              `<span style="color:#94a3b8;">${escapeHtml(depLabel)}</span><br>` +
+              `${fmtInt(Number(row.pessoas || 0))} pessoa(s) · ${fmtInt(Number(row.atendimentos || 0))} atendimento(s)` +
+              `</div>`
           );
+          institutionMarkersLayer.addLayer(marker);
         }
       }
       if (isDashboardMasterAdmin()) {

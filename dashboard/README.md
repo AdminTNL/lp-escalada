@@ -282,18 +282,21 @@ não neste README — é um bug de infraestrutura do n8n, não deste painel.
 
 ## Pins de instituição de ensino no mapa de Regionais (2026-11-05, GATEADO para admin@tironalua.com)
 
-Ver detalhe completo (RPC, cobertura de dados, hierarquia por nível, por
-que `interactive:false`) no `CLAUDE.md` do repo `B.O-s-Escalada`. Resumo
-do lado frontend: `renderRegionaisTerritoryMap` (index.html) busca
-`report=instituicoes_mapa` em paralelo (sem bloquear o resto do render,
-só quando `isDashboardMasterAdmin()`), e desenha 1 `L.circleMarker` por
-instituição visível no centroide do bounds do polígono do município
-(`municipioBoundsByNorm`, já calculado pelo próprio mapa). Cor por
-dependência administrativa (`dep`): laranja=federal, roxo=estadual,
-azul=municipal, cinza=privada. Nível regional mostra só federal;
-microrregião soma estadual; município mostra tudo. `interactive:false`
-sempre — validado ao vivo clicando exatamente em cima de um pin e
-confirmando que o drill-down do polígono por baixo ainda funciona.
+Ver detalhe completo (RPC, cobertura de dados, hierarquia por nível, a
+2ª rodada que trocou `interactive:false` por popup) no `CLAUDE.md` do
+repo `B.O-s-Escalada`. Resumo do lado frontend: `renderRegionaisTerritoryMap`
+(index.html) busca `report=instituicoes_mapa` em paralelo (sem bloquear o
+resto do render, só quando `isDashboardMasterAdmin()`), e desenha 1
+`L.circleMarker` por instituição visível no centroide do bounds do
+polígono do município (`municipioBoundsByNorm`, já calculado pelo próprio
+mapa). Cor por dependência administrativa (`dep`): laranja=federal,
+roxo=estadual, azul=municipal, cinza=privada. Nível regional mostra só
+federal; microrregião soma estadual; município mostra tudo.
+
+Pin é `interactive:true` com popup (nome completo, dependência, pessoas e
+atendimentos) — clicar exatamente em cima dele (raio de 6px) abre o
+popup; clicar em qualquer outro ponto do mesmo polígono continua
+navegando entre níveis normalmente. Validado ao vivo nas duas direções.
 
 **Pra liberar geral** (tirar do gate de admin): remover o `if
 (isDashboardMasterAdmin())` em `index.html` — o backend
