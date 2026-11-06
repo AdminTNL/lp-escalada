@@ -8386,6 +8386,45 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       throw new Error("API failed after retries.");
     }
 
+    // Pins de instituicao de ensino no mapa de Regionais (2026-11-05,
+    // pedido do Gabriel) -- gateado SO pra admin@tironalua.com por ora,
+    // pra validacao visual antes de liberar geral. Hierarquia por
+    // dependencia administrativa (dashboard_instituicoes_mapa_v1.sql):
+    // nivel "regional" mostra so federal, "microrregiao" soma estadual,
+    // "municipio" mostra tudo -- volume real por UF (ver CLAUDE.md,
+    // supabase/functions/dashboard_executivo/dashboard_instituicoes_mapa_v1.sql)
+    // cresce MUITO rapido de federal pra municipal, entao essa escala
+    // evita poluir o mapa nos niveis mais abertos.
+    const DASHBOARD_MASTER_ADMIN_EMAIL = "admin@tironalua.com";
+    function isDashboardMasterAdmin(email = gestorEmail()) {
+      return String(email || "").trim().toLowerCase() === DASHBOARD_MASTER_ADMIN_EMAIL;
+    }
+
+    const INSTITUTION_DEP_COLOR = {
+      federal: "#f97316",
+      estadual: "#a855f7",
+      municipal: "#38bdf8",
+      privada: "#94a3b8",
+    };
+
+    function institutionDepsVisibleForLevel(level) {
+      if (level === "regional") return new Set(["federal"]);
+      if (level === "microrregiao") return new Set(["federal", "estadual"]);
+      return new Set(["federal", "estadual", "municipal", "privada"]);
+    }
+
+    async function fetchInstituicoesMapa({ uf, dateFrom, dateTo }) {
+      const ufClean = String(uf || "").trim();
+      if (!ufClean) return [];
+      const params = {
+        p_uf: ufClean,
+        p_date_from: normalizeDateYmd(dateFrom),
+        p_date_to: normalizeDateYmd(dateTo),
+      };
+      const result = await callDashboardApiWithRetry("instituicoes_mapa", params);
+      return Array.isArray(result?.rows) ? result.rows : [];
+    }
+
     // Auditoria de eventos client-side que o backend nao tem visibilidade
     // natural (ex: usuario selecionou texto e copiou com Ctrl+C, sem passar
     // por nenhum botao/handler dedicado) -- fire-and-forget, nunca trava a
@@ -16866,6 +16905,78 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const renderGen = (ctx.__renderGen || 0) + 1;
       ctx.__renderGen = renderGen;
       const isStaleRender = () => ctx.__renderGen !== renderGen;
+
+      // Pins de instituicao de ensino -- disparado em paralelo (nao
+      // bloqueia o resto do render), gateado pra admin@tironalua.com por
+      // ora (ver isDashboardMasterAdmin/fetchInstituicoesMapa). Guardado
+      // em institutionRows (closure desta chamada) e desenhado por
+      // updateInstitutionMarkers() assim que chegar. Re-filtra a
+      // visibilidade (por dependencia administrativa) a cada troca de
+      // nivel: chamada direta no final de focusOnRegionalCliente/focusOn/
+      // setViewLevel (logo apos cada uma mudar viewLevel, mais abaixo
+      // nesta funcao) -- o listener moveend/zoomend registrado logo
+      // abaixo e' so salvaguarda extra (nao e' confiavel sozinho: testado
+      // ao vivo, uma troca de nivel real nao disparou moveend a tempo).
+      let institutionRows = [];
+      if (ctx.institutionMarkersLayer) {
+        ctx.map.removeLayer(ctx.institutionMarkersLayer);
+      }
+      const institutionMarkersLayer = L.layerGroup().addTo(ctx.map);
+      ctx.institutionMarkersLayer = institutionMarkersLayer;
+      // moveend/zoomend cobre qualquer troca de nivel/foco (ver comentario
+      // acima) sem precisar de listener novo por transicao. ctx.map e'
+      // reusado entre renders (ensureMap) -- precisa remover o listener
+      // do render ANTERIOR explicitamente, senao acumula 1 novo a cada
+      // troca de UF/filtro pra sempre (isStaleRender() torna o antigo
+      // no-op, mas nao libera o listener da memoria).
+      if (ctx.institutionMarkersMoveHandler) {
+        ctx.map.off("moveend zoomend", ctx.institutionMarkersMoveHandler);
+      }
+      ctx.map.on("moveend zoomend", updateInstitutionMarkers);
+      ctx.institutionMarkersMoveHandler = updateInstitutionMarkers;
+      function updateInstitutionMarkers() {
+        if (isStaleRender() || !institutionMarkersLayer) return;
+        institutionMarkersLayer.clearLayers();
+        const visibleDeps = institutionDepsVisibleForLevel(viewLevel);
+        for (const row of institutionRows) {
+          const norm = String(row?.municipio_norm || "").trim();
+          if (!norm || !visibleDeps.has(row.dep)) continue;
+          const bounds = municipioBoundsByNorm.get(norm);
+          if (!bounds) continue;
+          institutionMarkersLayer.addLayer(
+            L.circleMarker(bounds.getCenter(), {
+              radius: 6,
+              weight: 1,
+              color: "#0b1220",
+              fillColor: INSTITUTION_DEP_COLOR[row.dep] || "#94a3b8",
+              fillOpacity: 0.9,
+              // interactive:false de proposito -- o pin NUNCA pode
+              // bloquear o clique no poligono de territorio por baixo
+              // dele (pedido explicito do Gabriel: nao pode atrapalhar a
+              // navegacao entre niveis). Sem tooltip/popup nesta rodada
+              // por causa disso -- so cor por dependencia administrativa.
+              interactive: false,
+              pane: "markerPane",
+            })
+          );
+        }
+      }
+      if (isDashboardMasterAdmin()) {
+        fetchInstituicoesMapa({
+          uf: state.regionaisSelectedUf || state.gestorUf,
+          dateFrom: state.filters?.dateFrom,
+          dateTo: state.filters?.dateTo,
+        })
+          .then((rows) => {
+            if (isStaleRender()) return;
+            institutionRows = Array.isArray(rows) ? rows : [];
+            updateInstitutionMarkers();
+          })
+          .catch((e) => {
+            console.warn("[UI] [regionais] instituicoes mapa load failed", { err: String(e) });
+          });
+      }
+
       // Zera os handlers/sinalizadores de "mapa pronto" ANTES de qualquer
       // await -- sem isso, um chamador externo (ex. applyRegionaisHashDetail,
       // que espera ctx.regionaisSetViewLevel existir pra saber que pode
@@ -18148,6 +18259,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         focusKey = null;
         focusedMunicipioNorm = null;
         viewLevel = key ? "microrregiao" : "regional";
+        updateInstitutionMarkers();
         detailBounds = { min: 0, baseline: 0, max: 0 };
         // Reescopa a escala de cor das microrregioes pro recorte da
         // regional focada (ou volta pro estado inteiro ao desfocar) -- ver
@@ -18293,6 +18405,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         focusKey = key;
         focusedMunicipioNorm = null;
         viewLevel = key ? "municipio" : "microrregiao";
+        updateInstitutionMarkers();
         const detailStats = computeDetailStats(focusKey);
         detailBounds = detailStats.bounds;
         // PRIMEIRO anexa/remove a camada de detalhe do mapa, SO DEPOIS
@@ -18396,6 +18509,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         focusKey = null;
         focusedMunicipioNorm = null;
         viewLevel = normalized;
+        updateInstitutionMarkers();
         detailBounds = { min: 0, baseline: 0, max: 0 };
         // Pulo do seletor sempre mostra o nivel INTEIRO do estado (nunca
         // escopado a uma regional) -- garante a escala de cor estadual,
@@ -18731,6 +18845,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         },
       });
       ctx.territoryLayer = detailLayer;
+
+      // municipioBoundsByNorm ja esta totalmente populado aqui (o
+      // onEachFeature acima roda sincrono pra cada feature do geojson) --
+      // 1a chamada explicita, sem esperar o 1o moveend/zoomend real (que
+      // deveria disparar de qualquer forma via fitRegionaisViewport mais
+      // abaixo, mas nao custa garantir). institutionRows pode ainda estar
+      // vazio aqui (fetch em voo) -- updateInstitutionMarkers() so desenha
+      // o que ja tiver chegado, o .then() acima chama de novo quando o
+      // fetch terminar.
+      updateInstitutionMarkers();
 
       // coarseLayer (microrregioes, nivel 2) comeca VAZIA -- so recebe
       // feicoes quando uma regional e focada (focusOnRegionalCliente
