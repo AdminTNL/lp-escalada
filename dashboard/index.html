@@ -5555,6 +5555,203 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: #ffb4b4;
       border-color: rgba(255, 138, 138, 0.35);
     }
+
+    /* =========================================================
+       Refino visual/UX - pagina Engajamento (#engagement)
+       Escopo: timeline de atendimentos, atividade na comunidade
+       (posts/comentarios/missoes + post mais engajado), distribuicao
+       por publico, top fontes de entrada. Tudo aqui e prefixado
+       "eng-" ou escopado por [data-page="engagement"]/por id -- nao
+       redefine nenhuma classe compartilhada (.metric/.chip/.badge/
+       .section-title etc, usadas por outras paginas do dashboard).
+       ========================================================= */
+
+    /* Evita linha orfa (widow) em titulo/subtitulo desta pagina -- o
+       resto do dashboard fica como estava, decisao de design system
+       compartilhado fora deste escopo. */
+    section[data-page="engagement"] h2.section-title {
+      text-wrap: balance;
+    }
+    section[data-page="engagement"] .text-sm.text-slate-600 {
+      text-wrap: pretty;
+    }
+
+    /* Numeros grandes de Publicacoes/Comentarios/Missoes -- mesma
+       familia/peso dos KPIs do cabecalho (.kpi .value), que herdavam
+       so' a fonte do corpo por nao ter font-family propria. Tracking
+       negativo leve (kerning) + numeros tabulares pra largura nao
+       saltar ao trocar de periodo; min-height evita salto de altura
+       entre o placeholder "-" e o numero real. */
+    .eng-metric-value {
+      font-family: var(--display-font);
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.05;
+      min-height: 1.1em;
+    }
+    .eng-metric-delta {
+      font-variant-numeric: tabular-nums;
+      min-height: 1em;
+    }
+
+    /* .positive/.negative sao setadas por updateDeltaEl (funcao
+       compartilhada com os KPIs do cabecalho) mas nunca tinham cor
+       em lugar nenhum do arquivo. Escopado so' aos 3 ids desta pagina
+       pra nao mudar o cabecalho -- o sinal +/- ja vem no texto, a cor
+       aqui so' reforca (nunca e o unico sinal de direcao). */
+    #pubMetricPostsDelta.positive,
+    #pubMetricCommentsDelta.positive,
+    #pubMetricMissionsDelta.positive {
+      color: var(--brand-green-2);
+    }
+    #pubMetricPostsDelta.negative,
+    #pubMetricCommentsDelta.negative,
+    #pubMetricMissionsDelta.negative {
+      color: #ff6a6a;
+    }
+
+    /* Media de atendimentos/dia -- numero tabular pra nao saltar
+       largura entre recortes de 1 e 2 digitos. */
+    #atendAvg {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---- Post mais engajado ------------------------------------
+       Skeleton visivel desde o 1o paint (reserva a MESMA altura do
+       conteudo real -- o botao ja tem min-h-[11rem] -- entao a troca
+       skeleton->conteudo nao pula layout/CLS). Skeleton e conteudo
+       ocupam a MESMA celula de grid (overlay) pra o crossfade nao
+       duplicar altura durante a transicao. */
+    .eng-post-stack {
+      display: grid;
+    }
+    .eng-post-stack > * {
+      grid-area: 1 / 1;
+      min-width: 0;
+    }
+    .eng-post-skeleton {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .eng-post-skeleton.eng-fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .eng-post-content {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .eng-post-content.eng-fade-in {
+      opacity: 1;
+      visibility: visible;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .eng-post-skeleton,
+      .eng-post-content {
+        transition: none;
+      }
+    }
+    .eng-skeleton-block {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.08));
+      background-size: 200% 100%;
+      animation: shimmer 1.15s infinite linear;
+      border-radius: 999px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .eng-skeleton-block {
+        animation: none;
+        opacity: 0.5;
+      }
+    }
+    #engTopPostPreview {
+      text-wrap: pretty;
+    }
+    #engTopPostLikes,
+    #engTopPostComments {
+      font-variant-numeric: tabular-nums;
+    }
+    .eng-post-chevron {
+      transition: transform 0.2s ease;
+    }
+    #engTopPostBtn:hover .eng-post-chevron,
+    #engTopPostBtn:focus-visible .eng-post-chevron {
+      transform: translateX(3px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .eng-post-chevron {
+        transition: none;
+      }
+    }
+    #engTopPostBtn:focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
+    }
+
+    /* ---- Top fontes de entrada ----------------------------------
+       Rank numerado como chip circular (centralizacao optica: o
+       padding-top compensa o numeral assentar visualmente acima do
+       centro geometrico no mono/tamanho pequeno), 1o lugar com
+       destaque na mesma gradiente de marca usada no resto do app.
+       Barra de progresso em transform (GPU, nunca width) + entrada
+       escalonada por linha. */
+    .eng-source-row {
+      animation: rise 0.45s ease both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .eng-source-row {
+        animation: none;
+      }
+    }
+    .eng-source-rank {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 1px;
+      font-family: var(--mono-font);
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: rgba(226, 233, 255, 0.64);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--line);
+    }
+    .eng-source-rank[data-rank="1"] {
+      color: #07231a;
+      background: linear-gradient(90deg, var(--brand-green), var(--brand-green-2));
+      border-color: transparent;
+    }
+    .eng-source-name,
+    .eng-source-count,
+    .eng-source-sub {
+      font-variant-numeric: tabular-nums;
+    }
+    .eng-source-bar-fill {
+      transform-origin: left center;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .eng-source-bar-fill {
+        transition: none;
+      }
+    }
+
+    /* .reveal/.delay-* (usadas agora pelos cards desta pagina, mesmo
+       padrao ja usado pelos cards da Visao Geral) nunca tinham guarda
+       de prefers-reduced-motion em lugar nenhum do arquivo -- guarda
+       adicionada aqui de forma puramente aditiva (so' neutraliza a
+       animacao, nunca muda layout/posicionamento final). */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        animation: none;
+      }
+    }
   </style>
 
   <!-- Scripts do app relocados para o Head (footer/body deste construtor nao executa tags de script inline) -->
@@ -13165,18 +13362,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const atend = Number(row.atendimentos || 0);
         const inscr = Number(row.inscritos || 0);
         const pct = Math.round((atend / maxVal) * 100);
+        // Piso de 2% so' pra a fonte com menos volume nao desaparecer
+        // visualmente (scaleX(0) sumiria de vez com a barra).
+        const scale = (Math.max(pct, 2) / 100).toFixed(4);
         return `
-          <div class="flex items-center gap-3">
-            <span class="text-sm font-bold shrink-0 w-5 text-right" style="color:rgba(226,233,255,.44)">${i + 1}</span>
+          <div class="flex items-center gap-3 eng-source-row" style="animation-delay:${i * 45}ms">
+            <span class="eng-source-rank shrink-0" data-rank="${i + 1}" aria-hidden="true">${i + 1}</span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between mb-1.5">
-                <span class="text-sm font-semibold truncate" style="color:rgba(242,246,255,.94)">${escapeHtml(String(row.source || "Fonte"))}</span>
-                <span class="text-xs font-bold shrink-0 ml-2" style="color:rgba(226,233,255,.72)">${fmtInt(atend)} <span style="color:rgba(226,233,255,.44)">atend.</span></span>
+                <span class="text-sm font-semibold truncate eng-source-name" style="color:rgba(242,246,255,.94)">${escapeHtml(String(row.source || "Fonte"))}</span>
+                <span class="text-xs font-bold shrink-0 ml-2 eng-source-count" style="color:rgba(226,233,255,.72)">${fmtInt(atend)} <span style="color:rgba(226,233,255,.44)">atend.</span></span>
               </div>
-              <div class="w-full h-2 rounded-full" style="background:rgba(255,255,255,.08)">
-                <div class="h-full rounded-full transition-all" style="width:${pct}%;background:linear-gradient(90deg,var(--brand-green),var(--brand-green-2))"></div>
+              <div class="w-full h-2 rounded-full overflow-hidden" style="background:rgba(255,255,255,.08)">
+                <div class="h-full w-full rounded-full eng-source-bar-fill" style="transform:scaleX(${scale});background:linear-gradient(90deg,var(--brand-green),var(--brand-green-2))"></div>
               </div>
-              <div class="text-[10px] mt-1 font-semibold" style="color:rgba(226,233,255,.44)">${fmtInt(inscr)} inscritos</div>
+              <div class="text-[10px] mt-1 font-semibold eng-source-sub" style="color:rgba(226,233,255,.44)">${fmtInt(inscr)} inscritos</div>
             </div>
           </div>`;
       }).join("");
@@ -13197,7 +13397,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
       const card = document.getElementById("engTopPostCard");
       if (!card) return;
-      if (!data.topPost) { card.classList.add("hidden"); return; }
+      const skeleton = document.getElementById("engTopPostSkeleton");
+      const content = document.getElementById("engTopPostContent");
+      if (!data.topPost) {
+        card.classList.add("hidden");
+        if (skeleton) skeleton.classList.remove("eng-fade-out");
+        if (content) content.classList.remove("eng-fade-in");
+        return;
+      }
       card.classList.remove("hidden");
 
       const post = data.topPost;
@@ -13218,6 +13425,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       setText("engTopPostPreview", preview);
       setText("engTopPostLikes", `${fmtInt(post.likesCount)} curtidas`);
       setText("engTopPostComments", `${fmtInt(post.commentsCount)} comentarios`);
+
+      // Skeleton -> conteudo real via crossfade (os dois ocupam a mesma
+      // celula de grid, ver .eng-post-stack) em vez do pop abrupto de
+      // antes -- so' dispara na 1a vez que um post real chega; chamadas
+      // seguintes (refetch ao trocar filtro) nao re-tocam a transicao.
+      if (skeleton && !skeleton.classList.contains("eng-fade-out")) {
+        skeleton.classList.add("eng-fade-out");
+      }
+      if (content) content.classList.add("eng-fade-in");
+      renderIconsNow();
 
       state._topPostData = post;
     }
@@ -24746,15 +24963,15 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         </section>
 
         <section data-page="engagement" class="hidden grid grid-cols-12 gap-4 wrap-accent-magenta wrap-soft p-5">
-          <div class="col-span-12 lg:col-span-7 card p-5">
+          <div class="col-span-12 lg:col-span-7 card p-5 reveal">
             <h2 class="section-title">Atendimentos ao longo do tempo</h2>
-            <div class="text-sm text-slate-600">Picos podem indicar eventos regionais ou gargalos.</div>
+            <div class="text-sm text-slate-600 leading-relaxed">Picos podem indicar eventos regionais ou gargalos.</div>
             <div class="flex flex-wrap gap-2 mt-2 text-xs text-slate-600">
               <span class="badge">M&eacute;dia <strong id="atendAvg">&mdash;</strong></span>
             </div>
             <div class="mt-4 h-64"><canvas id="chartAtendLine"></canvas></div>
           </div>
-          <div class="col-span-12 lg:col-span-5 card p-5 has-help">
+          <div class="col-span-12 lg:col-span-5 card p-5 has-help reveal delay-1">
             <details class="metric-help">
               <summary class="metric-help-trigger" aria-label="Explicar coleta de dados de publicações">?</summary>
               <div class="metric-help-popover">
@@ -24762,17 +24979,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               </div>
             </details>
             <h2 class="section-title">Atividade na comunidade</h2>
-            <div class="text-sm text-slate-600">O que anda acontecendo na comunidade Escalada?</div>
+            <div class="text-sm text-slate-600 leading-relaxed">O que anda acontecendo na comunidade Escalada?</div>
             <div class="grid grid-cols-3 gap-3 mt-4">
               <div class="metric text-center" style="padding:16px 12px">
                 <span class="label">Publica&ccedil;&otilde;es</span>
-                <span id="pubMetricPosts" class="value" style="font-size:clamp(1.6rem,2.5vw,2.4rem)">&mdash;</span>
-                <span id="pubMetricPostsDelta" class="delta text-[11px] block mt-1" title="Variação vs período anterior">&mdash;</span>
+                <span id="pubMetricPosts" class="value eng-metric-value" style="font-size:clamp(1.6rem,2.5vw,2.4rem)">&mdash;</span>
+                <span id="pubMetricPostsDelta" class="delta eng-metric-delta text-[11px] block mt-1" title="Variação vs período anterior">&mdash;</span>
               </div>
               <div class="metric text-center" style="padding:16px 12px">
                 <span class="label">Coment&aacute;rios</span>
-                <span id="pubMetricComments" class="value" style="font-size:clamp(1.6rem,2.5vw,2.4rem)">&mdash;</span>
-                <span id="pubMetricCommentsDelta" class="delta text-[11px] block mt-1" title="Variação vs período anterior">&mdash;</span>
+                <span id="pubMetricComments" class="value eng-metric-value" style="font-size:clamp(1.6rem,2.5vw,2.4rem)">&mdash;</span>
+                <span id="pubMetricCommentsDelta" class="delta eng-metric-delta text-[11px] block mt-1" title="Variação vs período anterior">&mdash;</span>
               </div>
               <div class="metric has-help text-center" style="padding:16px 12px">
                 <details class="metric-help">
@@ -24782,21 +24999,33 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
                   </div>
                 </details>
                 <span class="label">Miss&otilde;es</span>
-                <span id="pubMetricMissions" class="value" style="font-size:clamp(1.6rem,2.5vw,2.4rem)">&mdash;</span>
-                <span id="pubMetricMissionsDelta" class="delta text-[11px] block mt-1" title="Variação vs período anterior">&mdash;</span>
+                <span id="pubMetricMissions" class="value eng-metric-value" style="font-size:clamp(1.6rem,2.5vw,2.4rem)">&mdash;</span>
+                <span id="pubMetricMissionsDelta" class="delta eng-metric-delta text-[11px] block mt-1" title="Variação vs período anterior">&mdash;</span>
               </div>
             </div>
-            <div id="engTopPostCard" class="mt-4 hidden">
+            <div id="engTopPostCard" class="mt-4">
               <div class="text-xs text-slate-600 mb-2 uppercase tracking-wide font-semibold" style="color:rgba(235,241,255,.7)">Post mais engajado</div>
               <button id="engTopPostBtn" type="button" class="w-full min-h-[11rem] text-left rounded-2xl border border-white/14 bg-white/6 p-4 hover:border-cyan-400/30 hover:bg-white/10 transition cursor-pointer">
-                <div class="flex items-start gap-4 h-full">
-                  <div id="engTopPostThumb" class="w-20 h-20 rounded-2xl bg-white/10 shrink-0 overflow-hidden" style="display:none"></div>
-                  <div class="min-w-0 flex-1 flex flex-col min-h-[8rem]">
-                    <div id="engTopPostAuthor" class="text-xs font-semibold truncate" style="color:rgba(242,246,255,.94)"></div>
-                    <div id="engTopPostPreview" class="text-sm mt-2 leading-relaxed line-clamp-4 flex-1" style="color:rgba(226,233,255,.72)"></div>
-                    <div class="flex gap-3 mt-3 text-[11px] font-semibold" style="color:rgba(226,233,255,.56)">
-                      <span id="engTopPostLikes"></span>
-                      <span id="engTopPostComments"></span>
+                <div class="eng-post-stack h-full">
+                  <div id="engTopPostSkeleton" class="eng-post-skeleton flex items-start gap-4 h-full" aria-hidden="true">
+                    <div class="eng-skeleton-block w-20 h-20 shrink-0" style="border-radius:16px"></div>
+                    <div class="min-w-0 flex-1 flex flex-col gap-2 py-1">
+                      <div class="eng-skeleton-block h-3 w-1/3"></div>
+                      <div class="eng-skeleton-block h-3 w-full mt-2"></div>
+                      <div class="eng-skeleton-block h-3 w-5/6"></div>
+                      <div class="eng-skeleton-block h-3 w-2/3 mt-auto"></div>
+                    </div>
+                  </div>
+                  <div id="engTopPostContent" class="eng-post-content flex items-start gap-4 h-full">
+                    <div id="engTopPostThumb" class="w-20 h-20 rounded-2xl bg-white/10 shrink-0 overflow-hidden" style="display:none"></div>
+                    <div class="min-w-0 flex-1 flex flex-col min-h-[8rem]">
+                      <div id="engTopPostAuthor" class="text-xs font-semibold truncate" style="color:rgba(242,246,255,.94)"></div>
+                      <div id="engTopPostPreview" class="text-sm mt-2 leading-relaxed line-clamp-4 flex-1" style="color:rgba(226,233,255,.72)"></div>
+                      <div class="flex items-center gap-3 mt-3 text-[11px] font-semibold" style="color:rgba(226,233,255,.56)">
+                        <span id="engTopPostLikes"></span>
+                        <span id="engTopPostComments"></span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 ml-auto eng-post-chevron" style="opacity:.55" aria-hidden="true"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -24804,14 +25033,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             </div>
           </div>
 
-          <div class="col-span-12 md:col-span-6 card p-5">
+          <div class="col-span-12 md:col-span-6 card p-5 reveal delay-2">
             <h2 class="section-title">Distribui&ccedil;&atilde;o por p&uacute;blico</h2>
-            <div class="text-sm text-slate-600">Segmenta&ccedil;&atilde;o para estrat&eacute;gia.</div>
+            <div class="text-sm text-slate-600 leading-relaxed">Segmenta&ccedil;&atilde;o para estrat&eacute;gia.</div>
             <div class="mt-4 h-64"><canvas id="chartPublico"></canvas></div>
           </div>
-          <div class="col-span-12 md:col-span-6 card p-5">
+          <div class="col-span-12 md:col-span-6 card p-5 reveal delay-3">
             <h2 class="section-title">Top fontes de entrada</h2>
-            <div class="text-sm text-slate-600">Micro vis&atilde;o das 5 maiores fontes no recorte.</div>
+            <div class="text-sm text-slate-600 leading-relaxed">Micro vis&atilde;o das 5 maiores fontes no recorte.</div>
             <div id="engTopSourcesList" class="mt-4 flex flex-col gap-4"></div>
           </div>
 
