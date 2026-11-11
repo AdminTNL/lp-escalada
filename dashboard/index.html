@@ -4142,7 +4142,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         left: 0;
         right: 0;
         bottom: 0;
-        height: 64px;
+        /* +safe-area-inset-bottom -- so decorativo (pointer-events:none),
+           entao estender um pouco mais em telas com home indicator/notch
+           nao tem risco nenhum de layout, so garante que o degrade cubra
+           tambem essa faixa reservada do sistema. */
+        height: calc(64px + env(safe-area-inset-bottom, 0px));
         background: linear-gradient(to top, rgba(4, 8, 24, 0.55), transparent);
         pointer-events: none;
         z-index: 3999;
@@ -4290,6 +4294,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: var(--ink-soft);
       white-space: nowrap;
       gap: 8px;
+      font-variant-numeric: tabular-nums;
     }
 
     .regionais-heat-legend-inactive {
@@ -4476,6 +4481,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: rgba(226, 233, 255, 0.78);
       line-height: 1.5;
       margin-bottom: 14px;
+      /* Progressive enhancement -- evita linha orfa de 1 palavra so no
+         fim do paragrafo; navegador sem suporte ignora, sem risco. */
+      text-wrap: pretty;
     }
     .regionais-tour-actions {
       display: flex;
@@ -4617,6 +4625,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       align-items: center;
       border-radius: 999px;
       padding: 8px 28px 8px 13px;
+      /* Alvo de toque -- select nativo, troca o estado/UF explorada
+         direto no mapa; padding sozinho (8px) deixava a area clicavel
+         real perto de 32px de altura. */
+      min-height: 36px;
       font-size: 0.72rem;
       font-family: var(--mono-font);
       font-weight: 700;
@@ -4660,6 +4672,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       align-items: center;
       justify-content: center;
       padding: 9px 16px;
+      /* Alvo de toque -- pill de texto pequeno (0.74rem) + padding
+         vertical de 9px sozinho fica perto de 33px de altura real, abaixo
+         do piso usual de toque confortavel. min-height nao muda o padding/
+         proporcao visual do pill (continua content-driven na horizontal),
+         so garante uma area clicavel vertical maior nos 2-3 segmentos do
+         breadcrumb. */
+      min-height: 40px;
       border-radius: 999px;
       border: none;
       margin: 0;
@@ -4683,6 +4702,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .regionais-focus-chip-crumb:hover {
       transform: translateY(-1px);
       box-shadow: 0 14px 22px rgba(42, 79, 218, 0.4), 0 0 0 1px rgba(0, 249, 255, 0.5);
+    }
+    .regionais-focus-chip-crumb:active {
+      transform: scale(0.96);
+      box-shadow: 0 6px 14px rgba(42, 79, 218, 0.3);
     }
 
     .regionais-map-canvas {
@@ -4842,6 +4865,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
          layout vertical original) desalinha o valor dentro da linha
          horizontal nova (.regionais-kpi-value-row). */
       margin-bottom: 0;
+      /* Numero atualiza a cada troca de nivel/filtro -- tabular nums evita
+         o tile "respirar" de largura (2 vira 3 digitos) e empurrar a
+         descricao do lado (.regionais-kpi-value-row e flex, nao grid). */
+      font-variant-numeric: tabular-nums;
     }
 
     /* Valor + descricao na MESMA linha (em vez de descricao embaixo) --
@@ -4871,6 +4898,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       line-height: 1.2 !important;
       white-space: normal !important;
       letter-spacing: -0.02em !important;
+      font-variant-numeric: tabular-nums;
     }
 
     .regionais-hotlist-card {
@@ -4886,6 +4914,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       gap: 6px;
       font-size: 0.86rem;
       font-weight: 700;
+      letter-spacing: 0.01em;
       color: var(--ink-strong);
       margin: 0;
     }
@@ -5014,6 +5043,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       background: rgba(255, 255, 255, 0.08);
     }
 
+    /* Feedback tatil de toque/clique real -- so nas linhas clicaveis (modo
+       Multiplicadores e so informativo, ver .is-static embaixo). Reusa a
+       MESMA transicao de transform ja declarada na regra base da linha
+       (0.15s ease), nao precisa de uma nova. */
+    .regionais-hotlist-row:not(.is-static):active {
+      transform: translateX(2px) scale(0.985);
+    }
+
     .regionais-hotlist-row.is-focused {
       border-color: rgba(0, 249, 255, 0.4);
       background: rgba(0, 249, 255, 0.08);
@@ -5048,6 +5085,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       background: rgba(255, 255, 255, 0.08);
       color: var(--ink-soft);
       border: 1px solid rgba(255, 255, 255, 0.1);
+      font-variant-numeric: tabular-nums;
     }
 
     .regionais-hotlist-badge.rank-1 {
@@ -5103,6 +5141,34 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-weight: 700;
       color: var(--ink-strong);
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Entrada escalonada (stagger) da lista "Mais quentes" -- so no RENDER
+       DIRETO (nivel regional/microrregiao, <=80 linhas, 1 unica montagem
+       por troca de nivel/busca -- ver REGIONAIS_HOTLIST_VIRTUALIZE_THRESHOLD
+       e a classe aplicada em renderRegionaisHotlist). NUNCA aplicada no
+       modo VIRTUALIZADO (nivel Municipio com centenas de linhas, remontado
+       a cada tick de scroll via regionaisHotlistRenderWindow) -- repetir
+       essa entrada em todo scroll seria ruido visual constante, nao um
+       "aparecer" genuino, e a classe so e adicionada no branch que nunca
+       roda durante scroll. So opacity/transform (GPU) -- nunca
+       width/height/top/left, e nao interfere na altura FIXA de 42px que a
+       virtualizacao depende (REGIONAIS_HOTLIST_ROW_HEIGHT). */
+    .regionais-hotlist-stagger .regionais-hotlist-row {
+      opacity: 0;
+      animation: regionaisHotlistRowIn 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: calc(min(var(--stagger-i, 0), 12) * 22ms);
+    }
+    @keyframes regionaisHotlistRowIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .regionais-hotlist-stagger .regionais-hotlist-row {
+        animation: none;
+        opacity: 1;
+      }
     }
 
     /* Mobile: mapa antes da lista de KPIs/hotlist (pedido explicito do
@@ -5252,12 +5318,44 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       background: rgba(7, 15, 36, 0.96);
       border: 1px solid rgba(0, 249, 255, 0.24);
       color: rgba(226, 233, 255, 0.92);
-      font-size: 0.72rem;
-      line-height: 1.45;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      /* Contagens (atendimentos/inscritos/instituicoes) nao devem "dancar"
+         de largura letra a letra enquanto o mouse passeia pelo territorio --
+         mesmo tratamento dado aos KPIs/hotlist abaixo. */
+      font-variant-numeric: tabular-nums;
+      /* Progressive enhancement -- navegador sem suporte so ignora, sem
+         risco nenhum; evita linha orfa de 1 palavra so no texto de
+         instituicoes agrupadas. */
+      text-wrap: pretty;
       border-radius: 10px;
       padding: 6px 10px;
       box-shadow: 0 18px 34px rgba(2, 6, 23, 0.4);
-      max-width: 220px;
+      max-width: 236px;
+      /* Entrada "origin-aware": nasce de um leve scale+fade a partir do
+         canto mais proximo do cursor/pin (transform-origin setado
+         dinamicamente em moveSharedTooltip, conforme o balao fica em cima
+         ou embaixo do ponto tocado) em vez de so trocar display:none<->
+         block sem transicao nenhuma. So opacity/transform (GPU) -- nunca
+         width/height/top/left, que ja sao usados pelo posicionamento em si
+         (moveSharedTooltip) e nao devem ser animados por cima. */
+      opacity: 0;
+      transform: scale(0.94);
+      transition: opacity 140ms ease, transform 140ms ease;
+      transform-origin: top left;
+    }
+    .regional-territory-tooltip-shared.is-visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .regional-territory-tooltip-shared {
+        transition: opacity 80ms linear;
+        transform: none;
+      }
+      .regional-territory-tooltip-shared.is-visible {
+        transform: none;
+      }
     }
 
     /* Toggle "Multiplicadores" no header do mapa (esquerda do termometro) --
@@ -5270,6 +5368,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
        so pisca agora). */
     .regionais-multiplicadores-toggle {
       position: relative;
+      /* Alvo de toque -- btn-sm global (padding 9px 12px, line-height:1)
+         fica perto de 30px de altura real; aqui e um botao isolado no
+         header do mapa (nao um grupo apertado de pills como os seletores
+         do canto do mapa), sobra espaco pra crescer sem disputa. */
+      min-height: 40px;
       background: transparent;
       border-color: rgba(226, 233, 255, 0.18);
       color: rgba(226, 233, 255, 0.45);
@@ -5278,6 +5381,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       background: rgba(255, 255, 255, 0.05);
       border-color: rgba(226, 233, 255, 0.32);
       color: rgba(226, 233, 255, 0.75);
+    }
+    .regionais-multiplicadores-toggle:active {
+      transform: scale(0.96);
     }
     .regionais-multiplicadores-toggle.is-active {
       border-color: transparent;
@@ -5339,7 +5445,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: #e2e9ff;
       font-family: var(--mono-font);
       font-weight: 700;
-      font-size: 0.72rem;
+      font-size: 0.76rem;
+      font-variant-numeric: tabular-nums;
       border-radius: 999px;
       padding: 2px 8px;
       box-shadow: 0 6px 16px rgba(2, 6, 23, 0.35);
@@ -5374,7 +5481,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: #e2e9ff;
       font-family: var(--mono-font);
       font-weight: 700;
-      font-size: 0.68rem;
+      font-size: 0.72rem;
+      font-variant-numeric: tabular-nums;
       border-radius: 999px;
       padding: 1px 6px;
       box-shadow: 0 4px 10px rgba(2, 6, 23, 0.4);
@@ -17915,10 +18023,43 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           touchResetTimer = setTimeout(() => { window.__regionaisRecentTouch = false; }, 500);
         }, { passive: true });
       }
+      // safe-area-inset-bottom lido 1x (memoizado em window -- varios maps/
+      // reabertura desta funcao reusam o mesmo valor) via elemento-sonda,
+      // ja que env() so existe em CSS -- nao da pra ler direto em JS.
+      // Usado so pra nao deixar o balao encostar na faixa reservada do
+      // sistema (home indicator) quando ele cai perto do rodape real da
+      // tela em mobile.
+      function regionaisSafeAreaBottomPx() {
+        if (typeof window.__regionaisSafeAreaBottomPx === "number") return window.__regionaisSafeAreaBottomPx;
+        let px = 0;
+        try {
+          const probe = document.createElement("div");
+          probe.style.cssText = "position:fixed;left:-9999px;bottom:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);";
+          document.body.appendChild(probe);
+          px = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+          probe.remove();
+        } catch (e) {
+          px = 0;
+        }
+        window.__regionaisSafeAreaBottomPx = px;
+        return px;
+      }
       function showSharedTooltip(html, clientX, clientY) {
+        // Cancela qualquer hide pendente (ver hideSharedTooltip) -- um
+        // mouseover novo antes do fade de saida terminar precisa reusar o
+        // MESMO elemento sem deixar um setTimeout antigo escondê-lo por
+        // baixo do conteudo novo (animacao interrompivel: o mouse pode
+        // entrar/sair de varios territorios em sequencia rapida).
+        clearTimeout(tooltipEl.__regionaisHideTimer);
         tooltipEl.innerHTML = html;
         tooltipEl.style.display = "block";
         moveSharedTooltip(clientX, clientY);
+        // Entrada "origin-aware" (ver .is-visible no CSS): a classe so
+        // entra no PROXIMO frame, pra garantir que o navegador registre o
+        // estado inicial (opacity:0/scale 0.94) antes de animar pro estado
+        // final -- aplicar tudo no mesmo frame faria o browser colapsar as
+        // 2 mudancas e a transicao nunca rodaria.
+        requestAnimationFrame(() => tooltipEl.classList.add("is-visible"));
       }
       function moveSharedTooltip(clientX, clientY) {
         // Perto da base da viewport (onde o seletor de nivel do mapa fica
@@ -17930,11 +18071,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const nearBottom = clientY > window.innerHeight - 140;
         const top = nearBottom ? clientY - rect.height - 14 : clientY + 14;
         const left = Math.min(clientX + 14, window.innerWidth - rect.width - 12);
+        const safeBottomMargin = 12 + regionaisSafeAreaBottomPx();
         tooltipEl.style.left = `${Math.max(12, left)}px`;
-        tooltipEl.style.top = `${Math.max(12, top)}px`;
+        tooltipEl.style.top = `${Math.max(12, Math.min(top, window.innerHeight - rect.height - safeBottomMargin))}px`;
+        // transform-origin acompanha o MESMO flip que decide se o balao
+        // desce ou sobe a partir do toque -- a entrada nasce do canto
+        // mais proximo do cursor/pin, nao sempre do mesmo canto.
+        tooltipEl.style.transformOrigin = nearBottom ? "bottom left" : "top left";
       }
       function hideSharedTooltip() {
-        tooltipEl.style.display = "none";
+        tooltipEl.classList.remove("is-visible");
+        // display:none so DEPOIS do fade (ver transition em CSS) -- senao
+        // o balao desaparece seco, sem a saida animada. clearTimeout no
+        // proprio showSharedTooltip cobre o caso de reaparecer no meio
+        // desse intervalo.
+        clearTimeout(tooltipEl.__regionaisHideTimer);
+        tooltipEl.__regionaisHideTimer = setTimeout(() => {
+          tooltipEl.style.display = "none";
+        }, 150);
       }
       ctx.map.off("dragstart", hideSharedTooltip);
       ctx.map.on("dragstart", hideSharedTooltip);
@@ -21297,7 +21451,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const classes = ["regionais-hotlist-row"];
       if (opts.scope === "multiplicador") classes.push("is-static");
       if (opts.focusedKey && key === opts.focusedKey) classes.push("is-focused");
-      const styleAttr = opts.rowStyle ? ` style="${opts.rowStyle}"` : "";
+      const styleParts = [];
+      if (opts.rowStyle) styleParts.push(opts.rowStyle);
+      // Indice de entrada (stagger, ver .regionais-hotlist-stagger no CSS) --
+      // custom property so lida pelo animation-delay; so vem preenchido no
+      // render DIRETO (nunca no virtualizado, que nao passa staggerIndex).
+      if (Number.isInteger(opts.staggerIndex)) styleParts.push(`--stagger-i:${opts.staggerIndex}`);
+      const styleAttr = styleParts.length ? ` style="${styleParts.join(";")}"` : "";
       return `
           <button type="button" class="${classes.join(" ")}" data-key="${escapeHtml(key)}" data-name="${escapeHtml(regionaisRowName(r))}"${styleAttr}>
             ${badgeHtml}
@@ -21456,11 +21616,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         // preenche so a fatia visivel logo em seguida.
         const totalHeight = Math.max(0, filtered.length * REGIONAIS_HOTLIST_ROW_STEP - REGIONAIS_HOTLIST_ROW_GAP);
         regionaisHotlistVirtual = { filtered, rankByKey, rankedMax: summary.rankedMax, hotBounds: summary.hotBounds, scope: summary.scope };
+        // Sem stagger aqui -- lista virtualizada remonta a janela visivel
+        // em TODO tick de scroll (ver regionaisHotlistRenderWindow); uma
+        // entrada "aparecendo" a cada scroll seria ruido constante, nao um
+        // aparecer genuino (ver comentario grande no CSS de
+        // .regionais-hotlist-stagger).
+        el.classList.remove("regionais-hotlist-stagger");
         el.innerHTML = `<div class="regionais-hotlist-viewport" style="height:${totalHeight}px"></div>`;
         regionaisHotlistRenderWindow();
       } else {
         const rowCtx = { rankByKey, rankedMax: summary.rankedMax, hotBounds: summary.hotBounds, scope: summary.scope, focusedKey: null };
-        el.innerHTML = filtered.map((r) => regionaisHotlistRowMarkup(r, rowCtx)).join("");
+        // Lista pequena (regional/microrregiao, tipicamente <30 linhas),
+        // 1 unica montagem por troca de nivel/busca -- entrada escalonada
+        // segura aqui (ver .regionais-hotlist-stagger no CSS).
+        el.classList.add("regionais-hotlist-stagger");
+        el.innerHTML = filtered.map((r, i) => regionaisHotlistRowMarkup(r, { ...rowCtx, staggerIndex: i })).join("");
       }
 
       // scope "regional" (nivel 1, default): clique focaliza a regional.
