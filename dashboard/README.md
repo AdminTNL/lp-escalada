@@ -280,13 +280,13 @@ quanto parseando a resposta — corrigido no workflow (Code node com
 `detalhamento` em base64. Detalhe completo na skill `n8n-flows` (regra 5),
 não neste README — é um bug de infraestrutura do n8n, não deste painel.
 
-## Pins de instituição de ensino no mapa de Regionais (2026-11-05, GATEADO para admin@tironalua.com)
+## Pins de instituição de ensino no mapa de Regionais (2026-11-05, liberado geral em 2026-11-11)
 
 Ver detalhe completo (RPC, cobertura de dados, hierarquia por nível, a
 2ª rodada que trocou `interactive:false` por popup) no `CLAUDE.md` do
 repo `B.O-s-Escalada`. Resumo do lado frontend: `renderRegionaisTerritoryMap`
 (index.html) busca `report=instituicoes_mapa` em paralelo (sem bloquear o
-resto do render, só quando `isDashboardMasterAdmin()`), e desenha 1
+resto do render), e desenha 1
 `L.circleMarker` por instituição visível no centroide do bounds do
 polígono do município (`municipioBoundsByNorm`, já calculado pelo próprio
 mapa). Cor por dependência administrativa (`dep`): laranja=federal,
@@ -298,11 +298,253 @@ atendimentos) — clicar exatamente em cima dele (raio de 6px) abre o
 popup; clicar em qualquer outro ponto do mesmo polígono continua
 navegando entre níveis normalmente. Validado ao vivo nas duas direções.
 
-**Pra liberar geral** (tirar do gate de admin): remover o `if
-(isDashboardMasterAdmin())` em `index.html` — o backend
-(`dashboard_instituicoes_mapa_v1.sql`) já tem a trava de UF normal
+**Liberado geral em 2026-11-11** (antes gateado só pra
+`admin@tironalua.com`, pra validação visual) — removido o `if
+(isDashboardMasterAdmin())` (e a própria função/constante, que não tinha
+mais nenhum uso) em `index.html`, nos dois pontos que ligavam a feature:
+o fetch de `fetchInstituicoesMapa` e o early-return de `evaluateZoomBlend`
+(o funil de zoom contínuo, ver subseção abaixo). O backend
+(`dashboard_instituicoes_mapa_v1.sql`) já tinha a trava de UF normal
 (mesmo padrão `dashboard_ufs_do_acesso` de qualquer outra RPC desta
-pasta), não precisa de nenhuma mudança lá.
+pasta) desde antes — não precisou de nenhuma mudança lá. Qualquer
+gestor/admin agora vê os pins da própria UF, igual ao resto do mapa.
+
+### Funil de território + drill em município (2026-11-05, liberado geral junto)
+
+Clicar 2x no MESMO município já selecionado entra em modo "drill"
+(`selectMunicipio` → `drillIntoMunicipio`): esconde de uma vez as 4
+camadas de SVG coropletico (`ctx.territoryLayer`/`ctx.coarseLayer`/
+`ctx.regionalLayer`/`ctx.ufOutlineLayer`, guardadas em
+`municipioDrillHiddenLayers` pra restaurar exatamente o mesmo conjunto),
+monta um tile OpenStreetMap sob demanda (`ctx.osmTileLayer`, lazy — esse
+mapa normalmente roda com `skipTileLayer:true`), dá zoom apertado no
+município (`fitBounds(..., {pad: 0.08})`, mais folga que o 0.04 usado no
+resto do mapa por não ter SVG de contexto em volta), e desenha 1 pin POR
+INSTITUIÇÃO (sem agrupar) com posição espalhada em espiral a partir do
+centroide (`spiralSpreadPositions` — sem geocodificação real de escola, é
+a única posição disponível; o popup desse modo específico ganha a nota
+"Posição aproximada dentro do município"). 2º clique no mesmo município
+desfaz (`undrillMunicipio`).
+
+Guarda defensiva (`if (isMunicipioDrilled) undrillMunicipio();`, primeira
+linha de `focusOnRegionalCliente`/`focusOn`/`setViewLevel`, antes de
+qualquer early-return existente) desfaz o drill sempre que o usuário
+navegar pra fora dele por qualquer caminho, não só o breadcrumb. O
+breadcrumb (`#regionaisFocusChip`, movido pro grupo DIREITO do header do
+mapa, ao lado da legenda/botão Multiplicadores) ganha um 3º segmento com o
+nome do município; o segmento "atual" virou clicável reusando a MESMA
+função de navegação com a MESMA key (no-op fora do drill, desfaz só o
+drill durante o drill, graças ao guard); um segmento ANCESTRAL desfaz o
+drill E sobe de nível numa ação só.
+
+Nível "município" sem drill não muda — continua mostrando os pins
+agrupados (cluster com badge) de antes.
+
+**Bug real achado e corrigido (2026-11-06), não é específico do drill —
+canvas do território travado por cima do SVG**: a classe
+`.regionais-territory-canvas-front` (adicionada por `focusOn()` ao entrar
+em município via clique direto, pra forçar o canvas acima do SVG) nunca
+era removida em NENHUM caminho de saída (`focusOnRegionalCliente(null)`,
+`focusOn(null)`, `setViewLevel("microrregiao")`) — só a entrada via pills
+limpava. Depois de sair do nível município por qualquer um desses 3
+caminhos, o canvas (vazio) ficava travado acima do SVG pra sempre,
+engolindo clique nos territórios seguintes ("mapa fica cinza"/"blocos não
+clicáveis"). Bug pré-existente, exposto com muito mais frequência pelo
+drill (todo clique em município agora entra nele). Fix: limpeza da classe
+nos 3 caminhos — imediata quando a remoção é imediata, ou dentro do
+`setTimeout` de `crossfadeRegionaisLevelLayers` (depois do fade de 1.1s
+terminar) quando é via fade, pra não interferir no truque de ordem DOM que
+o fade usa (`reorderTerritoryCanvasRelativeToSvg`).
+
+**2ª causa raiz, mesma rodada — race condition entre o fade de 1.1s e o
+drill**: `crossfadeRegionaisLevelLayers` agenda a remoção real das camadas
+com `setTimeout(1100ms)`, checando só `hasLayer()` no disparo — se o
+usuário entrasse/saísse do drill DENTRO desse intervalo, o timeout antigo
+removia por engano uma camada que o drill tinha acabado de restaurar. Fix:
+contador de geração (`layerTransitionGen`, incrementado por
+`crossfadeRegionaisLevelLayers` E por `drillIntoMunicipio`/
+`undrillMunicipio`) invalida timeouts obsoletos.
+
+**Zoom travado dentro do drill, mesma rodada**: o mapa tinha `maxZoom:11`
+fixo (adequado pro território inteiro, baixo demais pra ver uma cidade de
+perto). Fix original: `ctx.map.setMaxZoom(REGIONAIS_DRILL_MAX_ZOOM)` (18)
+ao entrar no drill, restaurado ao desfazer — **esse toggle foi removido
+no mesmo dia** (ver "blend contínuo de zoom" abaixo), virou `maxZoom:18`
+FIXO desde a criação do mapa (precisa de headroom em qualquer nível, não
+só dentro do drill, pro blend contínuo completar).
+
+**Blend contínuo de zoom revela o funil inteiro (2026-11-06, mesmo dia,
+a pedido do Gabriel)**: ele reportou que não tinha como voltar do drill
+dando zoom OUT manualmente — só clique no breadcrumb desfazia. Apontou um
+mecanismo já aprovado em `C:\Users\gabri\Desktop\tnl\servicos\tnl-shortener\
+admin\src\components\BrazilMap.tsx` (mapa Estado↔Município dos modais de
+detalhamento de link: `zoomend`/`moveend` calculam um blend `[0,1]`
+contínuo entre o zoom "raso" do território atual e o "fundo" do
+candidato mais perto do centro do mapa, interpolando opacidade — scroll
+sozinho atravessa níveis gradualmente). Pedido pra portar com Microrregião
+como 3º nível no meio; escopo confirmado como **"os dois coexistem"**
+(clique continua igual, zoom contínuo é uma SEGUNDA forma de navegar a
+mesma hierarquia).
+
+Diferença de lá pra cá: limiares de zoom aqui são calculados on-the-fly
+via `ctx.map.getBoundsZoom(bounds, false)` por território (cada
+microrregião/município tem um zoom natural próprio), não constantes
+globais fixas como lá. `coarseLayer` (microrregiões) ganhou um
+`L.svg({pane:"ufPane"})` PRÓPRIO (`coarseSvgRenderer`) — antes
+compartilhava o `ufRenderer` com `regionalLayer`/`ufOutlineLayer`,
+impossível de desvanecer independente deles. `evaluateZoomBlend()`
+decide, pro nível atual, a fronteira relevante (pra dentro, candidato via
+nearest-centroid; pra fora, território pai, sempre determinado) e aplica
+opacidade nos containers isolados certos — ao cruzar o limiar, chama as
+MESMAS funções de sempre (`focusOnRegionalCliente`/`focusOn`/
+`drillIntoMunicipio`/`undrillMunicipio`), nunca duplica lógica.
+
+**Peça mais arriscada**: `coarseLayer` troca de DADO por regional
+(diferente de `territoryLayer`, sempre todo carregado) — sem pré-carregar
+a candidata ANTES do commit, não haveria nada pra desvanecer. Fix:
+`coarsePreviewRegional` rastreia a pré-carga especulativa, só no ramo
+"nada focado" E `viewLevel==="regional"` de verdade (os pills soltos de
+microrregião/município também batem "nada focado", mas não devem disparar
+esse blend — checagem explícita evita reconstruir `coarseLayer` por
+engano durante eles). `zoomSnap`/`zoomDelta` viraram `0.25` só nesse mapa
+(`ensureMap(..., {fractionalZoom:true})`) — efeito colateral esperado: os
+botões +/- de zoom ficaram mais lentos (4x mais cliques).
+
+Validado ao vivo (Playwright) nas 3 fronteiras (Município↔Drill,
+Regional↔Microrregião, Microrregião↔Município) — scroll contínuo nos dois
+sentidos, breadcrumb/hotlist acompanhando o commit automático, clique
+explícito continuando a funcionar igual (inclusive alternado com scroll na
+mesma sessão). Nenhum bug novo encontrado. Cobertura parcial, não
+blocante: combinações de clique-no-meio-do-scroll (interromper um blend
+ainda não comprometido com um clique de navegação diferente) só foram
+testadas num caso representativo — sem orçamento pra esgotar todas as
+combinações nesta rodada.
+
+**ATENÇÃO — redesenho pendente**: o design acima (nearest-centroid
+escolhendo 1 território "em foco" sozinho durante o scroll) foi reportado
+pelo Gabriel no mesmo dia como UX ruim ao vivo — zoom sem clique pode
+"errar o alvo" (foca uma regional vizinha errada) e prender o usuário lá.
+Redesenho pedido (zoom sem clique só revela detalhe geral, sem
+selecionar/commitar 1 território sozinho) registrado em `tasks.md` no
+repo `B.O-s-Escalada` — **ainda não implementado**, a pedido explícito
+dele. Ver detalhe completo e a direção pedida pro redesenho em
+`CLAUDE.md` (repo `B.O-s-Escalada`), seção do funil de território.
+
+**Fernando de Noronha excluído do mapa de Regionais (2026-11-06)**: a
+pedido do Gabriel, pra o mapa não "puxar" tanto a visualização de PE.
+Causa raiz: `wholeUfBounds` (usado por `fitRegionaisViewport`) vinha de
+`.getBounds()` na camada Leaflet com TODAS as features do GeoJSON bruto do
+IBGE, mesmo as que não batem com `regionais_municipios` (essas já caíam em
+`resolveFeatureInfo === null`, mas isso só pulava cor/contagem — a
+geometria continuava na camada e no bounds). O arquipélago, a ~545km da
+costa, inflava o bounds do estado inteiro e forçava um zoom bem mais
+afastado. Fix: `REGIONAIS_EXCLUDED_CODAREAS` (novo Set, codarea IBGE
+`2605459`) filtra Fernando de Noronha tanto do GeoJSON (antes de montar
+qualquer camada) quanto do mapa codarea→nome — nunca chega a existir em
+layer/bounds/agrupamento nenhum. Só afeta PE.
+
+**QA exaustivo do funil de território (2026-11-06), após o Gabriel reportar
+"experiência bem travada... MUITO bugado mesmo" — 2 bugs reais reproduzidos,
+corrigidos, deployados e revalidados**: interação deliberadamente caótica
+via Playwright (clique+scroll sem esperar, navegação por hash direta), com
+hook de debug temporário (removido antes do deploy final).
+
+1. **Bug do roteamento por hash** (`applyRegionaisHashDetail`): navegar —
+   via voltar/avançar do navegador, link colado na mesma aba, ou hash
+   editado na mão (não clique interno, que usa `pushState` de propósito sem
+   disparar `hashchange`) — de um hash mais fundo (`municipio/<regional>/
+   <microrregião>`) pra um mais raso da MESMA regional
+   (`microrregiao/<regional>`) deixava a tela presa no nível/foco antigo.
+   Causa raiz: o parsing nunca checava `levelRaw` de verdade, e só chamava
+   `regionaisFocusOnMicrorregiao(microKey)` quando `microKey` existia —
+   `regionaisFocusOnRegionalCliente(regionalKey)` sozinho é um no-op quando
+   a regional já é a focada, então nada nunca desfocava a microrregiao mais
+   funda. Fix: `regionaisFocusOnMicrorregiao(microKey || null)` sempre
+   chamado — `focusOn(null)` desfoca de verdade (guard é só "key ===
+   focusKey"), idempotente quando já não havia nada focado.
+2. **Bug "bloco fica sem cor"** (`animateTerritoryLayerStyle`): município
+   ficava com borda/cor de contorno corretas mas `fillOpacity` travado em 0
+   (parece branco/apagado) — condição de corrida intermitente (~1 em cada
+   3-4 tentativas de clique→scroll→clique sem esperar), não reproduzível
+   via chamada síncrona direta das funções de foco. Causa raiz: a função
+   lia `layer.options` (só mutado pelo próprio tick de animação) como
+   "from" ao agendar uma nova animação — se uma 2ª chamada pro mesmo layer
+   chegasse antes do 1º frame da 1ª animação rodar, e o alvo pedido
+   calhasse de bater com esse valor antigo, o check de "no-op real"
+   cancelava a 1ª animação antes dela aplicar qualquer frame, travando o
+   layer pra sempre no valor de antes de tudo começar (cache otimista
+   nunca mais re-tentava). Fix: parte da opacidade INTERPOLADA da animação
+   pendente (não de `layer.options`) quando já existe uma em andamento.
+   Validado: Araripina (64 atend., deveria ficar vermelho) aparecia
+   completamente branco antes do fix na sequência exata que reproduzia o
+   bug; depois do fix, aparece vermelho/laranja corretamente.
+
+**Achados não-bugs, documentados pra não reinvestigar**: o estado "mapa
+quebrado" (tile OSM encolhido, fundo vazio) só reproduziu disparando 3-4
+eventos de `wheel` sintéticos SEM NENHUM intervalo entre eles (mais
+agressivo que qualquer scroll real) — `leaflet-proxy` interno do Leaflet
+fica com `scale()`/`translate3d()` extremo, mas autocorrige sozinho em
+~3s sem nenhuma interação; não é código deste repo. Clique logo após load
+fresco às vezes não registra via `browser_mouse_click_xy` (CDP), mas
+sempre registrou via `dispatchEvent` (JS puro) — suspeita de peculiaridade
+do CDP/Playwright, sem evidência de afetar clique real de mouse.
+
+**Pins de IE virando pins de mapa de fato + hover/clique trocados
+(2026-11-06), a pedido do Gabriel**: `L.circleMarker` → `L.marker` +
+`L.divIcon` (SVG em gota, `institutionPinIcon`) — nota histórica: uma
+tentativa anterior de `L.marker`+`divIcon` nunca abriu popup via automação
+de clique (Playwright); trocado mesmo assim por pedido explícito, então se
+isso voltar a falhar em teste automatizado não é bug novo. O que aparecia
+ao CLICAR (popup) passou a aparecer ao HOVER (`showSharedTooltip`, mesmo
+balão flutuante dos polígonos de território). Clique virou "zoom": num pin
+agrupado (fora do drill), simula o drill-through completo (foca
+regional/microrregião donas, se necessário, depois `selectMunicipio`) —
+teleporta pro município do pin já drilado, de qualquer nível/UF, com
+breadcrumb correto. Num pin individual DENTRO do drill, clique só dá
+`setView` apertado centrado naquele ponto.
+
+**Breadcrumb virou Leaflet control de verdade, empilhado, no canto do
+MAPA (2026-11-06)**: `#regionaisFocusChip` saiu do HTML estático do
+cabeçalho e passou a ser criado dentro de `renderRegionaisTerritoryMap`
+como `L.control({position:"topright"})` — pedido explícito do Gabriel
+("no canto direito do mapa, empilhado", não inline no cabeçalho do card).
+Cada segmento (Regional/Microrregião/Município) é sua própria linha
+(`flex-direction:column`), sem os separadores "›" antigos; o segmento
+"current" (destaque visual) sempre é o mais interno — demovido pra
+ancestral comum quando o 3º segmento (município drilado) é anexado.
+
+**Bug real achado logo em seguida — clique em qualquer crumb resetava
+TUDO**: `L.DomEvent.disableClickPropagation` só bloqueia `mousedown`/
+`touchstart`/`dblclick`/`contextmenu`, não o `'click'` nativo — que ainda
+bolhava até `ctx.map.on("click", resetFocus)` por baixo do control,
+anulando o que o crumb acabara de fazer. Só passou a existir depois do
+breadcrumb virar `L.control` (antes, fora do mapa, nunca alcançava o
+`_container`). Fix: `e.stopPropagation()` nativo em cada handler de
+crumb + `L.DomEvent.on(div, "click", stopPropagation)` no container.
+
+**2ª rodada visual, mesmo dia (prints comparativos do Gabriel)**: trocado
+o cartão único (fundo escuro translúcido com texto empilhado) por 3 pills
+sólidos separados (fundo azul `var(--brand-primary)`→`var(--brand-primary-2)`,
+texto branco), mesmo visual de `.uf-pill.active` já usado no app —
+`.regionais-focus-chip` virou só um container transparente de layout,
+cada segmento (`-crumb`/`-current`) carrega o próprio pill.
+
+**Pins ganharam coordenada REAL, não mais só o centroide do município
+(2026-11-06)**: o Gabriel reportou que um pin (escola real em Cabo de
+Santo Agostinho/PE) aparecia longe do endereço de verdade no Google
+Maps — esperado, `spiralSpreadPositions` sempre foi só aproximação. O
+Censo Escolar do INEP (fonte de `public.schools`) não tem endereço/
+coordenada, mas o Catálogo de Escolas (fonte irmã, publicada pronta pelo
+pacote `geobr`/IPEA) tem — backfill de 98% das instituições
+`type='basica'` em `public.schools.latitude`/`longitude` (ver
+`B.O-s-Escalada/supabase/functions/instituicoes/geo_import/README.md`
+pro processo completo). `dashboard_instituicoes_mapa_v1.sql` devolve
+`latitude`/`longitude` agora; `updateInstitutionMarkers` usa a
+coordenada real quando existir (pin individual no drill, pin de
+instituição única na visão agrupada), só cai no fallback de espiral pras
+~2% sem coordenada batida (e pra ensino superior, sem fonte equivalente).
+Cluster (2+ instituições no mesmo pin) continua sempre no centroide —
+marcador agregado por design.
 
 ## Fora do escopo desta POC
 

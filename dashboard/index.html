@@ -4580,9 +4580,27 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       gap: 12px 16px;
     }
 
+    /* Breadcrumb de foco (Regional/Microrregiao/Municipio) -- Leaflet
+       control de verdade no canto SUPERIOR direito do MAPA (nao mais um
+       <span> no cabecalho do card, fora do mapa -- pedido explicito do
+       Gabriel: "no canto direito do mapa, empilhado"). Cada segmento e'
+       seu PROPRIO pill solido (ver .regionais-focus-chip-crumb/-current
+       abaixo -- mesmo tratamento visual de .uf-pill.active, o azul
+       "ativo" ja usado noutro lugar do app), empilhado em linhas
+       (flex-column) do mais externo (Regional, topo) pro mais interno
+       (Municipio, base) -- 2a rodada a pedido do Gabriel (print
+       comparativo: ele queria pills de verdade, nao um cartao de texto
+       so' com as linhas dentro). O container em si fica transparente,
+       sem fundo/borda proprios -- quem carrega o visual e' cada pill.*/
     .regionais-focus-chip {
-      color: var(--brand-cyan);
-      border-color: rgba(0, 249, 255, 0.34);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      margin: 10px 10px 0 0 !important;
+      position: relative;
+      z-index: 4001;
+      max-width: min(240px, calc(100% - 20px));
     }
 
     /* Dropdown de UF em Regionais -- substitui o chip estatico que so
@@ -4632,21 +4650,39 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: #ff8fe0;
     }
 
-    /* Segmento clicavel do breadcrumb de foco (item 14) -- sobe 1 nivel
-       do drill em vez de resetar tudo. */
-    .regionais-focus-chip-crumb {
-      background: none;
+    /* Pill solido de cada segmento do breadcrumb (crumb clicavel OU o
+       nivel atual, nao-clicavel quando e' a linha mais interna) -- mesmo
+       azul "ativo" ja usado em .uf-pill.active, so' sem o glow ciano (que
+       la' marca selecao dentro de uma lista, nao faz sentido aqui). */
+    .regionais-focus-chip-crumb,
+    .regionais-focus-chip-current {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 16px;
+      border-radius: 999px;
       border: none;
-      padding: 0;
       margin: 0;
+      background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-primary-2) 100%);
+      color: #fff;
       font: inherit;
-      color: inherit;
+      font-family: var(--mono-font);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      text-align: center;
+      white-space: normal;
+      line-height: 1.25;
+      box-shadow: 0 10px 18px rgba(42, 79, 218, 0.3);
+    }
+    .regionais-focus-chip-crumb {
       cursor: pointer;
-      text-decoration: underline dotted;
-      text-underline-offset: 2px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .regionais-focus-chip-crumb:hover {
-      color: var(--brand-cyan, #00f9ff);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 22px rgba(42, 79, 218, 0.4), 0 0 0 1px rgba(0, 249, 255, 0.5);
     }
 
     .regionais-map-canvas {
@@ -5310,6 +5346,41 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       pointer-events: none;
     }
     .leaflet-tooltip.regionais-territory-count-badge::before {
+      display: none;
+    }
+
+    /* Pin de mapa "de fato" (L.marker + L.divIcon, SVG em formato de gota --
+       ver institutionPinIcon em renderRegionaisTerritoryMap) pros
+       marcadores de instituicao de ensino -- substitui o circleMarker
+       (bolinha) usado antes, a pedido do Gabriel. .leaflet-div-icon tem
+       fundo branco + borda cinza por padrao (pensado pra rotulo de texto);
+       sem essa reseta, ficaria um quadrado branco atras do SVG da gota. */
+    .institution-map-pin {
+      background: transparent;
+      border: none;
+    }
+
+    /* Numero sobre o pin agregado de instituicoes de ensino quando 2+
+       caem no MESMO municipio (ver updateInstitutionMarkers em
+       renderRegionaisTerritoryMap) -- sem agregar, pins individuais
+       ficariam 100% sobrepostos no mesmo centroide (so o ultimo
+       desenhado ficaria clicavel/visivel -- bug real achado pelo Gabriel
+       testando Recife, 52 instituicoes no mesmo municipio). bindTooltip
+       permanente (mesmo padrao de regionais-territory-count-badge acima),
+       centrado na "cabeca" do pin via tooltipAnchor do icone. */
+    .leaflet-tooltip.institution-cluster-count-badge {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid #e2e9ff;
+      color: #e2e9ff;
+      font-family: var(--mono-font);
+      font-weight: 700;
+      font-size: 0.68rem;
+      border-radius: 999px;
+      padding: 1px 6px;
+      box-shadow: 0 4px 10px rgba(2, 6, 23, 0.4);
+      pointer-events: none;
+    }
+    .leaflet-tooltip.institution-cluster-count-badge::before {
       display: none;
     }
 
@@ -8387,18 +8458,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     }
 
     // Pins de instituicao de ensino no mapa de Regionais (2026-11-05,
-    // pedido do Gabriel) -- gateado SO pra admin@tironalua.com por ora,
-    // pra validacao visual antes de liberar geral. Hierarquia por
+    // pedido do Gabriel; liberado geral em 2026-11-11, antes gateado so
+    // pra admin@tironalua.com pra validacao visual). Hierarquia por
     // dependencia administrativa (dashboard_instituicoes_mapa_v1.sql):
     // nivel "regional" mostra so federal, "microrregiao" soma estadual,
     // "municipio" mostra tudo -- volume real por UF (ver CLAUDE.md,
     // supabase/functions/dashboard_executivo/dashboard_instituicoes_mapa_v1.sql)
     // cresce MUITO rapido de federal pra municipal, entao essa escala
     // evita poluir o mapa nos niveis mais abertos.
-    const DASHBOARD_MASTER_ADMIN_EMAIL = "admin@tironalua.com";
-    function isDashboardMasterAdmin(email = gestorEmail()) {
-      return String(email || "").trim().toLowerCase() === DASHBOARD_MASTER_ADMIN_EMAIL;
-    }
 
     const INSTITUTION_DEP_COLOR = {
       federal: "#f97316",
@@ -8417,6 +8484,55 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       if (level === "regional") return new Set(["federal"]);
       if (level === "microrregiao") return new Set(["federal", "estadual"]);
       return new Set(["federal", "estadual", "municipal", "privada"]);
+    }
+
+    // Sem geocodificacao de escola (nao existe -- ver CLAUDE.md), a unica
+    // posicao real disponivel pro drill de municipio e' o centroide do
+    // municipio inteiro, igual pra todas as instituicoes dele. Espalha
+    // deterministicamente em espiral (phyllotaxis/angulo de ouro) dentro
+    // de uma elipse inscrita nos bounds do municipio, pra evitar voltar a
+    // sobrepor pins (o bug original que motivou agrupar por municipio).
+    function spiralSpreadPositions(bounds, n) {
+      const center = bounds.getCenter();
+      if (n <= 1) return [center];
+      const maxDLat = ((bounds.getNorth() - bounds.getSouth()) / 2) * 0.7;
+      const maxDLng = ((bounds.getEast() - bounds.getWest()) / 2) * 0.7;
+      const golden = Math.PI * (3 - Math.sqrt(5));
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const r = Math.sqrt((i + 0.5) / n);
+        const theta = i * golden;
+        pts.push(L.latLng(center.lat + Math.sin(theta) * r * maxDLat, center.lng + Math.cos(theta) * r * maxDLng));
+      }
+      return pts;
+    }
+
+    // Pin de mapa "de fato" (gota, aponta pro ponto) pros marcadores de
+    // instituicao de ensino -- substitui o circleMarker (bolinha) usado
+    // antes. viewBox fixo 24x32, width/height escaladas pro tamanho pedido
+    // (iconAnchor sempre na PONTA de baixo, que e' o ponto geografico real).
+    function institutionPinIconHtml(color, size) {
+      const height = Math.round((size * 32) / 24);
+      return (
+        `<svg width="${size}" height="${height}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg" ` +
+        `style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));">` +
+        `<path d="M12 0C5.4 0 0 5.4 0 12c0 8.6 12 20 12 20s12-11.4 12-20C24 5.4 18.6 0 12 0z" ` +
+        `fill="${color}" stroke="#0b1220" stroke-width="1.5"/>` +
+        `<circle cx="12" cy="12" r="4.5" fill="#0b1220" opacity="0.88"/>` +
+        `</svg>`
+      );
+    }
+    function institutionPinIcon(color, size) {
+      const height = Math.round((size * 32) / 24);
+      return L.divIcon({
+        html: institutionPinIconHtml(color, size),
+        className: "institution-map-pin",
+        iconSize: [size, height],
+        iconAnchor: [size / 2, height],
+        // Badge de contagem (cluster) fica centrado na "cabeca" circular do
+        // pin, nao na ponta -- cabeca fica em y=12 dos 32 do viewBox.
+        tooltipAnchor: [0, -height * 0.625],
+      });
     }
 
     async function fetchInstituicoesMapa({ uf, dateFrom, dateTo }) {
@@ -10294,6 +10410,32 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     const CEP_GEO_DICTIONARY_URL = "./data/geo_ceps_dictionary.json";
     const MAP_MAX_POINTS = 7000;
     const MAP_MIN_RENDER_SIZE = 24;
+    // REGIONAIS_MAP_DEFAULT_MAX_ZOOM: teto usado por qualquer OUTRO mapa
+    // deste dashboard criado via ensureMap (heatmap, etc.) -- nunca mudou.
+    // O mapa de Regionais especificamente (ensureMap com
+    // options.fractionalZoom:true) usa REGIONAIS_DRILL_MAX_ZOOM (nivel de
+    // rua, o maximo que o tile OSM do drill serve) como teto FIXO desde a
+    // criacao do mapa, nao so' durante o drill -- precisa de headroom pra
+    // dar zoom continuo em QUALQUER nivel do funil de territorio sem travar
+    // antes do blend completar (ver evaluateZoomBlend). Ja existiu um
+    // toggle de ctx.map.setMaxZoom(...) dentro de drillIntoMunicipio/
+    // undrillMunicipio (removido) -- teto fixo e' mais simples e sem risco
+    // de esquecer de restaurar.
+    const REGIONAIS_MAP_DEFAULT_MAX_ZOOM = 11;
+    const REGIONAIS_DRILL_MAX_ZOOM = 18;
+    // Delta de zoom (alem do natural do municipio mais perto do centro)
+    // pra fade continuo do TIER 3 solto (mapa real/OSM sem SVG, sem
+    // clique) ir de 0% a 100% revelado -- ver evaluateZoomBlend, ramo
+    // "TIER 2 completo".
+    // ACHADO 2026-11-08 (video real, scroll continuo do Gabriel): 2.5
+    // (so' 10 "degraus" de zoomSnap:0.25) era curto demais pra scroll
+    // continuo de verdade -- um unico gesto de scroll acumula isso em bem
+    // menos de 1s, entao o usuario mal via o nivel "municipio" colorido
+    // antes do OSM ja estar dominando a tela ("mapa raw aparecendo cedo
+    // demais", confirmado quadro a quadro). Aumentado pra dar mais folga
+    // de permanencia no municipio antes do blend pro mapa cru comecar a
+    // valer visualmente.
+    const REGIONAIS_TIER3_OSM_DELTA = 4;
     let ufGeoJsonPromise = null;
     let cepGeoDictionaryPromise = null;
     const cepGeoDictionary = new Map();
@@ -10840,10 +10982,31 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         attributionControl: !options.hideAttribution,
         preferCanvas: false,
         minZoom: 3,
-        maxZoom: 11,
+        // maxZoom: so' o mapa de Regionais (fractionalZoom:true) permite ir
+        // ate REGIONAIS_DRILL_MAX_ZOOM (18) -- precisa de headroom pra
+        // CONTINUAR subindo de zoom alem do antigo teto de 11 em qualquer
+        // nivel do funil, nao so' depois de ja estar drilado, senao
+        // evaluateZoomBlend nunca completa o blend (map.getBoundsZoom fica
+        // capado no maxZoom configurado, entao um teto baixo CONGELARIA o
+        // blend antes dele chegar em 1). Isso substituiu o toggle antigo de
+        // ctx.map.setMaxZoom(...) dentro de drillIntoMunicipio/
+        // undrillMunicipio (removido -- um teto fixo e' mais simples e sem
+        // risco de esquecer de restaurar). Outros mapas deste dashboard
+        // continuam no teto antigo (11).
+        maxZoom: options.fractionalZoom ? REGIONAIS_DRILL_MAX_ZOOM : REGIONAIS_MAP_DEFAULT_MAX_ZOOM,
         worldCopyJump: false,
         scrollWheelZoom: true,
         trackResize: false,
+        // fractionalZoom: so' o mapa de Regionais pede isso (ver
+        // renderRegionaisTerritoryMap/evaluateZoomBlend) -- zoomSnap/zoomDelta
+        // fracionarios fazem cada "tick" do scroll do mouse mover o zoom em
+        // passos pequenos (0.25) em vez de inteiros, pra o blend continuo
+        // entre niveis do funil de territorio mudar em incrementos visiveis
+        // a cada zoomend, sem precisar de listener de frame continuo (mesmo
+        // padrao do mapa Estado/Municipio em
+        // tnl-shortener/admin/src/components/BrazilMap.tsx). Outros mapas
+        // deste dashboard mantem o zoom inteiro padrao (undefined = 1).
+        ...(options.fractionalZoom ? { zoomSnap: 0.25, zoomDelta: 0.25 } : {}),
       });
 
       if (!map.getPane("ufPane")) {
@@ -10874,6 +11037,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // viewport, entao o reset (caro) acontece bem menos vezes.
       const ufRenderer = L.svg({ pane: "ufPane", padding: 1.5 });
       ufRenderer.addTo(map);
+      // Exposto em ctx (abaixo) -- regionalLayer/ufOutlineLayer usam esse
+      // renderer compartilhado por padrao (nenhum `renderer:` explicito nos
+      // 2), entao e' o unico jeito de controlar a opacidade dos DOIS JUNTOS
+      // de fora desta funcao (ver evaluateZoomBlend em
+      // renderRegionaisTerritoryMap, blend continuo Municipio<->Drill).
 
       // skipTileLayer: mapas de destaque de territorio (coropletico) nao
       // usam tiles do OSM -- os rotulos de cidade/estrada do tile de fundo
@@ -10925,6 +11093,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         heatLayer,
         fallbackHeatLayer: L.layerGroup().addTo(map),
         heatRenderer,
+        ufRenderer,
         legendControl: null,
         emptyState,
         ufLayer: null,
@@ -11725,7 +11894,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         .map((s) => { try { return decodeURIComponent(s || ""); } catch (_) { return ""; } });
       if (regionalKey) {
         mapCtx.regionaisFocusOnRegionalCliente(regionalKey);
-        if (microKey) mapCtx.regionaisFocusOnMicrorregiao(microKey);
+        // SEMPRE chama regionaisFocusOnMicrorregiao aqui, mesmo com
+        // microKey vazio (null nesse caso) -- BUG REAL achado 2026-11-06
+        // (hash tipo "microrregiao/<regionalCliente>", sem 3o segmento,
+        // nunca desfocava uma microrregiao que estivesse focada de um
+        // estado ANTERIOR mais fundo, ex. vindo de
+        // "municipio/<regionalCliente>/<microrregiao>" via Voltar do
+        // navegador, link colado na mesma aba, ou hash editado na mao).
+        // Causa raiz: regionaisFocusOnRegionalCliente(regionalKey) sozinho
+        // e' um NO-OP quando regionalKey ja e' o focado (mesmo guard de
+        // "key === focusedRegionalCliente" em focusOnRegionalCliente) --
+        // sem o call abaixo, nada nunca limpava o foco mais fundo, e a
+        // tela ficava PRESA no nivel/foco antigo mesmo com a URL ja
+        // mostrando o nivel certo. regionaisFocusOnMicrorregiao(null) e'
+        // seguro/idempotente quando nao havia nada focado mesmo (guard
+        // equivalente "key === focusKey" em focusOn vira no-op).
+        mapCtx.regionaisFocusOnMicrorregiao(microKey || null);
         return;
       }
       const level = ["regional", "microrregiao", "municipio"].includes(levelRaw) ? levelRaw : "regional";
@@ -16754,7 +16938,26 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       MS: 50, MT: 51, GO: 52, DF: 53,
     };
 
-    const REGIONAL_TERRITORY_FALLBACK_COLOR = "#334155";
+    // ACHADO 2026-11-08 (video real do Gabriel, zoom continuo ate
+    // municipio): a maioria dos municipios individuais (granularidade
+    // mais fina, diferente de regional/microrregiao onde a soma quase
+    // sempre fica > 0) tem 0 atendimentos -- caindo nesse fallback. O tom
+    // antigo (#334155, slate-700) e' escuro demais contra o fundo tambem
+    // escuro do `.leaflet-map-host` (gradiente escuro) -- numa area rural
+    // com poucos municipios coloridos, o mapa inteiro parecia "apagado/
+    // quebrado" (confirmado quadro a quadro, nao so suposicao) em vez de
+    // "dado zero, de proposito". Clareado pra slate-500 (bem mais visivel
+    // sem virar uma cor "ativa" que concorra com a escala de calor real).
+    const REGIONAL_TERRITORY_FALLBACK_COLOR = "#64748b";
+
+    // Fernando de Noronha (codarea IBGE 2605459, municipio-arquipelago de PE
+    // a ~545km da costa) excluido do mapa de Regionais a pedido do Gabriel
+    // (2026-11-06) -- sem pessoas/atendimentos vinculados hoje (ver
+    // regionais_municipios), o unico efeito real dele era inflar o bounds
+    // do estado inteiro (wholeUfBounds, usado por fitRegionaisViewport) com
+    // uma ilha isolada no oceano, forcando um zoom bem mais afastado do que
+    // o resto do territorio continental precisaria.
+    const REGIONAIS_EXCLUDED_CODAREAS = new Set(["2605459"]);
 
     // Mesma normalizacao de public.dashboard_gestor_slugify (sem acento,
     // minusculo, hifen) -- precisa bater com regionais_municipios.municipio_norm.
@@ -16785,7 +16988,23 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         .then((geojson) => {
           const features = Array.isArray(geojson?.features) ? geojson.features.length : 0;
           if (!features) throw new Error("GeoJSON de municipios invalido.");
-          console.info("[UI] [map] regionais geojson municipios:ok", { ufSigla, features });
+          geojson.features = geojson.features.filter(
+            (f) => !REGIONAIS_EXCLUDED_CODAREAS.has(String(f?.properties?.codarea || "").trim())
+          );
+          // REVERTIDO 2026-11-08 (tentativa de performance via
+          // turf.simplify) -- o Gabriel reportou que o mapa ficou FEIO e
+          // INCONSISTENTE: turf.simplify processa cada poligono de
+          // municipio de forma INDEPENDENTE (nao preserva topologia
+          // compartilhada entre vizinhos), entao a fronteira entre 2
+          // municipios adjacentes podia simplificar DIFERENTE de cada
+          // lado -- agravando um desalinhamento que ja existia antes
+          // (contorno de regional/microrregiao/municipio nunca bateram
+          // perfeito nas bordas, algo que o Gabriel ja ia pedir pra
+          // alinhar depois). Alem disso, medido ao vivo que o ganho real
+          // de performance nao foi suficiente (ver medicao em CLAUDE.md,
+          // ~9ms de JS puro ja ERA rapido antes desta mudanca -- o
+          // gargalo real provavelmente nao e' contagem de pontos).
+          console.info("[UI] [map] regionais geojson municipios:ok", { ufSigla, features: geojson.features.length });
           return geojson;
         })
         .catch((err) => {
@@ -16810,7 +17029,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           for (const row of rows) {
             const id = String(row?.id || "").trim();
             const nome = String(row?.nome || "").trim();
-            if (id && nome) byCodarea.set(id, regionaisSlugify(nome));
+            if (id && nome && !REGIONAIS_EXCLUDED_CODAREAS.has(id)) byCodarea.set(id, regionaisSlugify(nome));
           }
           console.info("[UI] [map] regionais municipios ibge:ok", { ufSigla, count: byCodarea.size });
           return byCodarea;
@@ -16891,7 +17110,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // skipTileLayer: sem tiles do OSM aqui -- rotulos de cidade/estrada
       // de estados vizinhos "vazavam" por cima do territorio e atrapalhavam
       // a leitura (feedback do usuario). So os poligonos dos municipios.
-      const ctx = ensureMap(containerId, { skipTileLayer: true, hideAttribution: true });
+      const ctx = ensureMap(containerId, { skipTileLayer: true, hideAttribution: true, fractionalZoom: true });
       if (!ctx) {
         scheduleMapRenderRetry(containerId, null);
         return;
@@ -16913,8 +17132,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const isStaleRender = () => ctx.__renderGen !== renderGen;
 
       // Pins de instituicao de ensino -- disparado em paralelo (nao
-      // bloqueia o resto do render), gateado pra admin@tironalua.com por
-      // ora (ver isDashboardMasterAdmin/fetchInstituicoesMapa). Guardado
+      // bloqueia o resto do render), liberado geral (ver
+      // fetchInstituicoesMapa). Guardado
       // em institutionRows (closure desta chamada) e desenhado por
       // updateInstitutionMarkers() assim que chegar. Re-filtra a
       // visibilidade (por dependencia administrativa) a cada troca de
@@ -16940,58 +17159,273 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
       ctx.map.on("moveend zoomend", updateInstitutionMarkers);
       ctx.institutionMarkersMoveHandler = updateInstitutionMarkers;
+      function institutionTooltipHtmlSingle(row, opts) {
+        const depLabel = INSTITUTION_DEP_LABEL[row.dep] || row.dep || "";
+        // approximate: usado so pelo drill de municipio (ver
+        // updateInstitutionMarkers) -- sem geocodificacao de escola, a
+        // posicao de cada pin ali e' um ponto espalhado dentro do
+        // municipio (spiralSpreadPositions), nunca o endereco real.
+        const approximate = Boolean(opts && opts.approximate);
+        return (
+          `<div style="font-size:13px;line-height:1.5;min-width:160px;">` +
+          `<strong>${escapeHtml(row.nome || "")}</strong><br>` +
+          `<span style="color:#94a3b8;">${escapeHtml(depLabel)}</span><br>` +
+          `${fmtInt(Number(row.pessoas || 0))} pessoa(s) · ${fmtInt(Number(row.atendimentos || 0))} atendimento(s)` +
+          (approximate
+            ? `<br><span style="color:#64748b;font-size:11px;">Posição aproximada dentro do município</span>`
+            : "") +
+          `</div>`
+        );
+      }
+      function institutionTooltipHtmlGroup(rows) {
+        const totalPessoas = rows.reduce((sum, r) => sum + Number(r.pessoas || 0), 0);
+        const totalAtendimentos = rows.reduce((sum, r) => sum + Number(r.atendimentos || 0), 0);
+        // MUDANCA 2026-11-08 (pedido explicito do Gabriel) -- a lista
+        // rolavel (<ul> com overflow-y:auto) nunca era alcancavel de
+        // verdade: o balao e' mostrado via HOVER (showSharedTooltip,
+        // mouseover/mouseout do pin), entao assim que o cursor sai do
+        // PIN em direcao a lista (pra tentar rolar), o mouseout dispara
+        // e o balao some antes do cursor chegar nela. Fix: tira a lista,
+        // deixa so' os totais + um texto convidando a clicar (clique no
+        // pin agrupado ja' faz o drill-through completo, ver
+        // updateInstitutionMarkers -- e' o jeito real de "explorar" essa
+        // lista, nao um scroll dentro do tooltip).
+        return (
+          `<div style="font-size:13px;line-height:1.4;min-width:200px;">` +
+          `<strong>${fmtInt(rows.length)} instituições</strong> — ${fmtInt(totalPessoas)} pessoa(s) · ${fmtInt(totalAtendimentos)} atendimento(s)` +
+          `<br><span style="color:#94a3b8;font-size:12px;">Clique para explorar essas instituições de ensino</span>` +
+          `</div>`
+        );
+      }
+      // PEDIDO 2026-11-08 (Gabriel) -- a partir do PRIMEIRO tick em que o
+      // municipio solto comeca a ficar transparente revelando o mapa cru
+      // (TIER 3, ver evaluateZoomBlend/tier3Blend), os pins agrupados
+      // (cluster com badge de contagem) tambem devem virar pins
+      // individuais espalhados -- mesmo tratamento que ja existe pro
+      // drill COMITADO, so' que sem precisar comitar nada (zoom livre ja'
+      // resolve a densidade, igual o resto do Tier 3). Setada/desfeita
+      // pelo proprio TIER 3 em evaluateZoomBlend; updateInstitutionMarkers
+      // so' LE esta flag.
+      let looseTier3PinsRevealed = false;
       function updateInstitutionMarkers() {
         if (isStaleRender() || !institutionMarkersLayer) return;
         institutionMarkersLayer.clearLayers();
+        // Drill de municipio (funil de territorio): sem agrupamento --
+        // 1 pin por instituicao, so as do municipio drilado, com posicao
+        // espalhada (zoom livre resolve a densidade, nao precisa de
+        // cluster). Os 4 dep (federal/estadual/municipal/privada) ja
+        // estao todos visiveis no nivel "municipio" (institutionDepsVisibleForLevel),
+        // entao nao precisa filtrar por dep aqui.
+        if (isMunicipioDrilled && focusedMunicipioNorm) {
+          const bounds = municipioBoundsByNorm.get(focusedMunicipioNorm);
+          const rows = institutionRows.filter(
+            (r) => String(r?.municipio_norm || "").trim() === focusedMunicipioNorm
+          );
+          if (bounds && rows.length) {
+            // Posicao REAL (latitude/longitude de public.schools -- ver
+            // supabase/functions/instituicoes/geo_import/README.md, 98%
+            // de cobertura) quando a instituicao tem uma; espiral em
+            // torno do centroide do municipio so' pras ~2% sem
+            // coordenada batida (ensino superior, ou escola que nao
+            // bateu nenhum source_id do backfill).
+            const points = spiralSpreadPositions(bounds, rows.length);
+            rows.forEach((row, i) => {
+              const hasRealCoord = Number.isFinite(row.latitude) && Number.isFinite(row.longitude);
+              const latlng = hasRealCoord ? L.latLng(row.latitude, row.longitude) : points[i];
+              const marker = L.marker(latlng, {
+                icon: institutionPinIcon(INSTITUTION_DEP_COLOR[row.dep] || "#94a3b8", 26),
+                interactive: true,
+                pane: "markerPane",
+              });
+              const tooltipHtml = institutionTooltipHtmlSingle(row, { approximate: !hasRealCoord });
+              const showPinTooltip = (e) => showSharedTooltip(tooltipHtml, e.originalEvent.clientX, e.originalEvent.clientY);
+              // Hover (nao clique) mostra o detalhe -- clique, aqui dentro
+              // do drill, da zoom apertado no proprio pin em vez de abrir
+              // popup (pedido do Gabriel). Mesmo padrao de
+              // mouseover/mousemove/mouseout + guarda de touch ja usado
+              // pelos poligonos de territorio (showSharedTooltip acima).
+              marker.on("mouseover", (e) => {
+                if (window.__regionaisRecentTouch) return;
+                showPinTooltip(e);
+              });
+              marker.on("mousemove", (e) => {
+                if (window.__regionaisRecentTouch) return;
+                moveSharedTooltip(e.originalEvent.clientX, e.originalEvent.clientY);
+              });
+              marker.on("mouseout", hideSharedTooltip);
+              marker.on("click", (e) => {
+                L.DomEvent.stopPropagation(e);
+                if (window.__regionaisRecentTouch) showPinTooltip(e);
+                ctx.map.setView(latlng, REGIONAIS_DRILL_MAX_ZOOM, { animate: true });
+              });
+              institutionMarkersLayer.addLayer(marker);
+            });
+          }
+          return;
+        }
         const visibleDeps = institutionDepsVisibleForLevel(viewLevel);
+        // Agrupa por municipio ANTES de desenhar -- pins individuais no
+        // mesmo municipio cairiam todos no MESMO centroide (sobrepostos
+        // 100%), deixando so o ultimo desenhado clicavel/visivel. BUG REAL
+        // achado pelo Gabriel testando Recife (52 instituicoes no mesmo
+        // municipio apareciam como 1 pin so). Com 2+ instituicoes no
+        // mesmo municipio, vira 1 pin "cluster" com a contagem no badge
+        // permanente por cima; com so 1, pin normal.
+        const groups = new Map();
         for (const row of institutionRows) {
           const norm = String(row?.municipio_norm || "").trim();
           if (!norm || !visibleDeps.has(row.dep)) continue;
+          if (!municipioBoundsByNorm.has(norm)) continue;
+          if (!groups.has(norm)) groups.set(norm, []);
+          groups.get(norm).push(row);
+        }
+        for (const [norm, rows] of groups) {
           const bounds = municipioBoundsByNorm.get(norm);
-          if (!bounds) continue;
-          const depLabel = INSTITUTION_DEP_LABEL[row.dep] || row.dep || "";
-          const marker = L.circleMarker(bounds.getCenter(), {
-            radius: 6,
-            weight: 1,
-            color: "#0b1220",
-            fillColor: INSTITUTION_DEP_COLOR[row.dep] || "#94a3b8",
-            fillOpacity: 0.9,
-            // interactive:true (ao contrario da 1a versao desta feature):
-            // o Gabriel pediu pra ver nome/pessoas/atendimentos da IE, e
-            // isso so e possivel com o marker recebendo clique (Leaflet
-            // nao dispara popup/tooltip em layer non-interactive). O
-            // trade-off aceito: clicar EXATAMENTE em cima do pin (raio de
-            // 6px) abre o popup da IE em vez de fazer drill-down do
-            // territorio por baixo -- clicar em qualquer outro ponto do
-            // MESMO poligono (a maior parte da area) continua navegando
-            // normal entre niveis, sem nenhuma mudanca de comportamento.
+          if (looseTier3PinsRevealed && rows.length > 1) {
+            // PEDIDO 2026-11-08 (Gabriel) -- Tier 3 solto ja revelado:
+            // mesmo tratamento do drill COMITADO (ver ramo
+            // isMunicipioDrilled acima), so' que SEM comitar -- 1 pin POR
+            // instituicao, espalhado (spiralSpreadPositions), em vez do
+            // cluster agregado com badge de contagem. O clique aqui ainda
+            // PRECISA comitar o drill-through completo (regional+
+            // microrregiao+municipio), diferente do pin individual
+            // DENTRO do drill (que so' da setView apertado nele mesmo) --
+            // continuamos "soltos" ate o usuario clicar de verdade.
+            const points = spiralSpreadPositions(bounds, rows.length);
+            rows.forEach((row, i) => {
+              const hasRealCoord = Number.isFinite(row.latitude) && Number.isFinite(row.longitude);
+              const latlng = hasRealCoord ? L.latLng(row.latitude, row.longitude) : points[i];
+              const marker = L.marker(latlng, {
+                icon: institutionPinIcon(INSTITUTION_DEP_COLOR[row.dep] || "#94a3b8", 24),
+                interactive: true,
+                pane: "markerPane",
+              });
+              const tooltipHtml = institutionTooltipHtmlSingle(row, { approximate: !hasRealCoord });
+              const showPinTooltip = (e) => showSharedTooltip(tooltipHtml, e.originalEvent.clientX, e.originalEvent.clientY);
+              marker.on("mouseover", (e) => {
+                if (window.__regionaisRecentTouch) return;
+                showPinTooltip(e);
+              });
+              marker.on("mousemove", (e) => {
+                if (window.__regionaisRecentTouch) return;
+                moveSharedTooltip(e.originalEvent.clientX, e.originalEvent.clientY);
+              });
+              marker.on("mouseout", hideSharedTooltip);
+              marker.on("click", (e) => {
+                L.DomEvent.stopPropagation(e);
+                if (window.__regionaisRecentTouch) showPinTooltip(e);
+                const info = municipioInfo.get(norm);
+                if (info?.regionalCliente && info.regionalCliente !== focusedRegionalCliente) {
+                  focusOnRegionalCliente(info.regionalCliente);
+                }
+                if (info?.microrregiao && info.microrregiao !== focusKey) {
+                  focusOn(info.microrregiao);
+                }
+                selectMunicipio(norm);
+              });
+              institutionMarkersLayer.addLayer(marker);
+            });
+            continue;
+          }
+          const center = bounds.getCenter();
+          const isGroup = rows.length > 1;
+          // Cluster (2+) sempre no centroide do municipio -- e' um
+          // marcador AGREGADO por design (varias escolas juntas num so'
+          // pin), nao faz sentido "real" pra ele. Pin de instituicao
+          // UNICA usa a posicao real (ver geo_import/README.md) quando
+          // existir, so' cai no centroide pras ~2% sem coordenada.
+          const singleHasRealCoord =
+            !isGroup && Number.isFinite(rows[0].latitude) && Number.isFinite(rows[0].longitude);
+          const position = singleHasRealCoord ? L.latLng(rows[0].latitude, rows[0].longitude) : center;
+          const color = isGroup ? "#1e293b" : INSTITUTION_DEP_COLOR[rows[0].dep] || "#94a3b8";
+          const marker = L.marker(position, {
+            icon: institutionPinIcon(color, isGroup ? 30 : 24),
             interactive: true,
             pane: "markerPane",
-          }).bindPopup(
-            `<div style="font-size:13px;line-height:1.5;min-width:160px;">` +
-              `<strong>${escapeHtml(row.nome || "")}</strong><br>` +
-              `<span style="color:#94a3b8;">${escapeHtml(depLabel)}</span><br>` +
-              `${fmtInt(Number(row.pessoas || 0))} pessoa(s) · ${fmtInt(Number(row.atendimentos || 0))} atendimento(s)` +
-              `</div>`
-          );
+          });
+          if (isGroup) {
+            marker.bindTooltip(fmtInt(rows.length), {
+              permanent: true,
+              direction: "center",
+              className: "institution-cluster-count-badge",
+              interactive: false,
+            });
+          }
+          const tooltipHtml = isGroup
+            ? institutionTooltipHtmlGroup(rows)
+            : institutionTooltipHtmlSingle(rows[0], { approximate: !singleHasRealCoord });
+          const showPinTooltip = (e) => showSharedTooltip(tooltipHtml, e.originalEvent.clientX, e.originalEvent.clientY);
+          // Hover mostra nome/dependencia/pessoas/atendimentos (antes era
+          // no clique) -- pedido do Gabriel. Mesmo padrao de
+          // mouseover/mousemove/mouseout + guarda de touch ja usado pelos
+          // poligonos de territorio.
+          marker.on("mouseover", (e) => {
+            if (window.__regionaisRecentTouch) return;
+            showPinTooltip(e);
+          });
+          marker.on("mousemove", (e) => {
+            if (window.__regionaisRecentTouch) return;
+            moveSharedTooltip(e.originalEvent.clientX, e.originalEvent.clientY);
+          });
+          marker.on("mouseout", hideSharedTooltip);
+          // Clique agora "da zoom nela no mapa do municipio" (pedido do
+          // Gabriel) em vez de so abrir popup -- ou seja, entra no drill
+          // do municipio dessa instituicao, de QUALQUER nivel/foco atual
+          // (nao precisa estar em "municipio" primeiro). Pra isso nao
+          // deixar o breadcrumb "orfao" (3o segmento sem os 2 de cima,
+          // ver syncFocusChip), simula o drill-through normal primeiro
+          // (foca a regional/microrregiao donas, se ainda nao eram as
+          // focadas) e so' DEPOIS chama selectMunicipio -- mesmo estado
+          // final de quem clicou regional->microrregiao->municipio na
+          // mao. L.DomEvent.stopPropagation(e) continua necessario (mesmo
+          // motivo de sempre: nao deixar o clique vazar pro
+          // ctx.map.on("click", ...) que reseta o foco).
+          marker.on("click", (e) => {
+            L.DomEvent.stopPropagation(e);
+            if (window.__regionaisRecentTouch) showPinTooltip(e);
+            const info = municipioInfo.get(norm);
+            if (info?.regionalCliente && info.regionalCliente !== focusedRegionalCliente) {
+              focusOnRegionalCliente(info.regionalCliente);
+            }
+            if (info?.microrregiao && info.microrregiao !== focusKey) {
+              focusOn(info.microrregiao);
+            }
+            selectMunicipio(norm);
+          });
           institutionMarkersLayer.addLayer(marker);
         }
       }
-      if (isDashboardMasterAdmin()) {
-        fetchInstituicoesMapa({
-          uf: state.regionaisSelectedUf || state.gestorUf,
-          dateFrom: state.filters?.dateFrom,
-          dateTo: state.filters?.dateTo,
-        })
-          .then((rows) => {
-            if (isStaleRender()) return;
-            institutionRows = Array.isArray(rows) ? rows : [];
-            updateInstitutionMarkers();
-          })
-          .catch((e) => {
-            console.warn("[UI] [regionais] instituicoes mapa load failed", { err: String(e) });
-          });
+      // Desfaz looseTier3PinsRevealed (ver comentario grande onde e'
+      // declarada) -- chamada em TODO ponto de saida do cascade solto
+      // (evaluateZoomBlend) que fica ANTES do bloco do proprio TIER 3,
+      // ou seja, sempre que o zoom NAO esta mais em territorio de Tier 3
+      // de verdade. BUG REAL (achado 2026-11-08, Gabriel: "ao dar zoom
+      // out elas nao agrupam de novo") -- a flag so' era desfeita DENTRO
+      // do proprio bloco TIER 3 (if/else do tier3Blend) -- mas dar zoom
+      // OUT a partir do Tier 3 cruza de volta pelos returns ANTERIORES
+      // da cascata (TIER 2 incompleto, TIER 1, etc.), que davam `return`
+      // ANTES de alcancar aquele bloco -- a flag nunca era resetada,
+      // ficando presa em `true` pra sempre (so' um COMMIT de verdade,
+      // via resetRegionaisZoomBlend, conseguia desfaze-la).
+      function exitLooseTier3PinsIfNeeded() {
+        if (looseTier3PinsRevealed) {
+          looseTier3PinsRevealed = false;
+          updateInstitutionMarkers();
+        }
       }
+      fetchInstituicoesMapa({
+        uf: state.regionaisSelectedUf || state.gestorUf,
+        dateFrom: state.filters?.dateFrom,
+        dateTo: state.filters?.dateTo,
+      })
+        .then((rows) => {
+          if (isStaleRender()) return;
+          institutionRows = Array.isArray(rows) ? rows : [];
+          updateInstitutionMarkers();
+        })
+        .catch((e) => {
+          console.warn("[UI] [regionais] instituicoes mapa load failed", { err: String(e) });
+        });
 
       // Zera os handlers/sinalizadores de "mapa pronto" ANTES de qualquer
       // await -- sem isso, um chamador externo (ex. applyRegionaisHashDetail,
@@ -17260,6 +17694,37 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // (contorno branco neon, ver applyTerritoryFilter).
       let focusedMunicipioNorm = null;
 
+      // Drill de municipio (funil de territorio) -- true quando o SVG
+      // coropletico esta escondido, os pins de instituicao aparecem
+      // individuais (sem agrupar) e o tile OSM de fundo esta visivel.
+      // Independente de focusKey/focusedRegionalCliente/viewLevel (nunca
+      // mexidos pelo drill) -- so selectMunicipio/drillIntoMunicipio/
+      // undrillMunicipio tocam essas 2 variaveis. municipioDrillHiddenLayers
+      // guarda exatamente o CONJUNTO que foi escondido pra restaurar sem
+      // precisar re-derivar "qual camada deveria estar visivel pro nivel
+      // atual" (logica que ja vive em setViewLevel/focusOn).
+      let isMunicipioDrilled = false;
+      let municipioDrillHiddenLayers = [];
+
+      // Token de transicao de camada -- crossfadeRegionaisLevelLayers
+      // (mais abaixo) agenda a remocao REAL das camadas que saem com
+      // setTimeout(1100ms) (tempo da transicao CSS). Se uma transicao MAIS
+      // NOVA mexer nas MESMAS camadas antes desse timeout disparar (ex.:
+      // drillIntoMunicipio/undrillMunicipio remove/readiciona as 4 camadas
+      // de SVG DIRETO, sem passar por crossfade), o timeout antigo so
+      // checava `ctx.map.hasLayer(l)` -- via verdadeiro de novo (a camada
+      // foi READICIONADA por essa transicao mais nova) e removia ela por
+      // engano, bem depois da acao que a trouxe de volta (BUG REAL: "as
+      // vezes, clicando num municipio e voltando pra regional, o mapa fica
+      // cinza" -- a remocao atrasada da transicao ANTERIOR chegava DEPOIS
+      // do drill/undrill ter posto a camada de volta). Cada chamada de
+      // crossfadeRegionaisLevelLayers incrementa e captura o token; cada
+      // chamada de drillIntoMunicipio/undrillMunicipio TAMBEM incrementa
+      // (sem crossfade nenhum, so pra invalidar qualquer timeout pendente
+      // de ANTES) -- o setTimeout checa se o token ainda e' o mesmo antes
+      // de remover, e desiste (no-op) se nao for.
+      let layerTransitionGen = 0;
+
       // Nivel do seletor no canto do mapa (Regional/Microrregiao/Municipio)
       // -- EIXO SEPARADO do foco: alem de acompanhar o drill-down normal
       // (clicar um territorio avanca o nivel), da pra pular direto pro
@@ -17407,6 +17872,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // funcao junto com territoryLayer -- limpos aqui pelo MESMO motivo
       // que o resto (troca de UF/mode reconstroi tudo, sem isso um
       // <canvas>/<svg> orfao ficava acumulando a cada re-render).
+      // ctx.osmTileLayer entra nessa limpeza SEM ser anulado depois (ao
+      // contrario dos outros) -- e' um tile layer generico (nao depende
+      // da UF/geojson atual), cacheado em ctx pra reusar entre drills sem
+      // recriar; so precisa garantir que uma troca de UF/modo NO MEIO de
+      // um drill (isMunicipioDrilled e' local a cada chamada desta
+      // funcao, reseta sozinho, mas ctx.osmTileLayer persiste no ctx
+      // compartilhado) nao deixe ele sobrando visivel por baixo do SVG
+      // novo.
       [
         ctx.territoryLayer,
         ctx.coarseLayer,
@@ -17416,6 +17889,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         ctx.territoryGlowLayer,
         ctx.territoryCanvasRenderer,
         ctx.territoryGlowRenderer,
+        ctx.coarseSvgRenderer,
+        ctx.osmTileLayer,
       ].forEach((l) => {
         if (l && ctx.map.hasLayer(l)) ctx.map.removeLayer(l);
       });
@@ -17427,6 +17902,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       ctx.territoryGlowLayer = null;
       ctx.territoryCanvasRenderer = null;
       ctx.territoryGlowRenderer = null;
+      ctx.coarseSvgRenderer = null;
       if (ctx.regionaisLevelControl) {
         ctx.regionaisLevelControl.remove();
         ctx.regionaisLevelControl = null;
@@ -17435,6 +17911,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       if (ctx.regionaisModeControl) {
         ctx.regionaisModeControl.remove();
         ctx.regionaisModeControl = null;
+      }
+      if (ctx.regionaisFocusChipControl) {
+        ctx.regionaisFocusChipControl.remove();
+        ctx.regionaisFocusChipControl = null;
       }
       if (ctx.heatLayer && typeof ctx.heatLayer.setLatLngs === "function") ctx.heatLayer.setLatLngs([]);
       if (ctx.fallbackHeatLayer && typeof ctx.fallbackHeatLayer.clearLayers === "function") ctx.fallbackHeatLayer.clearLayers();
@@ -17623,9 +18103,43 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const territoryStyleAnim = new Map(); // L.Layer -> {fromO,fromF,toO,toF,start,duration}
       let territoryStyleAnimTicking = false;
       function animateTerritoryLayerStyle(layer, to, duration = 1100) {
-        const cur = layer.options || {};
-        const fromO = typeof cur.opacity === "number" ? cur.opacity : 1;
-        const fromF = typeof cur.fillOpacity === "number" ? cur.fillOpacity : 1;
+        // "from": se ja existe uma animacao PENDENTE pra esse layer, parte
+        // da opacidade INTERPOLADA dela agora, nao de layer.options -- BUG
+        // REAL achado 2026-11-06 (reportado pelo Gabriel: "alguns blocos
+        // que estavam coloridos ficam cinza", municipio ficava com
+        // contorno/cor de borda certos mas fillOpacity travado em 0 pra
+        // sempre). layer.options so e mutado pelo PROPRIO tick
+        // (tickTerritoryStyleAnim, 1 frame por vez) -- se uma 2a chamada
+        // desta funcao pro MESMO layer chegasse antes do 1o frame da 1a
+        // animacao ter rodado (ex.: 2 restyleAll() bem proximos, caso
+        // comum quando clique e o blend continuo de zoom disputam o mesmo
+        // commit), ela lia layer.options ainda no valor ANTIGO (de ANTES
+        // da 1a animacao comecar) como "from" -- se o alvo pedido por essa
+        // 2a chamada calhasse de bater com esse valor antigo (ex.: um
+        // restyleAll() intermediario que computou fillOpacity:0 por engano
+        // antes do foco terminar de assentar), o check de no-op abaixo
+        // CANCELAVA a 1a animacao (territoryStyleAnim.delete) antes dela
+        // aplicar qualquer frame -- o layer ficava preso pra sempre no
+        // valor de ANTES de tudo comecar, mesmo com o cache
+        // (restyleStateCache) ja acreditando que o alvo certo tinha sido
+        // aplicado (nunca mais re-tentava, ja que o cache so' dispara de
+        // novo quando o ALVO COMPUTADO muda, nao quando o valor real
+        // diverge dele). Partir da interpolacao atual (nao de
+        // layer.options) faz o no-op refletir o estado visual VERDADEIRO
+        // a cada chamada, e nunca cancela uma animacao em andamento rumo
+        // ao mesmo alvo por engano.
+        const pending = territoryStyleAnim.get(layer);
+        let fromO, fromF;
+        if (pending) {
+          const t = Math.min(1, (performance.now() - pending.start) / pending.duration);
+          const eased = territoryCrossfadeEase(t);
+          fromO = pending.fromO + (pending.toO - pending.fromO) * eased;
+          fromF = pending.fromF + (pending.toF - pending.fromF) * eased;
+        } else {
+          const cur = layer.options || {};
+          fromO = typeof cur.opacity === "number" ? cur.opacity : 1;
+          fromF = typeof cur.fillOpacity === "number" ? cur.fillOpacity : 1;
+        }
         const toO = typeof to.opacity === "number" ? to.opacity : fromO;
         const toF = typeof to.fillOpacity === "number" ? to.fillOpacity : fromF;
         // No-op real (mesmo espirito da otimizacao em applyTerritoryFilter
@@ -17684,7 +18198,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
       function saturationForCoarseFeature(feature) {
         const key = feature?.properties?.__microrregiao;
-        return focusKey && key !== focusKey ? 0 : 100;
+        if (focusKey) return key !== focusKey ? 0 : 100;
+        // MUDANCA 2026-11-08 -- agora que coarseLayer carrega TODAS as
+        // microrregioes do estado mesmo com uma regional focada (ver
+        // comentario grande em focusOnRegionalCliente), as de FORA dela
+        // precisam desaturar aqui -- antes nem chegavam a existir na
+        // camada, entao esse caso nunca acontecia.
+        if (focusedRegionalCliente) {
+          // coarseFeatures vem de turf.dissolve (agrupado por
+          // __microrregiao) -- so' essa propriedade sobrevive no
+          // resultado, NAO __regionalCliente. Usa o mesmo lookup que o
+          // filtro antigo ja usava (regionalClienteByMicrorregiao).
+          const rc = regionalClienteByMicrorregiao.get(key);
+          return rc !== focusedRegionalCliente ? 0 : 100;
+        }
+        return 100;
       }
 
       function styleRegionalFeature(feature) {
@@ -17921,6 +18449,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // centenas de paths). So depois da transicao terminar de verdade a
       // camada antiga sai do mapa (removeLayer).
       function crossfadeRegionaisLevelLayers(oldLayers, newLayer) {
+        // Ver comentario grande em layerTransitionGen (declarada no topo
+        // da funcao) -- invalida qualquer transicao pendente ANTERIOR
+        // (inclusive um drill/undrill que tenha acontecido depois dela ter
+        // sido agendada) e captura o token DESTA chamada pro setTimeout
+        // final checar antes de remover.
+        const myLayerTransitionGen = ++layerTransitionGen;
         const layers = oldLayers.filter(Boolean);
         // territoryLayer (canvas) e o <svg> compartilhado da ufPane
         // (regionalLayer/coarseLayer/ufOutlineLayer) sao elementos IRMAOS
@@ -18004,9 +18538,25 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               } catch (err) {}
             });
             setTimeout(() => {
+              // Token mudou -- alguma transicao mais nova (outro
+              // crossfade, ou um drill/undrill direto) ja mexeu nessas
+              // camadas depois desta ter sido agendada; desistir em vez de
+              // remover algo que nao e mais "desta" transicao.
+              if (myLayerTransitionGen !== layerTransitionGen) return;
               layers.forEach((l) => {
                 if (ctx.map.hasLayer(l)) {
                   try { ctx.map.removeLayer(l); } catch (err) {}
+                }
+                // BUG REAL (ver comentario grande em focusOn, onde essa
+                // classe e' adicionada) -- territoryLayer saindo via fade
+                // tambem precisa limpar .regionais-territory-canvas-front,
+                // senao o canvas (agora vazio) fica travado acima do SVG
+                // pra sempre, engolindo clique nos territorios seguintes.
+                // So' AQUI (fade ja terminou de verdade) pra nao
+                // interferir no truque de ordem DOM que o fade usa (ver
+                // reorderTerritoryCanvasRelativeToSvg).
+                if (l === ctx.territoryLayer && territoryCanvasRenderer._container) {
+                  territoryCanvasRenderer._container.classList.remove("regionais-territory-canvas-front");
                 }
               });
             }, 1100); // mesmo valor do CSS (.leaflet-uf-pane path transition)
@@ -18156,49 +18706,81 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const chipEl = document.getElementById("regionaisFocusChip");
         if (chipEl) {
           chipEl.innerHTML = "";
+          // Se um 4o... 3o segmento de municipio vai ser anexado (drill
+          // ativo), o segmento "current" dos ramos abaixo deixa de ser o
+          // mais interno -- vira so mais um ancestral empilhado, sem o
+          // destaque visual de .regionais-focus-chip-current (esse vai
+          // pro segmento do municipio, anexado no final).
+          const willAppendMunicipio = isMunicipioDrilled && Boolean(focusedMunicipioNorm);
+          const currentClass = willAppendMunicipio
+            ? "regionais-focus-chip-crumb"
+            : "regionais-focus-chip-crumb regionais-focus-chip-current";
           if (focusKey && focusedRegionalCliente === focusKey) {
             // UF achatada (ver flatSoleMicrorregiao) -- regional e
             // microrregiao SAO o mesmo valor (o clique ja pulou pro
-            // municipio direto), entao 2 segmentos repetiriam o mesmo
-            // nome ("UR 01 - Salvador › UR 01 - Salvador"). 1 segmento
-            // so; nao existe um nivel "so regional" com sentido pra
-            // voltar, entao o clique reseta pro estado inteiro.
+            // municipio direto), entao 2 linhas repetiriam o mesmo nome.
+            // 1 linha so; nao existe um nivel "so regional" com sentido
+            // pra voltar, entao o clique reseta pro estado inteiro.
             const btnClear = document.createElement("button");
             btnClear.type = "button";
             btnClear.className = "regionais-focus-chip-crumb";
             btnClear.textContent = focusedRegionalCliente;
-            btnClear.addEventListener("click", () => focusOnRegionalCliente(null));
+            // stopPropagation NATIVO (nao so L.DomEvent.disableClickPropagation
+            // no container, ver onAdd do control) -- esse bloqueia
+            // mousedown/touchstart/dblclick/contextmenu, mas NAO o evento
+            // 'click' puro em si, que ainda bolha por fora do mapa e
+            // chegava no ctx.map.on("click", resetFocus) por baixo do
+            // control, resetando TUDO por cima do que o botao acabou de
+            // fazer (BUG REAL achado via teste ao vivo, Playwright, depois
+            // do breadcrumb virar L.control -- so existia a partir dai,
+            // nunca quando era um <span> fora do mapa).
+            btnClear.addEventListener("click", (e) => {
+              e.stopPropagation();
+              focusOnRegionalCliente(null);
+            });
             chipEl.appendChild(btnClear);
             chipEl.classList.remove("hidden");
           } else if (focusKey) {
-            // 2 segmentos: o 1o (regional) sobe 1 nivel via focusOn(null)
-            // (solta a microrregiao, mantem a regional) -- antes a UNICA
-            // volta era o pill "Regional" do seletor solto, que pulava o
-            // nivel do meio. Reportado pelo Gabriel (item 14).
+            // 2 linhas empilhadas (Regional no topo, Microrregiao abaixo):
+            // a de cima sobe 1 nivel via focusOn(null) (solta a
+            // microrregiao, mantem a regional) -- antes a UNICA volta era
+            // o pill "Regional" do seletor solto, que pulava o nivel do
+            // meio. Reportado pelo Gabriel (item 14).
             //
-            // No celular, so o segmento ATUAL aparece (pedido do Gabriel:
+            // No celular, so a linha ATUAL aparece (pedido do Gabriel:
             // "mostre apenas onde estamos atualmente" -- nomes de
             // regional longos, ex. "Noroeste e Alto Paranaiba", nao cabem
-            // junto do resto da cadeia numa tela estreita; a URL/hash
-            // continua com o caminho completo, so a EXIBICAO encurta). O
-            // crumb da regional (e o jeito de subir 1 nivel clicando
-            // nele) some nesse caso -- ver botao "Regional" do seletor
-            // pra voltar por la no lugar.
+            // numa tela estreita; a URL/hash continua com o caminho
+            // completo, so a EXIBICAO encurta).
             if (!isRegionaisPhoneViewport()) {
               const btnRegional = document.createElement("button");
               btnRegional.type = "button";
               btnRegional.className = "regionais-focus-chip-crumb";
               btnRegional.textContent = focusedRegionalCliente;
-              btnRegional.addEventListener("click", () => focusOn(null));
-              const sep = document.createElement("span");
-              sep.className = "regionais-focus-chip-sep";
-              sep.textContent = " › ";
-              sep.setAttribute("aria-hidden", "true");
-              chipEl.append(btnRegional, sep);
+              // Ver comentario grande no btnClear acima (stopPropagation
+              // nativo, mesmo bug/motivo).
+              btnRegional.addEventListener("click", (e) => {
+                e.stopPropagation();
+                focusOn(null);
+              });
+              chipEl.append(btnRegional);
             }
-            const current = document.createElement("span");
-            current.className = "regionais-focus-chip-current";
+            // "current" (microrregiao) virou crumb clicavel -- clique
+            // chama focusOn(focusKey), a MESMA key atual. Fora do drill
+            // isso e' um no-op (focusOn ja tem early-return key===focusKey);
+            // durante o drill, o guard no topo de focusOn desfaz SO o
+            // drill (sem mudar de nivel, ja que a key nao muda) -- ver
+            // undrillMunicipio.
+            const current = document.createElement("button");
+            current.type = "button";
+            current.className = currentClass;
             current.textContent = focusKey;
+            // Ver comentario grande no btnClear acima (stopPropagation
+            // nativo, mesmo bug/motivo).
+            current.addEventListener("click", (e) => {
+              e.stopPropagation();
+              focusOn(focusKey);
+            });
             chipEl.append(current);
             chipEl.classList.remove("hidden");
           } else if (focusedRegionalCliente) {
@@ -18207,17 +18789,57 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             btnClear.className = "regionais-focus-chip-crumb";
             btnClear.textContent = focusedRegionalCliente;
             btnClear.title = "Voltar para Minas Gerais";
-            btnClear.addEventListener("click", () => focusOnRegionalCliente(null));
+            // Ver comentario grande no btnClear do 1o ramo acima
+            // (stopPropagation nativo, mesmo bug/motivo).
+            btnClear.addEventListener("click", (e) => {
+              e.stopPropagation();
+              focusOnRegionalCliente(null);
+            });
             chipEl.appendChild(btnClear);
             chipEl.classList.remove("hidden");
           } else if (viewLevel === "microrregiao") {
-            chipEl.textContent = "Todas as microrregiões";
+            // Nao-clicavel (nao existe ancestral nem drill nesse estado --
+            // ver invariante em isMunicipioDrilled) -- ainda vira um pill
+            // de verdade (nao mais texto cru no container) pra ficar
+            // visualmente igual aos outros ramos.
+            const current = document.createElement("span");
+            current.className = "regionais-focus-chip-current";
+            current.textContent = "Todas as microrregiões";
+            chipEl.append(current);
             chipEl.classList.remove("hidden");
           } else if (viewLevel === "municipio") {
-            chipEl.textContent = "Todos os municípios";
+            // Sem foco nenhum (pill "Município" direto) -- vira crumb
+            // tambem, pro mesmo motivo do "current" acima, so que aqui
+            // nao existe funcao de navegacao pra reusar (nenhuma key),
+            // entao o clique vai direto pra undrillMunicipio (que ja' e'
+            // no-op fora do drill).
+            const current = document.createElement("button");
+            current.type = "button";
+            current.className = currentClass;
+            current.textContent = "Todos os municípios";
+            // Ver comentario grande no btnClear do 1o ramo acima
+            // (stopPropagation nativo, mesmo bug/motivo).
+            current.addEventListener("click", (e) => {
+              e.stopPropagation();
+              undrillMunicipio();
+            });
+            chipEl.append(current);
             chipEl.classList.remove("hidden");
           } else {
             chipEl.classList.add("hidden");
+          }
+
+          // Linha final empilhada (nome do municipio drilado), sempre a
+          // MAIS INTERNA (destaque .regionais-focus-chip-current) -- por
+          // cima de qualquer um dos ramos acima que ja tenha rodado (so
+          // os 3 que usam viewLevel "municipio" -- flat UF, focusKey
+          // normal, ou "Todos os municipios" solto -- podem coexistir
+          // com o drill; ver invariante em isMunicipioDrilled).
+          if (willAppendMunicipio) {
+            const muniCurrent = document.createElement("span");
+            muniCurrent.className = "regionais-focus-chip-current";
+            muniCurrent.textContent = municipioInfo.get(focusedMunicipioNorm)?.municipioNome || focusedMunicipioNorm;
+            chipEl.append(muniCurrent);
           }
         }
         syncRegionaisHashUrl();
@@ -18258,11 +18880,40 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         return count === 1 ? found : null;
       }
 
+      // Garante defensivamente que coarseLayer (blobs de microrregiao)
+      // esta anexada ao mapa E com os dados certos pra `key` (regional
+      // focada) -- idempotente, segura de chamar mesmo quando ja estiver
+      // tudo certo (so' reescreve se `ctx.map.hasLayer` disser que nao
+      // esta anexada). Existe pra 2 call-sites que SE ASSUMEM que
+      // coarseLayer ja esta correta mas, por algum motivo, pode nao estar
+      // -- ver comentario grande no call-site de focusOnRegionalCliente
+      // sobre o bug real que motivou isso (print do Gabriel: mapa inteiro
+      // sumido depois de drilar via pin de IE e dar zoom out).
+      function ensureCoarseLayerForFocusedRegional(key) {
+        if (!key || !ctx.coarseLayer || ctx.map.hasLayer(ctx.coarseLayer)) return;
+        ctx.coarseLayer.clearLayers();
+        const scoped = coarseFeatures.filter(
+          (f) => regionalClienteByMicrorregiao.get(f.properties.__microrregiao) === key
+        );
+        if (scoped.length) ctx.coarseLayer.addData({ type: "FeatureCollection", features: scoped });
+        ctx.coarseLayer.addTo(ctx.map);
+        restyleAll();
+      }
+
       // Nivel 1 (regional_cliente, ex.: "Sul") -- entrar nela filtra o
       // coarseLayer (microrregioes) pra so as que pertencem a ela, e
       // mostra/enquadra so esse pedaco do estado. key=null desfoca de vez
       // (volta pra visao geral do estado inteiro).
-      function focusOnRegionalCliente(key) {
+      function focusOnRegionalCliente(key, opts) {
+        opts = opts || {};
+        // Guarda: desfaz o drill de municipio ANTES de qualquer outra
+        // coisa (inclusive do early-return abaixo) -- ver comentario em
+        // undrillMunicipio. resetRegionaisZoomBlend() roda SEMPRE (nao
+        // so' quando isMunicipioDrilled) -- cobre tambem o caso de um
+        // blend de zoom AINDA NAO comprometido (ver comentario grande na
+        // funcao) ser interrompido por este clique.
+        if (isMunicipioDrilled) undrillMunicipio();
+        resetRegionaisZoomBlend();
         // key null "ja igual" so quer dizer "ja resetado" se viewLevel
         // TAMBEM ja for "regional" -- sem esse 2o check, chamar
         // focusOnRegionalCliente(null)/resetFocus() vindo de uma visao
@@ -18270,7 +18921,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         // era null o tempo todo, so viewLevel mudava) virava no-op e o
         // botao "Regional" do seletor parecia nao fazer nada (bug real,
         // achado pelo driver9 de teste).
-        if (key === focusedRegionalCliente && (key || viewLevel === "regional")) return;
+        if (key === focusedRegionalCliente && (key || viewLevel === "regional")) {
+          // BUG REAL (achado 2026-11-08, print real do Gabriel: clicar num
+          // pin de IE em Recife pra drilar, depois dar zoom out -- o resto
+          // do mapa alem da propria regional nunca mais voltou, so' o
+          // badge "Metropolitana de Recife" ficou, o resto 100% vazio).
+          // Causa raiz: esse early-return pula TODO o bloco (logo abaixo)
+          // que popula+anexa coarseLayer -- se por QUALQUER motivo ela ja
+          // estivesse desanexada no momento desta chamada (a mesma regional
+          // ja estava "focada" segundo o estado logico, entao nada parecia
+          // precisar mudar), ela nunca mais seria reanexada por nenhuma
+          // outra funcao -- nem focusOn(microrregiao-dentro-da-mesma-
+          // regional) nem drillIntoMunicipio/undrillMunicipio tocam
+          // coarseLayer por conta propria, so' confiam que ja estava certa.
+          // Fix defensivo: mesmo em early-return, garante que coarseLayer
+          // de fato esta anexada+com os dados certos pra essa regional.
+          ensureCoarseLayerForFocusedRegional(key);
+          return;
+        }
         focusedRegionalCliente = key;
         focusKey = null;
         focusedMunicipioNorm = null;
@@ -18305,14 +18973,45 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const fadingLayers = [];
         if (focusedRegionalCliente) {
           if (ctx.coarseLayer) {
+            // MUDANCA 2026-11-08 (pedido explicito do Gabriel, apos
+            // reproduzir drill via pin + zoom out): antes, coarseLayer
+            // carregava SO as microrregioes da regional focada (filter)
+            // -- as microrregioes de FORA dela sumiam por completo
+            // (nao so desaturadas), deixando um "buraco" visual feio no
+            // resto do mapa enquanto uma regional estava em foco. Fix:
+            // mesmo tratamento que regionalLayer ja usa ha muito tempo
+            // (ver comentario grande acima, "regionalLayer fica sempre
+            // visivel... desaturada quando uma regional especifica esta
+            // focada") -- carrega TODAS as microrregioes do estado
+            // sempre, e deixa saturationForCoarseFeature (abaixo)
+            // desaturar as de fora da regional focada em vez de
+            // escondê-las. Sem buraco, com o mesmo contexto visual do
+            // resto do estado que o nivel Regional ja da.
             ctx.coarseLayer.clearLayers();
-            const scoped = coarseFeatures.filter(
-              (f) => regionalClienteByMicrorregiao.get(f.properties.__microrregiao) === focusedRegionalCliente
-            );
-            if (scoped.length) ctx.coarseLayer.addData({ type: "FeatureCollection", features: scoped });
+            if (coarseFeatures.length) ctx.coarseLayer.addData({ type: "FeatureCollection", features: coarseFeatures });
             if (!ctx.map.hasLayer(ctx.coarseLayer)) ctx.coarseLayer.addTo(ctx.map);
           }
-          if (ctx.map.hasLayer(ctx.territoryLayer)) ctx.map.removeLayer(ctx.territoryLayer);
+          if (ctx.map.hasLayer(ctx.territoryLayer)) {
+            // BUG REAL achado via teste ao vivo (Playwright): a classe
+            // .regionais-territory-canvas-front (ver comentario grande em
+            // focusOn, onde e' ADICIONADA) nunca era removida ao SAIR do
+            // nivel municipio por aqui -- sem isso, o canvas (agora vazio)
+            // ficava permanentemente acima do SVG, engolindo TODO clique
+            // nos territorios seguintes (bug reportado como "mapa fica
+            // cinza"/"blocos SVG nao clicaveis", exposto com muito mais
+            // frequencia pelo drill de municipio, que entra/sai desse
+            // nivel via clique o tempo todo). Removivel JA aqui porque
+            // essa remocao e' IMEDIATA (sem crossfade) -- a versao que sai
+            // via fade (ramo else abaixo) so limpa a classe DEPOIS do
+            // fade terminar, dentro de crossfadeRegionaisLevelLayers (nao
+            // dar pra limpar aqui sem risco de interferir no truque de
+            // ordem DOM que o fade usa pra revelar a camada nova por
+            // baixo -- ver reorderTerritoryCanvasRelativeToSvg).
+            if (territoryCanvasRenderer._container) {
+              territoryCanvasRenderer._container.classList.remove("regionais-territory-canvas-front");
+            }
+            ctx.map.removeLayer(ctx.territoryLayer);
+          }
         } else {
           if (ctx.coarseLayer && ctx.map.hasLayer(ctx.coarseLayer)) fadingLayers.push(ctx.coarseLayer);
           if (ctx.map.hasLayer(ctx.territoryLayer)) fadingLayers.push(ctx.territoryLayer);
@@ -18331,7 +19030,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           // (README, Rodada 7). Reportado pelo Gabriel: mapa ficava
           // "muito distante" com o padding generoso antigo.
           if (bounds && bounds.isValid()) ctx.map.fitBounds(bounds.pad(0.04), { animate: true });
-        } else {
+        } else if (!opts.skipViewportFit) {
+          // BUG REAL (achado 2026-11-08, video real do Gabriel: focar uma
+          // regional, dar zoom out ate desfocar -- no ULTIMO tick, alem do
+          // zoom mudar, a camera "pulava"/recentralizava sozinha). Causa
+          // raiz: esse refit SEMPRE rodava ao desfocar, pensado pro caso de
+          // clique explicito (ex. breadcrumb "Regional", onde reenquadrar
+          // faz sentido -- usuario pediu "me leva pra visao geral"). Mas o
+          // MESMO `focusOnRegionalCliente(null)` tambem e' chamado
+          // automaticamente pelo proprio blend de zoom solto (ver
+          // evaluateZoomBlend, "if (blendOut >= 0.98) focusOnRegionalCliente(null)")
+          // quando o USUARIO MESMO ja esta navegando a camera via zoom
+          // continuo -- nesse caso, refitar por cima da posicao que ele
+          // mesmo acabou de escolher e' um "puxão" indesejado, nao pedido.
+          // `opts.skipViewportFit` (passado so' por esse call site
+          // automatico) pula o refit synthetic, deixando a camera exatamente
+          // onde o zoom natural do usuario a deixou.
           try {
             fitRegionaisViewport();
           } catch (err) {
@@ -18412,6 +19126,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // achatada) pra continuar o drill sem re-disparar esse sync (o
       // caller ja fez o setup do nivel regional).
       function focusOn(key, opts) {
+        // Guarda: ver comentario em focusOnRegionalCliente/undrillMunicipio.
+        if (isMunicipioDrilled) undrillMunicipio();
+        resetRegionaisZoomBlend();
         opts = opts || {};
         if (key === focusKey) return;
         const owningRegional = key ? regionalClienteByMicrorregiao.get(key) : null;
@@ -18465,6 +19182,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               }
             }
           } else if (ctx.map.hasLayer(ctx.territoryLayer)) {
+            // BUG REAL (ver comentario grande em focusOnRegionalCliente) --
+            // saindo do nivel municipio por aqui (key null), a classe
+            // precisa sumir junto, senao o canvas vazio fica travado por
+            // cima do SVG e engole clique nos territorios seguintes.
+            if (territoryCanvasRenderer._container) {
+              territoryCanvasRenderer._container.classList.remove("regionais-territory-canvas-front");
+            }
             ctx.map.removeLayer(ctx.territoryLayer);
           }
         }
@@ -18509,6 +19233,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // regional). Clicar num territorio especifico continua fazendo o
       // drill-down normal por cima disso.
       function setViewLevel(level) {
+        // Guarda: ver comentario em focusOnRegionalCliente/undrillMunicipio.
+        if (isMunicipioDrilled) undrillMunicipio();
+        resetRegionaisZoomBlend();
         let normalized = ["regional", "microrregiao", "municipio"].includes(level) ? level : "regional";
         // UF achatada: nao existe pill "Microrregião" pra clicar (ver
         // isFlatUf acima), mas o hash da URL pode ter sido salvo ANTES
@@ -18547,6 +19274,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             if (!ctx.map.hasLayer(ctx.coarseLayer)) ctx.coarseLayer.addTo(ctx.map);
             newLevelLayer = ctx.coarseLayer;
           }
+          // Sai do nivel municipio via fade -- a classe
+          // .regionais-territory-canvas-front (ver comentario grande em
+          // focusOn/focusOnRegionalCliente) e' limpa DEPOIS do fade
+          // terminar, dentro de crossfadeRegionaisLevelLayers (nao aqui,
+          // pra nao interferir no truque de ordem DOM que o fade usa).
           if (ctx.map.hasLayer(ctx.territoryLayer)) fadingLayers.push(ctx.territoryLayer);
         } else {
           // "municipio"
@@ -18610,24 +19342,982 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // 3o nivel (municipio dentro da regional focada) -- extraido pra
       // funcao nomeada pra poder ser chamado tanto pelo clique no proprio
       // mapa quanto pelo hotlist/lista quando ja estao em modo municipio
-      // (ver ctx.regionaisFocusOnMunicipio abaixo).
+      // (ver ctx.regionaisFocusOnMunicipio abaixo). Virou o gatilho do
+      // drill de territorio: 2o clique no MESMO municipio ja drilado
+      // desfaz o drill; qualquer outro clique (1o clique, ou clique num
+      // municipio diferente enquanto ja drilado) entra/reposiciona o drill.
       function selectMunicipio(municipioNorm) {
-        const wasSelected = focusedMunicipioNorm === municipioNorm;
-        focusedMunicipioNorm = wasSelected ? null : municipioNorm;
-        restyleAll();
-        if (!wasSelected) {
-          const muniBounds = municipioBoundsByNorm.get(municipioNorm);
-          if (muniBounds && muniBounds.isValid()) {
-            // Ver comentario em focusOnRegionalCliente sobre padding minimo.
-            ctx.map.fitBounds(muniBounds.pad(0.04), { animate: true });
-          }
+        if (focusedMunicipioNorm === municipioNorm && isMunicipioDrilled) {
+          undrillMunicipio();
+          return;
         }
-        const activeKey = wasSelected ? null : municipioNorm;
-        highlightRegionaisHotlistRow(activeKey);
+        drillIntoMunicipio(municipioNorm);
       }
       // Exposto pro hotlist/lista (quando ja mostrando municipios de uma
       // regional focada) conseguirem selecionar um municipio por fora.
       ctx.regionaisFocusOnMunicipio = selectMunicipio;
+
+      // Tile OSM sob demanda -- so existe enquanto algum municipio esta
+      // drilado (ensureMap nunca monta tile nenhum nesse mapa, skipTileLayer:true
+      // -- ver comentario la). Criado 1x (cacheado em ctx.osmTileLayer) e
+      // so anexado/removido depois, mesma URL/opcoes do tile que ensureMap
+      // usaria se nao fosse skipTileLayer.
+      function ensureOsmTileLayerForDrill() {
+        if (!ctx.osmTileLayer) {
+          ctx.osmTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: REGIONAIS_DRILL_MAX_ZOOM,
+            attribution: "&copy; OpenStreetMap",
+            crossOrigin: "anonymous",
+          });
+          // Rastreia se os tiles da viewport ATUAL ja terminaram de
+          // carregar -- usado pelo TIER 3 solto (ver evaluateZoomBlend)
+          // pra nao deixar territoryCanvasRenderer chegar a opacity "0"
+          // antes do OSM ter algo de verdade pra mostrar no lugar. Sem
+          // isso, um zoom/pan rapido o bastante pra pedir tiles novos
+          // (ainda nao em cache do navegador) podia deixar AMBAS as
+          // camadas vazias ao mesmo tempo -- canvas ja desvanecido pelo
+          // blend, tile ainda em branco esperando a rede -- um frame
+          // 100% vazio (achado real, video do Gabriel: ~5 quadros pretos
+          // seguidos + mosaico/retalho branco de tile ainda carregando).
+          ctx.osmTilesReady = false;
+          ctx.osmTileLayer.on("loading", () => { ctx.osmTilesReady = false; });
+          ctx.osmTileLayer.on("load", () => { ctx.osmTilesReady = true; });
+        }
+        if (!ctx.map.hasLayer(ctx.osmTileLayer)) ctx.osmTileLayer.addTo(ctx.map);
+      }
+
+      // Entra (ou reposiciona, se ja estava drilado em outro municipio) no
+      // modo drill: esconde as 4 camadas de SVG coropletico de uma vez
+      // (guardando exatamente QUAIS pra undrillMunicipio restaurar sem
+      // rederivar "qual camada deveria estar visivel pro nivel atual" --
+      // essa logica ja vive em setViewLevel/focusOn), mostra o tile OSM
+      // de fundo, e da zoom no municipio (padding maior que o 0.04 usado
+      // no resto do mapa -- sem SVG de contexto em volta, precisa de mais
+      // folga pra nao ficar colado na borda).
+      function drillIntoMunicipio(municipioNorm) {
+        // Invalida qualquer remocao de camada agendada por um crossfade
+        // ANTERIOR (ver comentario grande em layerTransitionGen) -- sem
+        // isso, o timeout de 1100ms de uma troca de nivel recente podia
+        // remover por engano uma camada que o drill (ou o proximo undrill)
+        // acabou de reaproveitar.
+        layerTransitionGen++;
+        if (isMunicipioDrilled) {
+          focusedMunicipioNorm = municipioNorm;
+        } else {
+          isMunicipioDrilled = true;
+          focusedMunicipioNorm = municipioNorm;
+          // BUG REAL (achado 2026-11-08, print real do Gabriel) -- o
+          // handler de clique do pin (ver `marker.on("click", ...)`) so'
+          // chama focusOnRegionalCliente(regional) quando ela MUDA
+          // (`info.regionalCliente !== focusedRegionalCliente`); se a
+          // regional do pin JA for a focada (ex.: usuario clicou outro pin
+          // da MESMA regional, ou coarseLayer tinha ficado desanexada por
+          // qualquer motivo anterior), focusOnRegionalCliente nem e'
+          // chamada -- nenhuma garantia de que coarseLayer esta de fato
+          // anexada antes do snapshot abaixo. Sem isso, se coarseLayer ja
+          // estivesse desanexada nesse instante, ela nunca entraria em
+          // municipioDrillHiddenLayers -- e nunca mais voltaria depois
+          // (undrillMunicipio so' restaura o que CAPTUROU aqui).
+          ensureCoarseLayerForFocusedRegional(focusedRegionalCliente);
+          municipioDrillHiddenLayers = [ctx.territoryLayer, ctx.coarseLayer, ctx.regionalLayer, ctx.ufOutlineLayer].filter(
+            (l) => l && ctx.map.hasLayer(l)
+          );
+          municipioDrillHiddenLayers.forEach((l) => ctx.map.removeLayer(l));
+          ensureOsmTileLayerForDrill();
+        }
+        const bounds = municipioBoundsByNorm.get(municipioNorm);
+        if (bounds && bounds.isValid()) {
+          ctx.map.fitBounds(bounds.pad(0.08), { animate: true });
+        }
+        updateInstitutionMarkers();
+        syncFocusChip();
+        highlightRegionaisHotlistRow(municipioNorm);
+      }
+
+      // Desfaz o drill -- chamada pelo breadcrumb (3o segmento ou o
+      // segmento "atual" reaproveitado, ver syncFocusChip) E como guarda
+      // defensiva na PRIMEIRA linha de focusOnRegionalCliente/focusOn/
+      // setViewLevel, pra desfazer o drill sempre que o usuario navegar
+      // pra fora dele por QUALQUER caminho (nao so o breadcrumb -- pills
+      // de nivel, hotlist, clique em regional/microrregiao outra).
+      function undrillMunicipio() {
+        if (!isMunicipioDrilled) return;
+        // Ver comentario grande em layerTransitionGen/drillIntoMunicipio.
+        layerTransitionGen++;
+        isMunicipioDrilled = false;
+        focusedMunicipioNorm = null;
+        municipioDrillHiddenLayers.forEach((l) => l.addTo(ctx.map));
+        municipioDrillHiddenLayers = [];
+        if (ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) ctx.map.removeLayer(ctx.osmTileLayer);
+        restyleAll();
+        // Volta o enquadramento pro nivel que ja estava ativo ANTES do
+        // drill -- o drill em si so muda focusedMunicipioNorm/isMunicipioDrilled,
+        // nunca focusKey/focusedRegionalCliente, entao essas 2 ainda
+        // refletem o nivel de origem aqui. Sem isso, navegar pro MESMO
+        // nivel via breadcrumb (early-return de focusOn/focusOnRegionalCliente,
+        // ja que a key chamada e' a mesma de agora) deixaria a camera
+        // presa no zoom apertado do municipio.
+        if (focusKey) {
+          const bounds = regionalBoundsByKey.get(focusKey);
+          if (bounds && bounds.isValid()) ctx.map.fitBounds(bounds.pad(0.04), { animate: true });
+        } else if (focusedRegionalCliente) {
+          const bounds = regionalClienteBoundsByKey.get(focusedRegionalCliente);
+          if (bounds && bounds.isValid()) ctx.map.fitBounds(bounds.pad(0.04), { animate: true });
+        } else {
+          try {
+            fitRegionaisViewport();
+          } catch (err) {
+            console.warn("[UI] [map] regionais refit ao desfazer drill falhou", { err: String(err) });
+          }
+        }
+        updateInstitutionMarkers();
+        syncFocusChip();
+        highlightRegionaisHotlistRow(null);
+      }
+
+      // Limpa a PREVIA visual de QUALQUER fronteira do funil (opacity dos
+      // 3 containers de volta ao normal + tile removido se nao drilado) --
+      // chamada tanto pelo proprio evaluateZoomBlend (fora do alcance de
+      // alguma fronteira especifica) quanto, incondicionalmente, na guarda
+      // de focusOnRegionalCliente/focusOn/setViewLevel (ver mais abaixo).
+      // Sem isso, navegar embora via CLIQUE no meio de um blend ainda nao
+      // comprometido (ex.: usuario deu scroll ate a metade do caminho de
+      // uma fronteira e clicou direto num territorio totalmente diferente)
+      // deixava alguma camada presa visualmente num valor intermediario
+      // ate o proximo zoomend/moveend "por sorte" corrigir --
+      // undrillMunicipio()/etc sozinhos nao resolviam esse caso porque o
+      // estado "comprometido" nunca tinha mudado (blend nao tinha
+      // completado), entao os guards de cada funcao viravam no-op.
+      function resetRegionaisZoomBlend() {
+        if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = "";
+        if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = "";
+        if (ctx.ufRenderer?._container) ctx.ufRenderer._container.style.opacity = "";
+        if (!isMunicipioDrilled && ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) {
+          ctx.map.removeLayer(ctx.osmTileLayer);
+        }
+        // Zera o rastreio de pre-carga do coarseLayer tambem -- se nao,
+        // uma navegacao por CLIQUE que recarregue coarseLayer com outro
+        // conjunto de feicoes (ex. focar uma regional especifica, que
+        // carrega SO as microrregioes dela, ou a pill "Microrregião", que
+        // carrega TODAS de novo mas junto com outro estado) deixaria
+        // coarseAllPreviewLoaded=true apontando pra um conteudo que nao
+        // bate mais com o que esta carregado de verdade -- um blend futuro
+        // pularia a recarga achando que a previa (TODAS as microrregioes)
+        // ainda estava la.
+        coarseAllPreviewLoaded = false;
+        // Zera tambem o rastreio de "viewLevel mudou por zoom, nao por
+        // clique" (ver comentario grande em looseLevelFromZoom) -- toda
+        // chamada daqui vem de um COMMIT de verdade (focusOnRegionalCliente/
+        // focusOn/setViewLevel), entao o viewLevel que a propria funcao
+        // chamadora for setar em seguida passa a ser "real", nao mais solto.
+        looseLevelFromZoom = false;
+        // Mesmo raciocinio pro rastreio de "pins agrupados ja viraram
+        // individuais pelo Tier 3 solto" (ver looseTier3PinsRevealed) --
+        // todo COMMIT de verdade (clique) decide por conta propria se
+        // deve mostrar cluster ou individual (isMunicipioDrilled, ou nao),
+        // entao esse rastreio especifico do Tier 3 SOLTO precisa voltar
+        // pra false aqui -- sem isso, comitar um foco ENQUANTO ainda
+        // estava solto no Tier 3 deixaria esse estado preso, afetando
+        // calculos futuros que nada tem a ver com Tier 3 solto.
+        looseTier3PinsRevealed = false;
+      }
+
+      // Acha a key (do Map de bounds dado) cujo CENTROIDE esta mais perto
+      // de center, entre as que passam no filtro -- mesma tecnica de
+      // nearest-centroid do focusedUf em BrazilMap.tsx (tnl-shortener).
+      function nearestBoundsKey(boundsMap, center, filterFn) {
+        let best = null;
+        let bestDist = Infinity;
+        for (const [key, bounds] of boundsMap) {
+          if (filterFn && !filterFn(key)) continue;
+          if (!bounds || !bounds.isValid()) continue;
+          const c = bounds.getCenter();
+          const d = (c.lat - center.lat) ** 2 + (c.lng - center.lng) ** 2;
+          if (d < bestDist) {
+            bestDist = d;
+            best = key;
+          }
+        }
+        return best;
+      }
+
+      // BUG REAL (achado 2026-11-08, video real do Gabriel: scroll
+      // continuo de verdade fazia o pill alternar Microrregiao<->Municipio
+      // repetidamente, SVG/OSM "piscando" -- confirmado quadro a quadro,
+      // nao suposicao) -- nearestBoundsKey() acima e' recalculado do ZERO
+      // em TODO tick de evaluateZoomBlend, sem nenhuma memoria. Quando o
+      // CENTRO do mapa fica perto da fronteira entre 2 territorios quase
+      // equidistantes (comum durante scroll+pan real, que move o centro
+      // poucos pixels por tick), o "mais perto" pode alternar entre os 2 a
+      // CADA tick -- e como esse candidato e' usado como referencia de
+      // ritmo pro limiar de zoom (zoomMicroTierNatural/
+      // zoomMunicipioTierNatural), cada flip trocava o limiar usado,
+      // fazendo viewLevel/opacidade oscilar entre 2 estados em vez de
+      // avancar suave. Fix: wrapper "pegajoso" com histerese -- so' troca
+      // de candidato quando o novo e' CLARAMENTE mais perto (threshold
+      // abaixo) que o atual, nunca por uma diferenca infinitesimal; cria
+      // uma "zona morta" perto de fronteiras equidistantes onde a ultima
+      // escolha simplesmente se mantem. `slotKey` identifica CADA um dos 3
+      // usos independentes (candidato de drill, de microrregiao, de
+      // municipio) -- memoria separada pra cada, nunca cruzada.
+      const STICKY_CANDIDATE_SWITCH_RATIO = 0.7; // novo precisa ser <=70% da distancia do atual pra trocar
+      const stickyCandidateState = new Map();
+      function stickyNearestBoundsKey(slotKey, boundsMap, center, filterFn) {
+        const best = nearestBoundsKey(boundsMap, center, filterFn);
+        if (best === null) {
+          stickyCandidateState.delete(slotKey);
+          return null;
+        }
+        const bestBounds = boundsMap.get(best);
+        const bestCenter = bestBounds.getCenter();
+        const bestDist = (bestCenter.lat - center.lat) ** 2 + (bestCenter.lng - center.lng) ** 2;
+        const prev = stickyCandidateState.get(slotKey);
+        if (!prev || prev.candidate === best) {
+          stickyCandidateState.set(slotKey, { candidate: best, dist: bestDist });
+          return best;
+        }
+        // Recalcula a distancia ATUAL do candidato antigo (o centro do
+        // mapa pode ter mudado desde a ultima chamada) -- compara em pe
+        // de igualdade, nunca contra um valor cacheado desatualizado.
+        const prevBounds = boundsMap.get(prev.candidate);
+        const prevValid = prevBounds && prevBounds.isValid() && (!filterFn || filterFn(prev.candidate));
+        if (!prevValid) {
+          stickyCandidateState.set(slotKey, { candidate: best, dist: bestDist });
+          return best;
+        }
+        const prevCenter = prevBounds.getCenter();
+        const prevDist = (prevCenter.lat - center.lat) ** 2 + (prevCenter.lng - center.lng) ** 2;
+        // Distancias guardadas ao QUADRADO -- comparar o ratio tambem ao
+        // quadrado evita sqrt() desnecessario em todo tick.
+        if (bestDist <= prevDist * STICKY_CANDIDATE_SWITCH_RATIO * STICKY_CANDIDATE_SWITCH_RATIO) {
+          stickyCandidateState.set(slotKey, { candidate: best, dist: bestDist });
+          return best;
+        }
+        return prev.candidate;
+      }
+
+      // coarseLayer ja foi pre-carregado com TODAS as microrregioes da UF
+      // pra previa do blend Regional<->Microrregiao (ver ramo "nada
+      // focado" abaixo)? Existe por causa de uma assimetria real entre as
+      // camadas: territoryLayer (Canvas) sempre tem TODOS os municipios da
+      // UF carregados e so' filtra visibilidade por feature
+      // (isDetailFeatureVisible), mas coarseLayer troca de DADO
+      // (clearLayers+addData) -- sem pre-carregar ANTES do commit, nao
+      // haveria nada pra desvanecer em opacidade (a previa ficaria
+      // "vazia"). Ate 2026-11-06 isso guardava QUAL regional candidata
+      // (nearest-centroid) estava escopada; virou boolean no redesenho de
+      // 2026-11-08 (ver comentario grande acima de evaluateZoomBlend)
+      // porque a previa parou de escopar pra 1 candidata -- agora carrega
+      // todas de uma vez, sempre a MESMA carga, so' precisa saber SE ja
+      // rodou (pra nao repetir clearLayers+addData a cada zoomend/moveend).
+      let coarseAllPreviewLoaded = false;
+
+      // true quando o viewLevel ATUAL ("microrregiao"/"municipio") foi
+      // setado pela cascata solta de zoom (evaluateZoomBlend, ramo "nada
+      // focado") em vez de por um clique real (pill/setViewLevel). Existe
+      // pra diferenciar os 2 casos em que viewLevel !== "regional" sem
+      // nada focado: (1) o usuario clicou num pill solto de verdade --
+      // nesse caso a cascata de zoom NUNCA deve mexer no viewLevel de
+      // novo (mesma guarda que ja existia antes do redesenho de
+      // 2026-11-08, "sem essa checagem um scroll substituiria por engano
+      // a listagem completa que o pill pediu"); (2) o proprio zoom
+      // empurrou o viewLevel mais fundo sem clique nenhum -- nesse caso a
+      // cascata PRECISA continuar podendo avancar/recuar com o zoom.
+      // Resetada pra false em toda funcao de commit real (ver
+      // resetRegionaisZoomBlend) e por resetRegionaisLoosePreview (abaixo)
+      // quando o zoom volta pro nivel Regional sem nunca ter comitado nada.
+      let looseLevelFromZoom = false;
+
+      // Garante que territoryLayer (canvas, so' usada no nivel
+      // "municipio") esteja anexada/desanexada do mapa pro `level` dado
+      // -- idempotente, chamada em TODA passada da cascata (nao so'
+      // quando o nivel muda de verdade). territoryLayer fica por padrao
+      // ATRAS de qualquer SVG por z-index GLOBAL do Leaflet
+      // (.leaflet-map-pane canvas{z-index:100} / svg{z-index:200},
+      // incondicional, nao depende de pane) -- e paths SVG bloqueiam
+      // clique mesmo com fillOpacity/opacity 0 (pointer-events padrao
+      // "visiblePainted" nao liga pra opacidade, ver comentario grande em
+      // focusOn sobre esse mesmo z-order). Por isso territoryLayer so'
+      // pode ficar anexada quando "municipio" e' de fato o nivel ativo --
+      // deixar anexada-mas-invisivel nos outros niveis deixaria
+      // municipios "fantasmas" competindo por clique com coarseLayer por
+      // cima. Quando "municipio" ESTA ativo, a mesma classe/motivo
+      // documentados em focusOn (entrada por clique direto num
+      // territorio) elevam o canvas (z-index:250 !important) acima de
+      // QUALQUER svg que ainda esteja no mapa (coarseLayer, regionalLayer,
+      // ufOutlineLayer -- nenhum deles precisa ser removido/escondido
+      // pra isso funcionar, a classe resolve empilhamento visual E clique
+      // de uma vez so').
+      // THROTTLE (nao debounce) do redesenho forcado de territoryLayer (ver
+      // comentario grande dentro de ensureLooseDetailLayer) -- no maximo 1
+      // redraw a cada 120ms, mas SEMPRE roda pelo menos 1 vez de imediato.
+      // BUG REAL (achado 2026-11-08, video real do Gabriel dando scroll
+      // continuo do zero ate o maximo de zoom): a versao anterior era um
+      // DEBOUNCE de verdade (setTimeout resetado em toda chamada) -- com
+      // scroll real (nao clique sintetico), zoomend/moveend dispara MUITO
+      // mais rapido que 1x a cada 120ms (um unico gesto de scroll gera
+      // dezenas de ticks em sequencia), entao o timer nunca chegava a
+      // disparar enquanto o scroll nao PARASSE -- o canvas ficava anexado
+      // ao mapa mas NUNCA pintado (`<canvas>` fresco comeca transparente,
+      // so' preenche depois do 1o `redraw()`), deixando a tela
+      // completamente vazia (nem SVG nem OSM, so' o fundo escuro) por
+      // 2+ segundos seguidos exatamente na fronteira Microrregiao->
+      // Municipio -- confirmado quadro a quadro num video real (ffmpeg +
+      // contact sheets, nao so' suposicao). Fix: throttle com disparo
+      // IMEDIATO na 1a chamada de uma rajada (canvas nunca fica
+      // "anexado mas nunca pintado") + no maximo 1 chamada de trailing
+      // agendada pro FIM da janela de 120ms (nunca reagendada de novo por
+      // chamadas seguintes, diferente do debounce antigo) -- mesmo custo
+      // maximo de antes (<=1 redraw/120ms em regime permanente), mas sem
+      // a janela de inanicao.
+      let territoryRedrawTimer = null;
+      let territoryRedrawLastRun = 0;
+      const TERRITORY_REDRAW_MIN_INTERVAL_MS = 120;
+      function scheduleTerritoryRedraw() {
+        const runRedraw = () => {
+          territoryRedrawTimer = null;
+          territoryRedrawLastRun = performance.now();
+          if (isStaleRender() || !ctx.territoryLayer || !ctx.territoryLayer.eachLayer) return;
+          ctx.territoryLayer.eachLayer((l) => { if (l.redraw) l.redraw(); });
+        };
+        const elapsed = performance.now() - territoryRedrawLastRun;
+        if (elapsed >= TERRITORY_REDRAW_MIN_INTERVAL_MS) {
+          if (territoryRedrawTimer) clearTimeout(territoryRedrawTimer);
+          runRedraw();
+        } else if (!territoryRedrawTimer) {
+          territoryRedrawTimer = setTimeout(runRedraw, TERRITORY_REDRAW_MIN_INTERVAL_MS - elapsed);
+        }
+      }
+
+      function ensureLooseDetailLayer(level) {
+        if (level === "municipio") {
+          if (ctx.territoryLayer && !ctx.map.hasLayer(ctx.territoryLayer)) {
+            territoryLayerSkipStyleAnimation = true;
+            ctx.territoryLayer.addTo(ctx.map);
+          }
+          if (territoryCanvasRenderer._container) {
+            territoryCanvasRenderer._container.classList.add("regionais-territory-canvas-front");
+            territoryCanvasRenderer._container.style.opacity = "1";
+          }
+          // BUG REAL (achado 2026-11-08, reportado pelo Gabriel: "svg
+          // nunca some quando o mapa cru se revela" + "municipios ficam
+          // com a cor da microrregiao de forma intermitente") -- a opacidade
+          // de coarseSvgRenderer (SVG de microrregiao) so' era calculada
+          // enquanto o TIER 1 estava em andamento (ver `tier1Blend` mais
+          // abaixo); uma vez que o TIER 2 completa e este ramo roda, NADA
+          // nunca mais tocava essa opacidade -- ficava presa em "1" pra
+          // sempre, inclusive durante o TIER 3 (OSM). O canvas do municipio
+          // (acima dela por z-index) escondia isso na maioria das vezes,
+          // MAS o redesenho dele e' debounced (ver scheduleTerritoryRedraw,
+          // 120ms) por performance -- durante essa janela (zoom rapido) o
+          // canvas pode estar desatualizado/em branco, expondo o SVG de
+          // microrregiao solido por baixo (gerando o "flicker" de cor
+          // uniforme). Fix: forcar opacidade "0" aqui, todo tick que o
+          // nivel municipio estiver ativo (idempotente, mesmo padrao do
+          // resto da funcao) -- sem isso dependia so' do canvas cobrir
+          // visualmente, nunca garantia de verdade. Mesma disciplina que
+          // applyMunicipioDrillZoomBlend (fluxo comitado) ja aplicava.
+          if (ctx.coarseSvgRenderer?._container) {
+            ctx.coarseSvgRenderer._container.style.opacity = "0";
+          }
+          // MESMO BUG, 1 NIVEL ACIMA (achado 2026-11-08, confirmado por
+          // screenshot real -- depois do fix do coarseSvgRenderer acima,
+          // o Gabriel reportou que no zoom maximo a tela ficava 100% verde
+          // solida, nenhuma rua do OSM visivel, mesmo com
+          // territoryCanvasRenderer E coarseSvgRenderer ja em opacity "0"
+          // confirmado via JS -- a cor solida vinha de uma 3a camada que
+          // eu tinha esquecido: ufRenderer (<svg> compartilhado por
+          // regionalLayer + ufOutlineLayer, nivel Regional, fill-opacity
+          // 0.8 por regional-cliente). A cascata solta (ramo "nada
+          // focado") so' reseta esse container pra "" (visivel, default)
+          // em toda transicao -- nunca pra "0" -- porque o design original
+          // assumia que coarseLayer/territoryLayer, por cima dele,
+          // sempre cobririam visualmente. Ate' aqui isso e' verdade (TIER1/
+          // TIER2), mas o TIER 3 nunca tinha essa garantia: territoryCanvasRenderer
+          // e' o UNICO destino do fade continuo do blend Municipio->Drill,
+          // e quando ele chega em opacity "0" (OSM 100% revelado), a camada
+          // de baixo fica exposta, solida, pra sempre -- mesmo bug
+          // estrutural do coarseSvgRenderer (camada mais grossa nunca
+          // desativada de verdade), so' que 1 nivel acima na hierarquia.
+          // 2a DESCOBERTA (mesma investigacao): `ctx.ufRenderer` NAO e' o
+          // renderer que regionalLayer/ufOutlineLayer de fato usam --
+          // confirmado comparando `layer._renderer` (Leaflet, real) contra
+          // `ctx.ufRenderer`: sao objetos DIFERENTES. `ctx.ufRenderer` e' um
+          // L.svg() criado manualmente e anexado ao mapa (ver comentario
+          // antigo, "exposto em ctx... unico jeito de controlar a opacidade
+          // dos DOIS JUNTOS"), mas como nenhum layer passa `renderer:
+          // ufRenderer` explicito, o Leaflet cria e cacheia o SEU PROPRIO
+          // renderer padrao pra essa pane (`map._getPaneRenderer`) na hora
+          // que regionalLayer/ufOutlineLayer sao adicionados -- um <svg>
+          // TOTALMENTE SEPARADO, que nunca teve a opacidade tocada por
+          // nenhum setStyle/opacity daqui (`ctx.ufRenderer._container`
+          // ficava sempre vazio/intocado). Ou seja: a linha de opacidade
+          // acima NUNCA escondeu regionalLayer de verdade -- nem aqui nem,
+          // provavelmente, em applyMunicipioDrillZoomBlend (so' nao
+          // quebrava visualmente la' porque o fluxo COMITADO ja remove
+          // regionalLayer do mapa de verdade via crossfadeRegionaisLevelLayers
+          // ANTES de chegar no drill, mascarando o problema). Fix de
+          // verdade: remover regionalLayer/ufOutlineLayer do MAPA mesmo
+          // (nao so' opacidade), mesmo padrao ja usado por territoryLayer
+          // nesta mesma funcao -- idempotente, reversivel no ramo "else"
+          // abaixo.
+          if (ctx.regionalLayer && ctx.map.hasLayer(ctx.regionalLayer)) {
+            ctx.map.removeLayer(ctx.regionalLayer);
+          }
+          if (ctx.ufOutlineLayer && ctx.map.hasLayer(ctx.ufOutlineLayer)) {
+            ctx.map.removeLayer(ctx.ufOutlineLayer);
+          }
+          // Agenda redesenho de cada path do municipio (debounced, nao
+          // sincrono a cada tick -- ver scheduleTerritoryRedraw) -- achado
+          // real testando zoom continuo rapido (rajada sintetica sem
+          // pausa entre ticks): o canvas pintava certo so' no instante do
+          // addTo, mas nao acompanhava sozinho o pan/zoom seguinte,
+          // deixando um retalho "congelado" visivel enquanto coarseLayer
+          // aparecia por baixo do resto. Redesenhar os ~184-645 paths do
+          // municipio TODA passada (varias por segundo durante scroll
+          // continuo) e' caro -- debounce (120ms de folga, so' a ULTIMA
+          // chamada de uma rajada executa) resolve a mesma correcao com
+          // uma fracao do custo, sem reintroduzir o retalho congelado
+          // (o pior caso vira "alguns frames atrasado", nunca "parado pra
+          // sempre").
+          scheduleTerritoryRedraw();
+        } else {
+          if (ctx.territoryLayer && ctx.map.hasLayer(ctx.territoryLayer)) {
+            if (territoryCanvasRenderer._container) {
+              territoryCanvasRenderer._container.classList.remove("regionais-territory-canvas-front");
+            }
+            ctx.map.removeLayer(ctx.territoryLayer);
+          }
+          // Mesma limpeza do TIER 3 (ver comentario grande no ramo
+          // "TIER 2 completo" de evaluateZoomBlend) -- cobre o caso de
+          // um salto direto de TIER 3 pra "regional"/"microrregiao" solto
+          // (zoom-out grande o bastante pra pular TIER 2 inteiro numa
+          // unica passada), que senao deixaria osmTileLayer anexado pra
+          // sempre.
+          if (ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) {
+            ctx.map.removeLayer(ctx.osmTileLayer);
+          }
+          if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = "1";
+          // Reanexa regionalLayer/ufOutlineLayer (ver remocao no ramo
+          // "municipio" acima) -- precisam voltar visiveis em "regional" e
+          // "microrregiao" (coarseLayer, no TIER1, desvanece POR CIMA
+          // deles -- sem regionalLayer de volta aqui nao haveria nada pra
+          // revelar por baixo na fronteira Regional<->Microrregiao).
+          if (ctx.regionalLayer && !ctx.map.hasLayer(ctx.regionalLayer)) {
+            ctx.regionalLayer.addTo(ctx.map);
+          }
+          if (ctx.ufOutlineLayer && !ctx.map.hasLayer(ctx.ufOutlineLayer)) {
+            ctx.ufOutlineLayer.addTo(ctx.map);
+          }
+        }
+      }
+
+      // Muda viewLevel pra `level` SO' quando ele realmente precisa mudar
+      // (evita restyleAll/updateInstitutionMarkers/syncLevelToggle a cada
+      // zoomend/moveend -- so' roda quando o nivel de detalhe revelado de
+      // fato avanca/recua). Mantem looseLevelFromZoom em sincronia
+      // (false em "regional", que e' sempre um estado neutro/comum aos 2
+      // casos acima). Chamada SO' pela cascata solta de evaluateZoomBlend
+      // -- clique real continua indo direto em setViewLevel/focusOn/
+      // focusOnRegionalCliente, que tem sua propria logica de
+      // fitBounds/crossfade/breadcrumb/hotlist (esta funcao aqui e'
+      // deliberadamente mais leve, sem nada disso, porque zoom sozinho
+      // nunca deve reposicionar a camera nem mexer em breadcrumb/hotlist
+      // -- so' revela mais detalhe de render). `ensureLooseDetailLayer`
+      // roda SEMPRE (nao so' na troca), pra corrigir o anexo de
+      // territoryLayer mesmo quando o nivel ja era o mesmo na chamada
+      // anterior (idempotente, barato -- so' 2 checagens hasLayer).
+      function setLooseViewLevel(level) {
+        ensureLooseDetailLayer(level);
+        if (viewLevel === level) {
+          looseLevelFromZoom = level !== "regional";
+          return;
+        }
+        viewLevel = level;
+        looseLevelFromZoom = level !== "regional";
+        restyleAll();
+        updateInstitutionMarkers();
+        syncLevelToggle();
+      }
+
+      // Volta a cascata solta pro estado de repouso (nivel Regional, nada
+      // revelado) -- chamada quando o zoom sai da janela de qualquer
+      // previa (UF invalida, ou zoomCurrent abaixo do natural da UF
+      // inteira). Usa opacidade "0" explicita (nao ""/vazio) pra
+      // garantir que a camada FIQUE escondida de verdade: uma vez que
+      // coarseLayer ja foi populada (ainda que so' uma vez, zoom-in
+      // anterior na mesma sessao), "" reverte pro default CSS do
+      // elemento (opacity:1, totalmente visivel) em vez de esconder --
+      // bug real reportado pelo Gabriel ("dou zoom out e do nada mostra
+      // microrregiao"): depois de carregar a previa uma vez, zoom out
+      // so' resetava pra "" (visivel) em vez de realmente sumir.
+      // setLooseViewLevel("regional") (via ensureLooseDetailLayer) cuida
+      // de desanexar territoryLayer se estiver anexada.
+      function resetRegionaisLoosePreview() {
+        if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = "0";
+        setLooseViewLevel("regional");
+      }
+
+      // Blend continuo de zoom pelas 4 fronteiras do funil (Regional<->
+      // Microrregiao<->Municipio<->Drill) -- porta o mecanismo do mapa
+      // Estado/Municipio de tnl-shortener/admin/src/components/BrazilMap.tsx
+      // (zoomend/moveend recalculam um blend [0,1] entre o zoom "raso" do
+      // territorio atual e o zoom "fundo" do territorio candidato mais
+      // perto do centro do mapa -- dar scroll sozinho, sem clicar em nada,
+      // atravessa os niveis gradualmente). Diferenca de la pra ca: eles tem
+      // SO 2 niveis com limiares de zoom CONSTANTES (Brasil inteiro -> 1
+      // estado, sempre a mesma comparacao); aqui cada territorio tem um
+      // zoom natural PROPRIO (microrregiao pequena vs gigante, municipio
+      // pequeno vs grande), entao os limiares sao calculados on-the-fly via
+      // ctx.map.getBoundsZoom(bounds, false) -- mesma API ja usada em
+      // fitRegionaisViewport -- em vez de constantes fixas.
+      //
+      // REDESENHO 2026-11-08 (ver CLAUDE.md/tasks.md, "Mapa de Regionais:
+      // zoom continuo nao devia escolher 1 territorio em foco sem clique"):
+      // o estado "comprometido" (focusKey/focusedRegionalCliente/
+      // isMunicipioDrilled) so muda por ENTRAR via as funcoes de sempre
+      // (focusOnRegionalCliente/focusOn/drillIntoMunicipio) quando ha
+      // CLIQUE de verdade -- essa funcao NUNCA mais chama essas 3 sozinha
+      // pra ENTRAR num territorio candidato. Motivo: nearest-centroid (o
+      // territorio cujo centroide esta mais perto do CENTRO do mapa) erra
+      // o alvo sempre que o cursor nao esta exatamente no centro geometrico
+      // do viewport -- bug real reportado pelo Gabriel (zoom em direcao a
+      // Recife "sequestrava" o foco pra Mata Pernambucana, uma regional
+      // vizinha errada, prendendo o usuario la). Zoom sozinho agora so'
+      // revela mais detalhe GERAL de tudo que esta na tela (sem apagar o
+      // resto em cinza nem escolher 1 "vencedor"); clique continua sendo o
+      // UNICO jeito de comitar foco/drill num territorio especifico.
+      //
+      // EXCECAO deliberada: as funcoes de SAIR (undrillMunicipio/
+      // focusOn(null)/focusOnRegionalCliente(null)) continuam sendo
+      // chamadas automaticamente pelo zoom (blend pra FORA) -- sair de um
+      // foco ja comprometido via clique e' sempre determinístico (o
+      // territorio PAI e' conhecido, nunca precisa de busca por
+      // nearest-centroid), entao nao tem o mesmo risco de "escolher
+      // errado". E' assim que zoom continua podendo desfazer suavemente um
+      // foco que o clique comitou, sem reintroduzir o bug.
+      //
+      // Cada nivel tem um "zoom natural proprio" (zoomXNatural) -- ACIMA
+      // dele, o blend ainda usa o candidato MAIS FUNDO (nearest-centroid)
+      // so' como referencia de RITMO continuo pro fade (cada territorio tem
+      // um zoom natural bem diferente -- pequeno vs gigante -- entao um
+      // span fixo nao serviria pra todos); NUNCA mais pra selecionar/comitar
+      // esse candidato. ABAIXO dele, mira o territorio PAI (sempre
+      // determinado pelo estado comprometido, nunca precisa de busca). As
+      // camadas sao setadas sempre em valor ABSOLUTO (nunca multiplicadas
+      // em cima do anterior) -- evita qualquer camada ficar presa com o
+      // valor de uma fronteira ANTERIOR quando o usuario reverte a direcao
+      // do scroll no meio do caminho.
+      function evaluateZoomBlend() {
+        if (isStaleRender() || !ctx.map) return;
+        const zoomCurrent = ctx.map.getZoom();
+        const mapCenter = ctx.map.getCenter();
+        const clamp01 = (x) => Math.min(1, Math.max(0, x));
+        const naturalZoom = (bounds, pad) => ctx.map.getBoundsZoom(bounds.pad(pad), false);
+
+        if (focusKey) {
+          const microBounds = regionalBoundsByKey.get(focusKey);
+          if (!microBounds || !microBounds.isValid()) {
+            resetRegionaisZoomBlend();
+            return;
+          }
+          const zoomMicroNatural = naturalZoom(microBounds, 0.04);
+
+          if (isMunicipioDrilled) {
+            // Fronteira Municipio<->Drill, so' pra FORA (nao ha "mais
+            // fundo" que o drill).
+            const muniBounds = municipioBoundsByNorm.get(focusedMunicipioNorm);
+            if (!muniBounds || !muniBounds.isValid()) return;
+            const zoomDrillNatural = Math.min(REGIONAIS_DRILL_MAX_ZOOM, naturalZoom(muniBounds, 0.08));
+            const span = zoomDrillNatural - zoomMicroNatural;
+            const blend = span > 0.01 ? clamp01((zoomCurrent - zoomMicroNatural) / span) : 1;
+            applyMunicipioDrillZoomBlend(blend);
+            if (blend <= 0.02) undrillMunicipio();
+            return;
+          }
+
+          if (zoomCurrent >= zoomMicroNatural) {
+            // Fronteira Municipio<->Drill, indo pra DENTRO -- candidato =
+            // municipio mais perto do centro do mapa, DENTRO da
+            // microrregiao focada.
+            const candidate = stickyNearestBoundsKey(
+              "drillCandidate",
+              municipioBoundsByNorm,
+              mapCenter,
+              (norm) => municipioInfo.get(norm)?.microrregiao === focusKey
+            );
+            if (!candidate) {
+              applyMunicipioDrillZoomBlend(0);
+              return;
+            }
+            const candidateBounds = municipioBoundsByNorm.get(candidate);
+            const zoomCandidateNatural = Math.min(REGIONAIS_DRILL_MAX_ZOOM, naturalZoom(candidateBounds, 0.08));
+            const span = zoomCandidateNatural - zoomMicroNatural;
+            const blend = span > 0.01 ? clamp01((zoomCurrent - zoomMicroNatural) / span) : 0;
+            // `candidate` aqui e' so' referencia de ritmo pro fade (ver
+            // comentario grande acima) -- zoom sozinho nunca mais comita
+            // drill num municipio especifico, so' clique de verdade.
+            applyMunicipioDrillZoomBlend(blend);
+            return;
+          }
+
+          // Fronteira Microrregiao<->Municipio, indo pra FORA (zoomCurrent
+          // < zoomMicroNatural). territoryLayer desvanece revelando
+          // coarseLayer (que ja fica visivel o tempo todo em B e C, nao
+          // precisa "entrar" de novo aqui).
+          if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = "";
+          if (ctx.ufRenderer?._container) ctx.ufRenderer._container.style.opacity = "";
+          if (!isMunicipioDrilled && ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) ctx.map.removeLayer(ctx.osmTileLayer);
+          const regionalBounds = regionalClienteBoundsByKey.get(focusedRegionalCliente);
+          if (!regionalBounds || !regionalBounds.isValid()) {
+            if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = "";
+            return;
+          }
+          const zoomRegionalNatural = naturalZoom(regionalBounds, 0.04);
+          const span = zoomMicroNatural - zoomRegionalNatural;
+          const blendOut = span > 0.01 ? clamp01((zoomMicroNatural - zoomCurrent) / span) : 0;
+          if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = String(1 - blendOut);
+          if (blendOut >= 0.98) focusOn(null);
+          return;
+        }
+
+        if (focusedRegionalCliente) {
+          const regionalBounds = regionalClienteBoundsByKey.get(focusedRegionalCliente);
+          if (!regionalBounds || !regionalBounds.isValid()) {
+            resetRegionaisZoomBlend();
+            return;
+          }
+          const zoomRegionalNatural = naturalZoom(regionalBounds, 0.04);
+
+          if (zoomCurrent >= zoomRegionalNatural) {
+            // Fronteira Regional<->Microrregiao, indo pra DENTRO. Com a
+            // regional ja focada (por clique), TODAS as microrregioes dela
+            // ja estao visiveis de uma vez (coarseLayer carregada inteira
+            // por focusOnRegionalCliente) -- nao ha mais detalhe pra
+            // "revelar" aqui, so' garante que nenhuma camada fique com
+            // opacidade de uma fronteira anterior. Redesenho 2026-11-08:
+            // zoom sozinho nunca mais busca/comita 1 microrregiao
+            // candidata aqui -- isso so' acontece via clique de verdade.
+            if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = "";
+            if (ctx.ufRenderer?._container) ctx.ufRenderer._container.style.opacity = "";
+            if (!isMunicipioDrilled && ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) ctx.map.removeLayer(ctx.osmTileLayer);
+            if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = "";
+            // Garante preenchimento ZERO na regional focada aqui dentro
+            // (ver fade gradual no ramo "indo pra FORA" logo abaixo) --
+            // sem isso, zoomar pra fora parcialmente (comecando o fade) e
+            // voltar pra dentro deixava a regional com uma cor residual
+            // visivel por baixo da microrregiao, que por design cobre
+            // 100% da area nesse nivel.
+            if (ctx.regionalLayer) {
+              ctx.regionalLayer.eachLayer((l) => {
+                if (l.feature?.properties?.__regionalCliente === focusedRegionalCliente) {
+                  l.setStyle({ fillOpacity: 0 });
+                }
+              });
+            }
+            return;
+          }
+
+          // Fronteira Regional<->Microrregiao, indo pra FORA.
+          if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = "";
+          if (ctx.ufRenderer?._container) ctx.ufRenderer._container.style.opacity = "";
+          if (!isMunicipioDrilled && ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) ctx.map.removeLayer(ctx.osmTileLayer);
+          if (!wholeUfBounds || !wholeUfBounds.isValid()) {
+            if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = "";
+            return;
+          }
+          const zoomUfNatural = naturalZoom(wholeUfBounds, 0.04);
+          const span = zoomRegionalNatural - zoomUfNatural;
+          const blendOut = span > 0.01 ? clamp01((zoomRegionalNatural - zoomCurrent) / span) : 0;
+          if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = String(1 - blendOut);
+          // BUG REAL (achado 2026-11-08, video real do Gabriel -- "o
+          // comportamento que esta esquisito e' que a microrregiao vai
+          // sumindo [pra transparente/vazio], e so' NO FIM a regional
+          // volta de um tique so'. Devia ser o contrario: a regional vai
+          // voltando aos poucos, cobrindo a microrregiao que desaparece"):
+          // `styleRegionalFeature` deixa a regional FOCADA com
+          // `fillOpacity:0` INCONDICIONALMENTE (so' o contorno neon
+          // aparece) -- pensado pra o preenchimento vir sempre de
+          // coarseLayer, por cima. Mas coarseLayer so' cobre essa area
+          // enquanto ainda tem ALGUMA opacidade -- conforme blendOut sobe
+          // (coarseLayer desvanecendo), a area da regional focada ficava
+          // *vazia* (nada preenchendo), nao revelando o preenchimento de
+          // baixo (que nem existia) -- so' no finalzinho
+          // (focusOnRegionalCliente(null), disparado por blendOut>=0.98)
+          // o `styleRegionalFeature` runs de novo pra TODAS as regionais
+          // e o fillOpacity pula de "0" pra "0.8" inteiro de uma vez.
+          // Fix: a regional FOCADA ganha fillOpacity PROPORCIONAL a
+          // blendOut aqui (0 no inicio do fade, 0.8 quando completa) --
+          // cobre gradualmente o espaco que a microrregiao desocupa, sem
+          // nunca ficar vazio, e sem pulo no commit final (ja chega em
+          // 0.8 antes do unfocus rodar `styleRegionalFeature` de novo
+          // pra confirmar o mesmo valor).
+          if (ctx.regionalLayer) {
+            ctx.regionalLayer.eachLayer((l) => {
+              if (l.feature?.properties?.__regionalCliente === focusedRegionalCliente) {
+                l.setStyle({ fillOpacity: blendOut * 0.8 });
+              }
+            });
+          }
+          if (blendOut >= 0.98) focusOnRegionalCliente(null, { skipViewportFit: true });
+          return;
+        }
+
+        // Nivel Regional (nada focado) -- cascata solta de 2 fronteiras
+        // (Regional->Microrregiao->Municipio), nenhuma delas comita nada.
+        // Roda quando viewLevel==="regional" de verdade OU quando o
+        // proprio viewLevel atual ("microrregiao"/"municipio") foi
+        // empurrado pela cascata (looseLevelFromZoom) -- mas NUNCA quando
+        // foi um PILL real que setou viewLevel (ver comentario grande em
+        // looseLevelFromZoom): nesse caso a cascata precisa ficar de fora
+        // igual sempre ficou, senao um scroll reconstruiria coarseLayer/
+        // territoryLayer por cima da listagem COMPLETA que o pill pediu.
+        // Tambem fica de fora se ja houver drill sem focusKey (so'
+        // alcancavel pelo pill "Município" + clique direto num municipio,
+        // igual ja era antes do redesenho) -- esse combo nunca teve
+        // suporte a blend continuo, nem antes nem agora, fora de escopo
+        // aqui (zoom nao desfaz esse drill sozinho, so' clique).
+        if ((viewLevel !== "regional" && !looseLevelFromZoom) || (isMunicipioDrilled && !focusKey)) {
+          resetRegionaisZoomBlend();
+          return;
+        }
+        if (ctx.ufRenderer?._container) ctx.ufRenderer._container.style.opacity = "";
+        // osmTileLayer NAO e' mexido aqui (diferente dos outros ramos
+        // deste arquivo) -- TIER 3 (abaixo) pode legitimamente querer
+        // ela anexada; quem decide add/remove e' so' o proprio TIER 3 e
+        // o "else" de ensureLooseDetailLayer (limpa se o nivel cair pra
+        // "regional"/"microrregiao").
+        if (!wholeUfBounds || !wholeUfBounds.isValid()) {
+          exitLooseTier3PinsIfNeeded();
+          resetRegionaisLoosePreview();
+          return;
+        }
+        // +0.26 (> zoomSnap:0.25, ver ensureMap) de folga: fitRegionaisViewport
+        // usa a MESMA formula (getBoundsZoom(wholeUfBounds.pad(0.04), false))
+        // pra decidir o zoom alvo, mas o Leaflet aplica fitBounds/_limitZoom
+        // arredondando pro multiplo de 0.25 mais proximo (zoomSnap) --
+        // raramente bate exato com o valor CONTINUO (nao arredondado) que
+        // naturalZoom() devolve aqui. Sem essa folga, o repouso "Regional"
+        // (logo apos o mount, ou apos desfocar) podia nascer com
+        // zoomCurrent JA levemente ACIMA do zoomUfNatural nao-arredondado
+        // (arredondamento pra cima do zoomSnap), vazando TIER 1 (microrregioes
+        // ja visiveis) mesmo sem nenhum zoom do usuario -- bug real
+        // reportado pelo Gabriel ("abre a pagina, botao mostra Regional,
+        // mas o mapa mostra os blocos de microrregioes").
+        const zoomUfNatural = naturalZoom(wholeUfBounds, 0.04) + 0.26;
+        if (zoomCurrent < zoomUfNatural) {
+          exitLooseTier3PinsIfNeeded();
+          resetRegionaisLoosePreview();
+          return;
+        }
+
+        // TIER 1 (Regional->Microrregiao): coarseLayer carrega TODAS as
+        // microrregioes da UF de uma vez (ver comentario grande em
+        // coarseAllPreviewLoaded) e desvanece em opacidade continua --
+        // `regionalCandidate`/`zoomMicroTierNatural` so' dao ritmo ao
+        // fade (territorio mais perto do centro do mapa), nunca
+        // selecionam/comitam nada (ver comentario grande da funcao).
+        if (!coarseAllPreviewLoaded && ctx.coarseLayer) {
+          ctx.coarseLayer.clearLayers();
+          if (coarseFeatures.length) ctx.coarseLayer.addData({ type: "FeatureCollection", features: coarseFeatures });
+          if (!ctx.map.hasLayer(ctx.coarseLayer)) ctx.coarseLayer.addTo(ctx.map);
+          coarseAllPreviewLoaded = true;
+        }
+        const regionalCandidate = stickyNearestBoundsKey("regionalCandidate", regionalClienteBoundsByKey, mapCenter, null);
+        const zoomMicroTierNatural = regionalCandidate
+          ? naturalZoom(regionalClienteBoundsByKey.get(regionalCandidate), 0.04)
+          : zoomUfNatural + 1.5;
+        const tier1Span = Math.max(0.01, zoomMicroTierNatural - zoomUfNatural);
+        const tier1Blend = clamp01((zoomCurrent - zoomUfNatural) / tier1Span);
+        if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = String(tier1Blend);
+
+        if (zoomCurrent < zoomMicroTierNatural) {
+          // Ainda na transicao Regional->Microrregiao -- municipios ainda
+          // nao aparecem (mesmo padrao "binario" ja usado pelo resto do
+          // arquivo pra essa fronteira especifica -- ver simplificacao em
+          // "Fronteira Regional<->Microrregiao, indo pra DENTRO" dentro do
+          // ramo focusedRegionalCliente acima: o nivel que acabou de ser
+          // revelado aparece de uma vez, so' a PROXIMA fronteira usa fade
+          // continuo). setLooseViewLevel ja desanexa territoryLayer via
+          // ensureLooseDetailLayer (idempotente).
+          exitLooseTier3PinsIfNeeded();
+          setLooseViewLevel("regional");
+          return;
+        }
+
+        // TIER 2 (Microrregiao->Municipio): `microCandidate` busca entre
+        // TODAS as microrregioes da UF (sem filtro -- nada esta
+        // comitado), so' pra ritmo do limiar, nunca pra escopar quais
+        // municipios aparecem (territoryLayer ja tem TODOS os municipios
+        // da UF carregados por design, isDetailFeatureVisible que decide
+        // visibilidade por viewLevel==="municipio").
+        // ACHADO E CORRIGIDO AQUI 2026-11-08 (video real do Gabriel,
+        // reportando "o mapa inteiro bugando" logo no inicio desta
+        // fronteira): o candidato/limiar de TIER 2 agora e' calculado
+        // ANTES de decidir se o nivel solto atual e' "microrregiao" --
+        // a versao anterior chamava `setLooseViewLevel("microrregiao")`
+        // INCONDICIONALMENTE aqui (ver historico), mesmo quando
+        // zoomCurrent ja estava fundo em territorio de municipio/Tier 3.
+        // Isso desanexava territoryLayer e rodava restyleAll()/
+        // updateInstitutionMarkers() DE VERDADE, so' pro bloco de TIER 2
+        // logo em seguida reanexar e rodar os 2 de novo no MESMO tick --
+        // TODO santo zoomend/moveend enquanto o usuario explorava
+        // municipio solto. Puro desperdicio (2x o custo, agravando o
+        // "laggy" ja relatado antes) e um risco real de corrida (
+        // territoryLayerSkipStyleAnimation setado/consumido fora de
+        // ordem entre as 2 chamadas). Fix: so' decide "ainda e'
+        // microrregiao" depois de saber o limiar real de TIER 2.
+        const microCandidate = stickyNearestBoundsKey("microCandidate", regionalBoundsByKey, mapCenter, null);
+        const zoomMunicipioTierNatural = microCandidate
+          ? naturalZoom(regionalBoundsByKey.get(microCandidate), 0.04)
+          : zoomMicroTierNatural + 1.5;
+        const tier2Span = Math.max(0.01, zoomMunicipioTierNatural - zoomMicroTierNatural);
+        const tier2Blend = clamp01((zoomCurrent - zoomMicroTierNatural) / tier2Span);
+
+        if (tier2Blend <= 0) {
+          // 100% microrregiao ainda -- municipio nem comecou a aparecer.
+          exitLooseTier3PinsIfNeeded();
+          setLooseViewLevel("microrregiao");
+          return;
+        }
+
+        // tier2Blend > 0: fade CONTINUO revelando municipio por cima da
+        // microrregiao (antes era um corte binario so' nesta fronteira --
+        // diferente de TIER 1/TIER 3, que ja eram graduais -- provavel
+        // causa real do "mapa bugando" reportado: territoryLayer e TODAS
+        // as camadas mais rasas trocavam de estado na MESMA hora, sem
+        // nenhum quadro intermediario pintado entre elas). `viewLevel`
+        // precisa virar "municipio" JA' (nao so' quando o blend completa)
+        // pra isDetailFeatureVisible/styleDetailFeature colorirem cada
+        // municipio de verdade -- sem isso, o CONTAINER desvaneceria mas
+        // os <path> por dentro continuariam fillOpacity:0 (nenhuma cor
+        // apareceria ate o blend chegar em 1, voltando pro mesmo corte
+        // binario so' que mais tarde). So' entra nesse bloco 1x por
+        // transicao (o proprio `viewLevel !== "municipio"` guarda isso).
+        if (viewLevel !== "municipio") {
+          viewLevel = "municipio";
+          looseLevelFromZoom = true;
+          restyleAll();
+          updateInstitutionMarkers();
+          syncLevelToggle();
+        }
+        if (ctx.territoryLayer && !ctx.map.hasLayer(ctx.territoryLayer)) {
+          territoryLayerSkipStyleAnimation = true;
+          ctx.territoryLayer.addTo(ctx.map);
+        }
+        if (territoryCanvasRenderer._container) {
+          territoryCanvasRenderer._container.classList.add("regionais-territory-canvas-front");
+          territoryCanvasRenderer._container.style.opacity = String(tier2Blend);
+        }
+        scheduleTerritoryRedraw();
+        // Microrregiao continua visivel POR BAIXO enquanto o municipio
+        // ainda nao cobriu 100% da tela -- so' esconde de verdade quando
+        // o fade completa (tier2Blend>=1, municipio ja opaco por cima,
+        // nao faz mais diferenca visual, mas mantem escondido de verdade
+        // pro resto do funil, mesma disciplina do fix de hoje mais acima
+        // pro TIER 3).
+        if (ctx.coarseSvgRenderer?._container) {
+          ctx.coarseSvgRenderer._container.style.opacity = tier2Blend >= 1 ? "0" : "1";
+        }
+        if (ctx.ufRenderer?._container) {
+          ctx.ufRenderer._container.style.opacity = tier2Blend >= 1 ? "0" : "";
+        }
+        if (tier2Blend >= 1) {
+          if (ctx.regionalLayer && ctx.map.hasLayer(ctx.regionalLayer)) ctx.map.removeLayer(ctx.regionalLayer);
+          if (ctx.ufOutlineLayer && ctx.map.hasLayer(ctx.ufOutlineLayer)) ctx.map.removeLayer(ctx.ufOutlineLayer);
+        }
+
+        if (tier2Blend < 1) {
+          exitLooseTier3PinsIfNeeded();
+          return;
+        }
+
+        // TIER 2 completo -- estado "municipio" solto (mesmo estado do
+        // pill "Município": todos os 4 dep de instituicao aparecem) ja
+        // foi todo aplicado acima, gradualmente -- nao precisa repetir
+        // setLooseViewLevel/ensureLooseDetailLayer aqui.
+
+        // TIER 3 (Municipio solto -> "mapa real"/OSM sem SVG): zoom alem
+        // do nivel municipio revela o tile OSM gradualmente por cima do
+        // choropleth -- MESMO mecanismo de opacidade continua ja usado
+        // pela fronteira Municipio<->Drill COMITADA
+        // (applyMunicipioDrillZoomBlend), so' que aqui NUNCA comita
+        // (nunca chama drillIntoMunicipio, nunca fitBounds/recentra a
+        // camera, pins continuam agrupados -- nao ha "1 municipio
+        // candidato" pra individualizar). Sem candidato unico pra
+        // ancorar esse limiar (municipio solto pode ter varios ou
+        // nenhum municipio no viewport ao mesmo tempo), o limiar e' um
+        // delta FIXO alem do zoom natural do municipio mais perto do
+        // centro (REGIONAIS_TIER3_OSM_DELTA, mesma pacing reference de
+        // TIER 2) -- simples o bastante pra "testar primeiro" (tasks.md).
+        const tier3Blend = clamp01((zoomCurrent - zoomMunicipioTierNatural) / REGIONAIS_TIER3_OSM_DELTA);
+        // PEDIDO 2026-11-08 (Gabriel) -- exatamente no 1o tick em que o
+        // Tier 3 comeca (municipio comecando a ficar transparente,
+        // revelando o mapa cru), os pins agrupados tambem viram
+        // individuais espalhados -- ver looseTier3PinsRevealed/
+        // updateInstitutionMarkers. So' chama updateInstitutionMarkers()
+        // na TROCA de estado (nao todo tick), mesmo padrao de
+        // looseLevelFromZoom/viewLevel acima.
+        if (tier3Blend > 0 && !looseTier3PinsRevealed) {
+          looseTier3PinsRevealed = true;
+          updateInstitutionMarkers();
+        } else if (tier3Blend <= 0 && looseTier3PinsRevealed) {
+          looseTier3PinsRevealed = false;
+          updateInstitutionMarkers();
+        }
+        if (tier3Blend > 0) {
+          ensureOsmTileLayerForDrill();
+          ctx.osmTileLayer?.setOpacity(tier3Blend);
+          if (ctx.territoryCanvasRenderer?._container) {
+            // PISO de opacidade (achado 2026-11-08, video real -- ver
+            // comentario grande em ensureOsmTileLayerForDrill) -- enquanto
+            // ctx.osmTilesReady ainda for false (tiles da viewport atual
+            // ainda baixando da rede), o canvas nunca desce de
+            // TERRITORY_CANVAS_MIN_OPACITY_WHILE_TILES_LOADING, mesmo que
+            // o blend matematico pedisse menos -- garante que SEMPRE tem
+            // alguma coisa pintada na tela (nunca os 2 vazios ao mesmo
+            // tempo). Uma vez que os tiles terminam de carregar
+            // (osmTilesReady=true), volta a seguir o blend normal ate 0.
+            const floor = ctx.osmTilesReady ? 0 : 0.18;
+            ctx.territoryCanvasRenderer._container.style.opacity = String(Math.max(1 - tier3Blend, floor));
+          }
+        } else if (ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) {
+          ctx.map.removeLayer(ctx.osmTileLayer);
+          if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = "1";
+        }
+      }
+
+      // Aplica a previa visual do blend [0,1] Municipio<->Drill: 0 = nada
+      // drilado (SVG normal, sem tile), 1 = drilado (SVG some, tile+pins
+      // cheios). territoryCanvasRenderer/coarseSvgRenderer/ufRenderer tem
+      // CADA UM seu proprio <canvas>/<svg> (ver onde sao criados) -- setar
+      // opacity ali e' seguro (nunca compoe com nada, sempre um valor
+      // ABSOLUTO a partir do blend atual, nunca uma multiplicacao em cima
+      // do valor anterior). osmTileLayer usa o metodo nativo
+      // L.TileLayer.setOpacity(). Os pins (institutionMarkersLayer) NAO
+      // sao blendados continuamente aqui de proposito -- nao da pra
+      // interpolar a POSICAO de pins agrupados pra pins individuais, eles
+      // trocam de uma vez so' no momento do commit (drillIntoMunicipio ja
+      // chama updateInstitutionMarkers sozinho).
+      function applyMunicipioDrillZoomBlend(blend) {
+        const inv = String(1 - blend);
+        if (ctx.territoryCanvasRenderer?._container) ctx.territoryCanvasRenderer._container.style.opacity = inv;
+        if (ctx.coarseSvgRenderer?._container) ctx.coarseSvgRenderer._container.style.opacity = inv;
+        if (ctx.ufRenderer?._container) ctx.ufRenderer._container.style.opacity = inv;
+        if (blend > 0) {
+          ensureOsmTileLayerForDrill();
+          ctx.osmTileLayer?.setOpacity(blend);
+        } else if (!isMunicipioDrilled && ctx.osmTileLayer && ctx.map.hasLayer(ctx.osmTileLayer)) {
+          ctx.map.removeLayer(ctx.osmTileLayer);
+        }
+      }
+      // `.off()` antes do `.on()` -- mesmo motivo de sempre, evita duplicar
+      // o listener a cada re-render (ctx.map e' reusado entre UFs).
+      if (ctx.regionaisZoomBlendHandler) {
+        ctx.map.off("zoomend moveend", ctx.regionaisZoomBlendHandler);
+      }
+      ctx.map.on("zoomend moveend", evaluateZoomBlend);
+      ctx.regionaisZoomBlendHandler = evaluateZoomBlend;
 
       const regionalBoundsByKey = new Map();
       // Por REGIONAL_CLIENTE (o nivel mais alto agora) -- pro clique numa
@@ -18639,11 +20329,56 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const municipioBoundsByNorm = new Map();
 
       // RENDERER CANVAS proprio pro territoryLayer (Rodada 3 -- ver
-      // dev/OPT_2_CANVAS_RENDERER.md). regionalLayer/coarseLayer continuam
-      // no renderer SVG padrao da ufPane (9 e ate 57 elementos, pequeno
-      // demais pra valer a complexidade) -- so o territoryLayer (853
-      // municipios) ganha um <canvas> proprio.
+      // dev/OPT_2_CANVAS_RENDERER.md). regionalLayer/ufOutlineLayer
+      // continuam no renderer SVG padrao da ufPane (ufRenderer, ver
+      // ensureMap) -- coarseLayer GANHOU o proprio renderer SVG dedicado
+      // (coarseSvgRenderer, logo abaixo) quando o blend continuo de zoom
+      // foi introduzido (evaluateZoomBlend) -- precisa desvanecer
+      // INDEPENDENTE de regionalLayer/ufOutlineLayer (que ficam parados em
+      // 2 das 3 transicoes do funil), e o <svg> compartilhado da ufPane
+      // nao da pra controlar por camada, so o elemento <svg> inteiro.
       const territoryCanvasRenderer = L.canvas({ pane: "ufPane", padding: 1.5 });
+      // PERFORMANCE (achado 2026-11-08, Gabriel reportou o PC travando
+      // de verdade bem na hora que os contornos de municipio aparecem --
+      // medido que o JS puro (restyleAll/redraw/addTo) ja' era rapido
+      // (~9ms), entao o custo real mais provavel e' de PINTURA do canvas,
+      // nao de calculo). O <canvas> de um L.Canvas do Leaflet SEMPRE
+      // dobra a resolucao em tela retina (`Browser.retina ? 2 : 1`,
+      // fixo dentro do proprio _update do Leaflet 1.9.4, NAO e' uma
+      // opcao configuravel) -- numa tela retina comum isso significa ate
+      // 4x mais pixels pra rasterizar (2x largura * 2x altura) do que o
+      // estritamente necessario pra legibilidade de um mapa coropletico
+      // (blocos de cor solida + contorno fino, bem diferente de uma foto
+      // onde nitidez 2x importa muito mais). Override CIRURGICO so'
+      // NESTA instancia (nao mexe em L.Browser.retina GLOBAL, que
+      // afetaria selecao de tile @2x do OSM e qualquer outro renderer da
+      // pagina) -- mesma logica do _update original do Leaflet, so'
+      // forcando a escala 1x sempre, mesmo em tela retina. Trade-off
+      // aceito (pedido explicito do Gabriel, depois de descartar mudar
+      // de biblioteca por ser desproporcional pro tamanho real do
+      // problema): bordas um pouco menos nitidas em tela retina, troca
+      // por ate 75% menos pixels pra pintar nessa camada especifica.
+      // PRECISA vir ANTES de .addTo(map): o Leaflet registra o listener
+      // de zoomend/moveend apontando pra `this._update` DENTRO de onAdd
+      // (chamado por addTo) -- um override feito DEPOIS do addTo nunca
+      // seria chamado pelo listener (ele ja capturou a referencia
+      // ORIGINAL da funcao, nao o nome da propriedade) -- achado real,
+      // confirmado medindo o canvas ao vivo (continuava 2x mesmo com o
+      // override "aplicado" depois do addTo).
+      territoryCanvasRenderer._update = function () {
+        if (this._map._animatingZoom && this._bounds) return;
+        L.Renderer.prototype._update.call(this);
+        const b = this._bounds;
+        const container = this._container;
+        const size = b.getSize();
+        L.DomUtil.setPosition(container, b.min);
+        container.width = size.x;
+        container.height = size.y;
+        container.style.width = size.x + "px";
+        container.style.height = size.y + "px";
+        this._ctx.translate(-b.min.x, -b.min.y);
+        this.fire("update");
+      };
       territoryCanvasRenderer.addTo(ctx.map);
       ctx.territoryCanvasRenderer = territoryCanvasRenderer;
       // ufPane inteira tem pointer-events:none (deixa clique vazar pro que
@@ -18662,6 +20397,19 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         // pro raciocinio completo.
         territoryCanvasRenderer._container.classList.add("regionais-territory-canvas");
       }
+
+      // RENDERER SVG proprio pro coarseLayer (microrregioes) -- mesmo
+      // motivo do Canvas do territoryLayer acima: ctx.osmTileLayer.setOpacity()
+      // e' nativo, territoryCanvasRenderer._container.style.opacity ja da
+      // pra controlar isolado, mas coarseLayer SEM renderer proprio cairia
+      // no <svg> padrao compartilhado com regionalLayer/ufOutlineLayer
+      // (ufRenderer, criado 1x em ensureMap) -- setar opacity nesse <svg>
+      // compartilhado desvaneceria os 3 juntos, quando evaluateZoomBlend
+      // precisa mexer SO no coarseLayer em 2 das 3 transicoes do funil
+      // (Regional<->Microrregiao e Microrregiao<->Municipio).
+      const coarseSvgRenderer = L.svg({ pane: "ufPane", padding: 1.5 });
+      coarseSvgRenderer.addTo(ctx.map);
+      ctx.coarseSvgRenderer = coarseSvgRenderer;
 
       // GLOW (contorno neon) do municipio focado -- Canvas nao tem <path>
       // DOM individual pra aplicar `filter:drop-shadow(...)` (ver
@@ -18879,6 +20627,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const coarseLayer = regionalFeatures.length
         ? L.geoJSON(null, {
             pane: "ufPane",
+            renderer: coarseSvgRenderer,
             style: styleCoarseFeature,
             onEachFeature: (feature, featLayer) => {
               const key = feature?.properties?.__microrregiao;
@@ -19098,6 +20847,40 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         modeControl.addTo(ctx.map);
         ctx.regionaisModeControl = modeControl;
         syncRegionaisModeToggleAvailability();
+      }
+
+      // Funil de foco (breadcrumb Regional/Microrregiao/Municipio), canto
+      // SUPERIOR direito do mapa -- Leaflet control de verdade (mesmo
+      // padrao do seletor de nivel/modo acima), empilhado (flex-column,
+      // ver CSS .regionais-focus-chip) em vez da fita horizontal antiga
+      // que vivia no cabecalho do card (fora do mapa) -- pedido explicito
+      // do Gabriel: "no canto direito do mapa, empilhado". syncFocusChip()
+      // (mais acima nesta funcao) so manipula o CONTEUDO via
+      // getElementById("regionaisFocusChip") -- continua funcionando sem
+      // mudanca, so o elemento agora vive dentro deste control em vez de
+      // um <span> fixo no HTML.
+      {
+        const focusChipControl = L.control({ position: "topright" });
+        focusChipControl.onAdd = () => {
+          const div = L.DomUtil.create("div", "regionais-focus-chip hidden");
+          div.id = "regionaisFocusChip";
+          L.DomEvent.disableClickPropagation(div);
+          L.DomEvent.disableScrollPropagation(div);
+          // disableClickPropagation (acima) so para mousedown/touchstart/
+          // dblclick/contextmenu de vazar -- NAO o evento 'click' puro em
+          // si, que continuava bolhando por cima do control e chegando
+          // no ctx.map.on("click", resetFocus) por baixo, resetando TUDO
+          // depois de qualquer crumb clicado aqui dentro (BUG REAL achado
+          // via teste ao vivo, Playwright -- so passou a existir quando o
+          // breadcrumb virou L.control; os crumbs TAMBEM chamam
+          // e.stopPropagation() cada um, ver syncFocusChip -- isso aqui e'
+          // so uma 2a camada de seguranca no container).
+          L.DomEvent.on(div, "click", L.DomEvent.stopPropagation);
+          return div;
+        };
+        focusChipControl.addTo(ctx.map);
+        ctx.regionaisFocusChipControl = focusChipControl;
+        syncFocusChip();
       }
 
       restyleAll();
@@ -23120,7 +24903,6 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
                 <div class="flex items-center gap-2">
                   <span class="regionais-inline-title">Regionais</span>
                   <select id="regionaisUfSelect" class="regionais-uf-select" aria-label="Escolher UF"></select>
-                  <span id="regionaisFocusChip" class="chip soft regionais-focus-chip hidden"></span>
                 </div>
                 <div class="flex items-center gap-3">
                   <button id="regionaisMultiplicadoresToggle" class="btn btn-sm btn-outline regionais-multiplicadores-toggle" type="button" aria-pressed="false" title="Ver multiplicadores por território">
