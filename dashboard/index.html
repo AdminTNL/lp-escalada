@@ -1861,6 +1861,25 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       right: 16px;
     }
 
+    /* Touch target (~44x44 seria ideal, mas os dois controles deste card
+       ficam a so' 10px de distancia um do outro -- 28px de area de toque
+       cada, via ::before invisivel, e' o maior raio que nao faz as duas
+       zonas se sobreporem/ambiguizarem o toque). Escopado so' ao "?" do
+       Radar (nao ao .metric-help-trigger generico usado por outras cards
+       do dashboard, fora do escopo desta rodada). */
+    .metric-help-radar .metric-help-trigger {
+      /* .sources-tour-replay-btn ja e' position:absolute (ver regra mais
+         abaixo) -- ja e' um elemento posicionado, nao precisa virar
+         "relative" pra ancorar o ::before. */
+      position: relative;
+    }
+    .metric-help-radar .metric-help-trigger::before,
+    .sources-tour-replay-btn::before {
+      content: "";
+      position: absolute;
+      inset: -5px;
+    }
+
     .metric-help summary {
       list-style: none;
     }
@@ -1977,6 +1996,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .sources-summary-metric .value {
       font-size: 1.22rem;
       line-height: 1.1;
+      /* Tabular nums: esses 3 KPIs mudam de recorte pra recorte (UF,
+         familia, periodo) -- digitos de largura fixa evitam o numero
+         "pular" de largura e desalinhar o centro do card a cada troca. */
+      font-variant-numeric: tabular-nums;
     }
 
     .sources-page {
@@ -2001,6 +2024,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
     .sources-page .section-title {
       font-size: 0.96rem;
+      /* Kerning/tracking: titulos em bold ficam ligeiramente "soltos" no
+         tamanho pequeno sem ajuste -- tracking negativo sutil aperta o
+         bloco sem virar ilegivel. */
+      letter-spacing: -0.01em;
     }
 
     .sources-page .chip {
@@ -2022,6 +2049,84 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .sources-page .sources-list {
       margin-top: 12px;
       gap: 8px;
+    }
+    /* Affordance do item do ranking: mesma logica da seta do Radar
+       (.rwin-row-arrow) -- so' aparece no hover/foco, reforca "isso abre
+       algo" sem depender so' da borda/fundo mudando de cor. */
+    .sources-list-row-title {
+      text-wrap: pretty;
+    }
+    .sources-list-row-arrow {
+      width: 12px;
+      height: 12px;
+      flex: none;
+      color: rgba(226, 233, 255, 0.4);
+      opacity: 0;
+      transform: translateX(-3px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+    .sources-list button:hover .sources-list-row-arrow,
+    .sources-list button:focus-visible .sources-list-row-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sources-list-row-arrow {
+        transition: opacity 120ms linear;
+        transform: none !important;
+      }
+    }
+    /* Skeleton de carregamento da lista (mesma .skeleton compartilhada do
+       app) -- reserva a mesma altura/estrutura das linhas reais, pra nao
+       pular de "Carregando..." (1 linha) pra 8-20 cards de uma vez (CLS). */
+    .sources-list-skel-row {
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      padding: 10px 12px;
+    }
+    /* Progressive disclosure: so' 8 fontes por padrao, "Ver mais" revela
+       o resto (ate' o teto de 20 que ja existia) sem nova chamada de rede
+       -- os dados ja estao todos no client. */
+    .sources-list-more-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      margin-top: 2px;
+      border: 1px dashed rgba(226, 233, 255, 0.22);
+      border-radius: 10px;
+      background: transparent;
+      color: rgba(226, 233, 255, 0.72);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 160ms ease, color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .sources-list-more-btn:hover,
+    .sources-list-more-btn:focus-visible {
+      border-color: rgba(0, 249, 255, 0.45);
+      color: var(--brand-cyan);
+      background: rgba(0, 249, 255, 0.06);
+      outline: none;
+    }
+    .sources-list-more-btn:active {
+      transform: scale(0.98);
+    }
+    .sources-list-more-btn i {
+      width: 14px;
+      height: 14px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sources-list-more-btn {
+        transition: border-color 120ms linear, color 120ms linear, background 120ms linear;
+      }
+      .sources-list-more-btn:active {
+        transform: none;
+      }
     }
 
     /* Aviso "novidades" dispensavel (persiste ate o usuario fechar, ao
@@ -2056,6 +2161,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: rgba(226, 233, 255, 0.74);
       line-height: 1.5;
       margin-top: 3px;
+      text-wrap: pretty;
     }
 
     /* Versao compacta -- so icone + titulo + "Ver mudancas" + fechar, tudo
@@ -2103,6 +2209,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .sources-tour-replay-btn i {
       width: 16px;
       height: 16px;
+      /* Centro optico, nao matematico: o triangulo do "play" dentro do
+         circulo do lucide-icons pesa visualmente mais pra esquerda (a
+         ponta aponta pro centro geometrico, mas a massa do triangulo fica
+         a esquerda dele) -- 1px pra direita compensa, olho nu. */
+      transform: translateX(0.5px);
     }
 
     .sources-tour-invite-card {
@@ -2122,6 +2233,19 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       border: 1px solid rgba(0, 249, 255, 0.3);
       color: var(--brand-cyan);
     }
+    /* Escopado por ID (nao por .sources-tour-invite-card, que o
+       #gestorWelcomeModal tambem usa) -- kerning no titulo + linha curta
+       (~45-75 chars)/sem viuva no paragrafo, so' pro convite do tour de
+       Fontes. */
+    #sourcesTourInviteModal h2 {
+      letter-spacing: -0.01em;
+    }
+    #sourcesTourInviteModal p {
+      max-width: 42ch;
+      margin-left: auto;
+      margin-right: auto;
+      text-wrap: pretty;
+    }
 
     /* Tour guiado da pagina de Fontes (spotlight): veu escurece a tela
        inteira com um recorte via clip-path exatamente no elemento em foco
@@ -2131,6 +2255,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
        leitura). Motor proprio, autocontido (nao reaproveita
        regionaisTour) -- porta o mesmo mecanismo ja validado no app
        standalone (dashboard-escalada/index.html). */
+    /* Safe area: JS nao le env() direto, so' via valor computado de uma
+       custom property -- essas 4 existem so' pra isso, lidas por
+       sourcesTourSafeInset() ao posicionar o tooltip do tour perto da
+       borda da tela (notch/home indicator em celular). Nomes prefixados
+       pra nao colidir com nenhuma outra var do arquivo. */
+    :root {
+      --sources-tour-safe-t: env(safe-area-inset-top, 0px);
+      --sources-tour-safe-r: env(safe-area-inset-right, 0px);
+      --sources-tour-safe-b: env(safe-area-inset-bottom, 0px);
+      --sources-tour-safe-l: env(safe-area-inset-left, 0px);
+    }
     #sourcesTourVeil {
       position: fixed;
       inset: 0;
@@ -2154,7 +2289,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       z-index: 3000;
       opacity: 0;
       box-shadow: 0 0 0 4px rgba(0, 249, 255, 0.18), 0 16px 40px rgba(0, 0, 0, 0.4);
-      transition: top 420ms ease, left 420ms ease, width 420ms ease, height 420ms ease, opacity 280ms ease;
+      /* top/left/width/height sao posicionados via JS (precisam ser pixel
+         exato pra casar com o buraco do clip-path do veu) mas NUNCA
+         animados por transition -- so' opacity/transform, que sao
+         GPU-compositados. O "pop" de entrada ao trocar de passo (classe
+         .sources-tour-pop, ver @keyframes abaixo) e' quem da a sensacao
+         de movimento, sem re-layoutar a cada frame. */
+      transform-origin: center;
+      transition: opacity 220ms ease;
     }
     .sources-tour-ring.is-active {
       /* O veu tem um buraco (clip-path) exatamente aqui por cima do alvo --
@@ -2164,6 +2306,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       opacity: 1;
       pointer-events: auto;
       cursor: default;
+    }
+    .sources-tour-ring.sources-tour-pop {
+      animation: sourcesTourPop 320ms cubic-bezier(.22, 1, .36, 1);
     }
     .sources-tour-tip {
       position: fixed;
@@ -2177,11 +2322,25 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       z-index: 3001;
       pointer-events: none;
       opacity: 0;
-      transition: top 420ms ease, left 420ms ease, opacity 280ms ease;
+      transform-origin: center top;
+      /* Mesma regra: posicao via JS, nunca animada via transition. */
+      transition: opacity 220ms ease;
     }
     .sources-tour-tip.is-active {
       pointer-events: auto;
       opacity: 1;
+    }
+    .sources-tour-tip.sources-tour-pop {
+      animation: sourcesTourPop 320ms cubic-bezier(.22, 1, .36, 1);
+    }
+    /* Origin-aware: o spotlight (ring+tip) "nasce" exatamente sobre o novo
+       alvo -- um leve scale-in a partir do proprio centro, nao um
+       deslocamento continuo de top/left (que violaria a regra de so'
+       animar transform/opacity). Disparado via classe removida+reaplicada
+       no JS a cada troca de passo (showSourcesTourStep/renderSourcesTourStep). */
+    @keyframes sourcesTourPop {
+      from { opacity: 0.35; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
     }
     .sources-tour-step-count {
       font-family: var(--mono-font);
@@ -2190,18 +2349,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       text-transform: uppercase;
       color: rgba(226, 233, 255, 0.56);
       margin-bottom: 7px;
+      font-variant-numeric: tabular-nums;
     }
     .sources-tour-tip h3 {
       font-size: 14.5px;
       font-weight: 700;
       margin-bottom: 6px;
       color: rgba(242, 246, 255, 0.96);
+      letter-spacing: -0.01em;
     }
     .sources-tour-tip p {
       font-size: 12.5px;
       color: rgba(226, 233, 255, 0.78);
       line-height: 1.5;
       margin-bottom: 14px;
+      max-width: 42ch;
+      text-wrap: pretty;
     }
     .sources-tour-actions {
       display: flex;
@@ -2223,6 +2386,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     @media (prefers-reduced-motion: reduce) {
       #sourcesTourVeil, .sources-tour-ring, .sources-tour-tip {
         transition: none;
+      }
+      .sources-tour-ring.sources-tour-pop,
+      .sources-tour-tip.sources-tour-pop {
+        animation: none;
       }
     }
 
@@ -2315,6 +2482,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
          conteudo mais largo (normalmente o ultimo, "Ultimos 30 dias")
          vazava pra fora da grade em vez de encolher junto. */
       min-width: 0;
+      /* Ancora da transform aplicada pelo FLIP em renderSourceRadar (ver
+         JS) quando o grid troca entre 3 e 4 colunas (card "custom"
+         aparecendo/saindo) -- as outras 3 cards fixas sao o MESMO
+         elemento semantico antes/depois, so' reposicionado; animar a
+         partir do canto superior esquerdo casa com o delta calculado
+         via getBoundingClientRect(). */
+      transform-origin: top left;
     }
     .rwin.custom {
       border-color: rgba(0, 249, 255, 0.4);
@@ -2352,6 +2526,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-size: 0.78rem;
       font-weight: 700;
       color: var(--ink-strong);
+      font-variant-numeric: tabular-nums;
     }
     .rwin-row {
       display: flex;
@@ -2374,12 +2549,44 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       background: rgba(255, 255, 255, 0.06);
       outline: none;
     }
+    /* Touch target: em ponteiro fino (mouse) a densidade compacta fica;
+       em touch (tablet/celular) o alvo real cresce pra ~40px sem inchar
+       o card no desktop, onde o cursor permite precisao maior. */
+    @media (hover: none) and (pointer: coarse) {
+      .rwin-row {
+        padding: 10px 4px;
+      }
+    }
+    /* Affordance: seta que so' aparece no hover/foco -- sinaliza "isso
+       abre algo" sem depender so' da mudanca de cor de fundo (que sozinha
+       e' um sinal fraco de "clicavel"). */
+    .rwin-row-arrow {
+      width: 11px;
+      height: 11px;
+      flex: none;
+      color: rgba(226, 233, 255, 0.45);
+      opacity: 0;
+      transform: translateX(-3px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+    .rwin-row:hover .rwin-row-arrow,
+    .rwin-row:focus-visible .rwin-row-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .rwin-row-arrow {
+        transition: opacity 120ms linear;
+        transform: none !important;
+      }
+    }
     .rwin-rank {
       font-family: var(--mono-font);
-      font-size: 0.62rem;
-      color: rgba(226, 233, 255, 0.4);
+      font-size: 0.66rem;
+      color: rgba(226, 233, 255, 0.45);
       width: 11px;
       flex: none;
+      font-variant-numeric: tabular-nums;
     }
     .rwin-name {
       font-size: 0.74rem;
@@ -2412,24 +2619,34 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       width: 30px;
       text-align: right;
       flex: none;
+      font-variant-numeric: tabular-nums;
     }
     .rwin-delta {
       display: inline-flex;
       align-items: center;
       gap: 2px;
       font-family: var(--mono-font);
-      font-size: 0.62rem;
+      font-size: 0.66rem;
       font-weight: 700;
       width: 42px;
       justify-content: flex-end;
       flex: none;
+      font-variant-numeric: tabular-nums;
     }
     .rwin-delta i {
       width: 10px;
       height: 10px;
     }
     .rwin-delta.up { color: var(--brand-green-2); }
-    .rwin-delta.down { color: #ff6a6a; }
+    /* oklch com fallback hex (ignorado se o navegador nao suportar) -- so'
+       pra equalizar a luminosidade percebida com .up/.new (que usam
+       var(--brand-green-2)/--brand-cyan, ambos claros e saturados); o
+       hex antigo (#ff6a6a) ficava perceptualmente mais escuro/apagado ao
+       lado dos outros dois. */
+    .rwin-delta.down {
+      color: #ff6a6a;
+      color: oklch(72% 0.19 24);
+    }
     .rwin-delta.new { color: var(--brand-cyan); }
     .rwin-empty {
       font-size: 0.72rem;
@@ -2440,6 +2657,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-size: 0.72rem;
       color: rgba(226, 233, 255, 0.35);
       padding: 6px 0;
+    }
+    /* Skeleton de carregamento do Radar: reusa a classe .skeleton
+       (compartilhada, ja validada no resto do app) pra nao duplicar a
+       animacao de shimmer -- so' o layout das barras e' novo e exclusivo
+       daqui. Mesma altura/posicao da linha real (.rwin-row), pra nao
+       haver salto de layout (CLS) quando os dados chegam. */
+    .rwin-skel-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 3px 4px;
+      margin: 0 -4px;
+    }
+    .rwin-skel-bar {
+      height: 10px;
+      border-radius: 6px;
     }
 
     /* Modal de detalhe de fonte (enriquecido): linha do tempo, top
@@ -8814,6 +9047,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // (padrao, mesma ordem que o backend ja usa) ou "inscritos"
       // ("quantidade de pessoas", pedido do Gabriel 2026-11-05).
       sourceSortBy: "atendimentos",
+      // Progressive disclosure do ranking de fontes -- comeca recolhido
+      // (8 fontes), "Ver mais" revela o resto (teto de sempre, 20).
+      sourcesListExpanded: false,
       sourcesRaw: null,
       sourcesDataKey: "",
       sourcesPendingKey: "",
@@ -9074,6 +9310,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // manualmente antes.
       state.sidebarSourcesOpen = true;
       state.sourceFamily = normalized;
+      // Progressive disclosure da lista comeca sempre recolhida ao trocar
+      // de subdivisao -- senao "Ver mais" de uma familia ficaria sticky
+      // pra sempre, mesmo entrando numa familia diferente.
+      state.sourcesListExpanded = false;
       state.page = "sources";
       handlePageTransitionUi("sources", previousPage);
       syncSourceFamilyUrl({ family: normalized, page: "sources" });
@@ -9911,9 +10151,37 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       });
     }
 
+    // Paleta OKLCH do bubble chart de Fontes (nao a `chartPalette` global --
+    // essa e compartilhada por outros graficos do dashboard fora deste
+    // escopo). Cada entrada guarda um hex de fallback (navegadores sem
+    // suporte a oklch() simplesmente ignoram a 2a atribuicao de fillStyle
+    // abaixo e ficam com o hex) + o mesmo L/C pra todas as cores -- as
+    // bolhas tinham luminosidade perceptual bem desigual antes (o azul
+    // #2A4FDA lia muito mais escuro que o ciano #00F9FF lado a lado),
+    // o que distorcia qual bolha "parece maior" alem do que o raio real
+    // ja representa.
+    const SOURCES_BUBBLE_PALETTE = [
+      { hex: "#00F9FF", oklch: "80% 0.15 200" },
+      { hex: "#00FF85", oklch: "80% 0.17 150" },
+      { hex: "#FF76FF", oklch: "80% 0.17 338" },
+      { hex: "#2A4FDA", oklch: "80% 0.13 258" },
+      { hex: "#00D95D", oklch: "80% 0.14 174" },
+      { hex: "#605BE5", oklch: "80% 0.13 294" },
+    ];
+    // rAF em andamento por canvasId -- permite cancelar uma animacao de
+    // entrada (stagger) ainda rodando quando um novo render chega antes
+    // dela terminar (ex.: troca de familia rapida, resize). Interromper e
+    // reiniciar limpo em vez de deixar 2 loops desenhando por cima um do
+    // outro e' o que torna essa animacao interruptivel de verdade.
+    const sourcesBubbleAnimFrames = new Map();
+
     function renderSourcesBubbleChart(canvasId, rows, options = {}) {
       destroyChart(canvasId);
       const canvas = document.getElementById(canvasId);
+      if (sourcesBubbleAnimFrames.has(canvasId)) {
+        window.cancelAnimationFrame(sourcesBubbleAnimFrames.get(canvasId));
+        sourcesBubbleAnimFrames.delete(canvasId);
+      }
       if (!canvas) return;
 
       // Regionais usa um teto menor (10) que o das demais bolhas de fontes
@@ -9979,6 +10247,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         ctx.restore();
         canvas.onclick = null;
         canvas.onmousemove = null;
+        canvas.onmouseleave = null;
+        delete canvas.dataset.sourcesBubbleSignature;
         return;
       }
 
@@ -10081,7 +10351,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const nodes = safeRows
         .map((row, idx) => ({
           row,
-          color: chartPalette[idx % chartPalette.length],
+          color: SOURCES_BUBBLE_PALETTE[idx % SOURCES_BUBBLE_PALETTE.length],
           r: 0,
           labelCount: fmtInt(Number(row?.[sizeField] || 0)),
           textLayout: null,
@@ -10211,37 +10481,111 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         }
       }
 
-      for (const node of placed) {
+      // Desenha 1 bolha; "scale" encolhe o raio (entrada em stagger),
+      // "alpha" controla a opacidade (fade-in), "highlighted" engrossa o
+      // contorno + brilho sutil no hover -- affordance que nao depende so
+      // da mudanca de cursor (unico sinal que existia antes).
+      function drawBubbleNode(node, scale, alpha, highlighted) {
+        const r = Math.max(0.01, node.r * scale);
         ctx.save();
+        ctx.globalAlpha = clamp(alpha, 0, 1);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
-        ctx.fillStyle = `${node.color}DD`;
+        ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `${node.color.hex}DD`;
+        // Sobrescreve com OKLCH (ver SOURCES_BUBBLE_PALETTE acima) -- se o
+        // navegador nao entender a sintaxe, a atribuicao e ignorada e o
+        // hex de fallback acima continua valendo.
+        ctx.fillStyle = `oklch(${node.color.oklch} / 0.87)`;
         ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgba(255,255,255,0.95)";
-        ctx.stroke();
-
-        const lines = node.textLayout?.lines || [];
-        const countLabel = node.labelCount;
-        const mainFont = Number(node.textLayout?.mainFont || 11);
-        const subFont = Number(node.textLayout?.subFont || 10);
-        const lineHeight = Number(node.textLayout?.lineHeight || (mainFont + 1));
-        const textBlockH = Number(node.textLayout?.textBlockH || ((lines.length * lineHeight) + subFont + 4));
-        let y = node.y - (textBlockH / 2) + lineHeight;
-
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "rgba(255,255,255,0.96)";
-        ctx.font = `700 ${mainFont}px "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif`;
-        for (const line of lines) {
-          ctx.fillText(line, node.x, y);
-          y += lineHeight;
+        ctx.lineWidth = highlighted ? 3 : 2;
+        ctx.strokeStyle = highlighted ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.95)";
+        if (highlighted) {
+          ctx.shadowColor = "rgba(255,255,255,0.4)";
+          ctx.shadowBlur = 10;
         }
-        ctx.font = `700 ${subFont}px "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif`;
-        ctx.fillText(countLabel, node.x, y + 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        if (alpha > 0.35) {
+          const lines = node.textLayout?.lines || [];
+          const countLabel = node.labelCount;
+          const mainFont = Number(node.textLayout?.mainFont || 11) * scale;
+          const subFont = Number(node.textLayout?.subFont || 10) * scale;
+          const lineHeight = Number(node.textLayout?.lineHeight || (mainFont + 1)) * scale;
+          const textBlockH = Number(node.textLayout?.textBlockH || ((lines.length * lineHeight) + subFont + 4)) * scale;
+          let y = node.y - (textBlockH / 2) + lineHeight;
+
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "rgba(255,255,255,0.96)";
+          ctx.font = `700 ${mainFont}px "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif`;
+          for (const line of lines) {
+            ctx.fillText(line, node.x, y);
+            y += lineHeight;
+          }
+          ctx.font = `700 ${subFont}px "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif`;
+          ctx.fillText(countLabel, node.x, y + 2);
+        }
         ctx.restore();
       }
 
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      // Stagger: so anima a entrada quando os DADOS realmente mudaram
+      // (fonte nova, familia trocada, criterio de ordenacao trocado) --
+      // nao em todo render() (filtro sem efeito, resize, etc.), senao a
+      // "pop" ficaria repetindo e cansando a vista.
+      const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const dataSignature = `${sizeField}::${safeRows.map((r) => `${r?.source || ""}:${Number(r?.[sizeField] || 0)}`).join("|")}`;
+      const animateEntrance = !prefersReducedMotion && canvas.dataset.sourcesBubbleSignature !== dataSignature;
+      canvas.dataset.sourcesBubbleSignature = dataSignature;
+
+      const STAGGER_MS = 24;
+      const POP_MS = 320;
+      const totalDuration = animateEntrance ? ((placed.length - 1) * STAGGER_MS) + POP_MS : 0;
+      let hoveredBubbleIndex = -1;
+      let isAnimating = animateEntrance;
+
+      function drawFrame(elapsed, highlightIndex) {
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < placed.length; i++) {
+          const node = placed[i];
+          if (!animateEntrance) {
+            drawBubbleNode(node, 1, 1, i === highlightIndex);
+            continue;
+          }
+          const localElapsed = Math.max(0, elapsed - (i * STAGGER_MS));
+          const progress = clamp(localElapsed / POP_MS, 0, 1);
+          const eased = easeOutCubic(progress);
+          drawBubbleNode(node, 0.7 + (0.3 * eased), eased, i === highlightIndex);
+        }
+      }
+
+      if (animateEntrance) {
+        let startTime = null;
+        const tick = (now) => {
+          if (startTime === null) startTime = now;
+          const elapsed = now - startTime;
+          drawFrame(elapsed, -1);
+          if (elapsed < totalDuration) {
+            sourcesBubbleAnimFrames.set(canvasId, window.requestAnimationFrame(tick));
+          } else {
+            isAnimating = false;
+            drawFrame(totalDuration, -1);
+            sourcesBubbleAnimFrames.delete(canvasId);
+          }
+        };
+        sourcesBubbleAnimFrames.set(canvasId, window.requestAnimationFrame(tick));
+      } else {
+        drawFrame(0, -1);
+      }
+
+      // Hit test com um pouco de folga (HIT_PAD) em relacao ao raio visual
+      // -- ajuda a acertar bolhas pequenas em touch, sem mudar o tamanho
+      // desenhado.
+      const HIT_PAD = 4;
       const hitNodes = placed.map((node) => ({ x: node.x, y: node.y, r: node.r, row: node.row }));
       canvas.onclick = (evt) => {
         if (!onPointClick) return;
@@ -10252,7 +10596,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           const node = hitNodes[i];
           const dx = x - node.x;
           const dy = y - node.y;
-          if ((dx * dx) + (dy * dy) <= (node.r * node.r)) {
+          const r = node.r + HIT_PAD;
+          if ((dx * dx) + (dy * dy) <= (r * r)) {
             onPointClick(node.row);
             return;
           }
@@ -10262,17 +10607,33 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const rectMove = canvas.getBoundingClientRect();
         const x = Number(evt.clientX - rectMove.left);
         const y = Number(evt.clientY - rectMove.top);
-        let over = false;
-        for (let i = 0; i < hitNodes.length; i++) {
+        let overIndex = -1;
+        for (let i = hitNodes.length - 1; i >= 0; i--) {
           const node = hitNodes[i];
           const dx = x - node.x;
           const dy = y - node.y;
-          if ((dx * dx) + (dy * dy) <= (node.r * node.r)) {
-            over = true;
+          const r = node.r + HIT_PAD;
+          if ((dx * dx) + (dy * dy) <= (r * r)) {
+            overIndex = i;
             break;
           }
         }
-        canvas.style.cursor = over ? "pointer" : "default";
+        canvas.style.cursor = overIndex >= 0 ? "pointer" : "default";
+        // Nao disputa frame com a animacao de entrada ainda rodando --
+        // ela mesma ja desenha com highlightIndex=-1 ate terminar.
+        if (isAnimating) return;
+        if (overIndex !== hoveredBubbleIndex) {
+          hoveredBubbleIndex = overIndex;
+          drawFrame(totalDuration, hoveredBubbleIndex);
+        }
+      };
+      canvas.onmouseleave = () => {
+        canvas.style.cursor = "default";
+        if (isAnimating) return;
+        if (hoveredBubbleIndex !== -1) {
+          hoveredBubbleIndex = -1;
+          drawFrame(totalDuration, -1);
+        }
       };
     }
 
@@ -13517,18 +13878,35 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           <div class="rwin-bar"><span style="width:${pct}%;background:${barColor}"></span></div>
           <span class="rwin-value">${fmtInt(row.current)}</span>
           ${radarDeltaHtml(row.delta)}
+          <i data-lucide="chevron-right" class="rwin-row-arrow" aria-hidden="true"></i>
         </button>`;
     }
 
-    function renderRadarWindowCardHtml({ label, icon, isCustom, loading, totalLabel, rows, emptyText, windowKey }) {
+    // 3 barras-esqueleto (mesma altura/estrutura da linha real) -- evita o
+    // card pular de "Carregando..." (1 linha) pra 3 linhas completas
+    // quando o fetch termina (CLS).
+    function renderRadarSkeletonRowsHtml() {
+      return Array.from({ length: 3 }, (_, i) => `
+        <div class="rwin-skel-row" aria-hidden="true">
+          <span class="rwin-rank" style="opacity:.3">${i + 1}</span>
+          <span class="skeleton rwin-skel-bar" style="flex:1;max-width:${72 - (i * 12)}%"></span>
+          <span class="skeleton rwin-skel-bar" style="width:28px;flex:none"></span>
+        </div>`).join("");
+    }
+
+    function renderRadarWindowCardHtml({ label, icon, isCustom, loading, totalLabel, rows, emptyText, windowKey, rwinKey }) {
       const maxCurrent = rows.length ? Math.max(...rows.map((r) => r.current)) : 0;
       const body = loading
-        ? `<div class="rwin-loading">Carregando...</div>`
+        ? renderRadarSkeletonRowsHtml()
         : (rows.length
             ? rows.map((r, i) => renderRadarRowHtml(r, i, maxCurrent, windowKey)).join("")
             : `<div class="rwin-empty">${escapeHtml(emptyText || "Sem dados.")}</div>`);
+      // data-rwin-key identifica a MESMA card entre renders consecutivos
+      // (ex. "today"/"week"/"month"/"custom") -- e' o que permite o FLIP
+      // em renderSourceRadar reconhecer "essa card ja existia, so mudou
+      // de posicao" em vez de tratar tudo como novo.
       return `
-        <div class="rwin${isCustom ? " custom" : ""}">
+        <div class="rwin${isCustom ? " custom" : ""}" data-rwin-key="${escapeHtml(rwinKey || "")}">
           <div class="rwin-head">
             <i data-lucide="${icon}"></i>
             <span class="rwin-label">${escapeHtml(label)}</span>
@@ -13625,6 +14003,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           loading: radarLoading,
           totalLabel: radarReady ? fmtInt(totalCurrent) : null,
           windowKey: w.key,
+          rwinKey: w.key,
           rows: top3,
           emptyText: "Sem atividade nessa janela.",
         });
@@ -13653,11 +14032,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           customCardHtml = renderRadarWindowCardHtml({
             label, icon: "target", isCustom: true, loading: false, totalLabel: null, rows: [],
             emptyText: "Sem dados suficientes nesse recorte pra um destaque confiável.",
+            rwinKey: "custom",
           });
         } else if (h.lowVolume) {
           customCardHtml = renderRadarWindowCardHtml({
             label, icon: "target", isCustom: true, loading: false, totalLabel: fmtInt(h.totalCurrent), rows: [],
             emptyText: `Só ${h.totalCurrent} atendimentos — pouco pra um destaque confiável.`,
+            rwinKey: "custom",
           });
         } else if (h.noComparison) {
           const rows3 = h.list.slice(0, 3).map((r) => ({ source: r.source, label: r.label, current: r.current, delta: null }));
@@ -13666,6 +14047,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             totalLabel: fmtInt(h.list.reduce((sum, r) => sum + r.current, 0)),
             rows: rows3,
             emptyText: "Sem período anterior pra comparar.",
+            rwinKey: "custom",
           });
         } else {
           const rows = h.list.map((r) => ({ source: r.source, label: r.label, current: r.current, previous: r.previous, delta: r.delta }));
@@ -13675,15 +14057,67 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             totalLabel: fmtInt(rows.reduce((sum, r) => sum + r.current, 0)),
             rows: top3,
             emptyText: "Sem destaque nesse recorte.",
+            rwinKey: "custom",
           });
         }
       }
 
-      gridEl.classList.toggle("has-custom", Boolean(customCardHtml));
+      // Shared element transition (FLIP) nas 3 cards fixas (Hoje/Semana/
+      // Mes) quando o grid troca entre 3 e 4 colunas (card "custom"
+      // aparecendo/saindo) -- sem isso, as cards fixas "teleportam" pra
+      // nova posicao no instante em que o grid-template-columns muda.
+      // So mede/anima nesse instante exato (nao em todo render(), que
+      // rodaria 2 leituras de layout -- getBoundingClientRect -- a cada
+      // chamada sem motivo, incluindo a primeira pintura da pagina).
+      const nextHasCustom = Boolean(customCardHtml);
+      const prevHasCustom = gridEl.classList.contains("has-custom");
+      const reduceMotionFlip = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const shouldFlip = !reduceMotionFlip && gridEl.childElementCount > 0 && prevHasCustom !== nextHasCustom;
+      const prevRectsByKey = shouldFlip
+        ? new Map(Array.from(gridEl.querySelectorAll(".rwin[data-rwin-key]")).map((el) => [el.getAttribute("data-rwin-key"), el.getBoundingClientRect()]))
+        : null;
+
+      gridEl.classList.toggle("has-custom", nextHasCustom);
       gridEl.innerHTML = customCardHtml + fixedCardsHtml;
       renderIconsNow();
       bindSourceRadarInteractions();
       maybeStartSourcesTour();
+
+      if (shouldFlip && prevRectsByKey) {
+        // FLIP: First (medido acima, antes da troca) -> Last (agora) ->
+        // Invert (aplica a transform que finge ainda estar no lugar
+        // antigo, sem transition) -> Play (no frame seguinte, solta a
+        // transition e remove a transform -- o navegador anima do estado
+        // "antigo" pro real, so com transform, nunca top/left/width/height).
+        const cardsWithKey = Array.from(gridEl.querySelectorAll(".rwin[data-rwin-key]"));
+        const toPlay = [];
+        for (const el of cardsWithKey) {
+          const key = el.getAttribute("data-rwin-key");
+          const prevRect = key ? prevRectsByKey.get(key) : null;
+          if (!prevRect || !(prevRect.width > 0)) continue;
+          const nextRect = el.getBoundingClientRect();
+          const dx = prevRect.left - nextRect.left;
+          const dy = prevRect.top - nextRect.top;
+          const sx = prevRect.width / nextRect.width;
+          const sy = prevRect.height / nextRect.height;
+          if (![dx, dy, sx, sy].every(Number.isFinite)) continue;
+          el.style.transition = "none";
+          el.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+          toPlay.push(el);
+        }
+        if (toPlay.length) {
+          // Forca o navegador a aplicar o estado "Invert" antes de soltar
+          // a transition -- sem isso as duas mudancas (aplicar e depois
+          // remover a transform) colapsam no mesmo frame e nada anima.
+          void gridEl.offsetWidth;
+          window.requestAnimationFrame(() => {
+            for (const el of toPlay) {
+              el.style.transition = "transform 360ms cubic-bezier(.22,1,.36,1)";
+              el.style.transform = "";
+            }
+          });
+        }
+      }
     }
 
     // Aviso "novidades" dispensavel (separado do modal-convite do tour
@@ -13801,6 +14235,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     let sourcesTourResizeObserver = null;
     let sourcesTourPendingRevert = null;
 
+    // Le o valor real de env(safe-area-inset-*) -- JS nao le env() direto,
+    // so' via computed style de uma custom property que referencia ele
+    // (ver :root acima, --sources-tour-safe-*). Usado pra nao deixar o
+    // tooltip do tour colado debaixo do notch/home indicator em celular.
+    function sourcesTourSafeInset(side) {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(`--sources-tour-safe-${side}`);
+      const n = parseFloat(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
     function positionSourcesTourReleased() {
       const veil = document.getElementById("sourcesTourVeil");
       const tip = document.getElementById("sourcesTourTip");
@@ -13864,8 +14308,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         top = finalPlacement === "top" ? rect.top - tipH - GAP : rect.bottom + GAP;
         left = centeredLeft;
       }
-      tip.style.top = `${Math.round(Math.min(Math.max(12, top), vh - tipH - 12))}px`;
-      tip.style.left = `${Math.round(Math.min(Math.max(12, left), vw - TIP_W - 16))}px`;
+      const safeT = sourcesTourSafeInset("t");
+      const safeB = sourcesTourSafeInset("b");
+      const safeL = sourcesTourSafeInset("l");
+      const safeR = sourcesTourSafeInset("r");
+      tip.style.top = `${Math.round(Math.min(Math.max(12 + safeT, top), vh - tipH - 12 - safeB))}px`;
+      tip.style.left = `${Math.round(Math.min(Math.max(12 + safeL, left), vw - TIP_W - 16 - safeR))}px`;
     }
 
     function repositionSourcesTour() {
@@ -13949,6 +14397,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         positionSourcesTourReleased();
       } else {
         positionSourcesTourVisuals(target.getBoundingClientRect(), step.placement, step.tipWidth);
+        // Origin-aware: a posicao em si (top/left/width/height, acima) e'
+        // sempre um "jump" instantaneo -- nunca animada via transition
+        // (ver CSS). O que da a sensacao de movimento e' esse "pop" --
+        // remove + forca reflow + readiciona a classe, pra reiniciar a
+        // animacao a cada passo mesmo que a classe ja estivesse presente
+        // do passo anterior (senao so' o 1o passo jogaria o keyframe). So
+        // transform/opacity, interrompivel (trocar de passo rapido so'
+        // reinicia o mesmo pop, nunca trava num estado quebrado). So'
+        // nesse ramo (nao no "released"/centrado, que usa translate(-50%,
+        // -50%) inline pra centralizar -- a animacao de scale brigaria com
+        // esse transform inline enquanto estivesse rodando).
+        for (const el of [ring, tip]) {
+          el.classList.remove("sources-tour-pop");
+          void el.offsetWidth;
+          el.classList.add("sources-tour-pop");
+        }
       }
 
       if (sourcesTourResizeObserver) sourcesTourResizeObserver.disconnect();
@@ -14094,6 +14558,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       });
     }
 
+    // Skeleton da lista (mesma .skeleton compartilhada) -- mesma
+    // estrutura/altura de um card real (titulo + Conv. + 2 metricas), pra
+    // nao pular de "1 linha de texto" pra 8 cards cheios quando o fetch
+    // termina (CLS).
+    function renderSourcesListSkeletonHtml(count = 6) {
+      return Array.from({ length: count }, () => `
+        <div class="w-full rounded-lg sources-list-skel-row" aria-hidden="true">
+          <div class="flex items-center justify-between gap-2">
+            <span class="skeleton" style="height:13px;width:58%;border-radius:6px;"></span>
+            <span class="skeleton" style="height:11px;width:52px;border-radius:6px;"></span>
+          </div>
+          <div class="mt-2 flex items-center gap-2.5">
+            <span class="skeleton" style="height:10px;width:92px;border-radius:6px;"></span>
+            <span class="skeleton" style="height:10px;width:84px;border-radius:6px;"></span>
+          </div>
+        </div>`).join("");
+    }
+
     function renderSourcesPage(setText, setHtml, analytics) {
       const family = normalizeSourceFamily(analytics?.family || state.sourceFamily);
       const familyMeta = analytics?.meta || getSourceFamilyMeta(family);
@@ -14143,8 +14625,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
       renderSourceRadar(family, rows);
 
-      const listRows = rows.slice(0, 20);
-      const listHtml = listRows.length
+      // Progressive disclosure: so' 8 fontes por padrao (teto de sempre
+      // continua 20) -- "Ver mais" revela o resto client-side, sem nova
+      // chamada de rede (os dados ja estao todos em `rows`).
+      const SOURCES_LIST_CAP = 20;
+      const SOURCES_LIST_STEP = 8;
+      const cappedRows = rows.slice(0, SOURCES_LIST_CAP);
+      const visibleCount = state.sourcesListExpanded ? cappedRows.length : Math.min(SOURCES_LIST_STEP, cappedRows.length);
+      const listRows = cappedRows.slice(0, visibleCount);
+      const hasMoreRows = !state.sourcesListExpanded && cappedRows.length > visibleCount;
+      const listRowsHtml = listRows.length
         ? listRows.map((row, idx) => {
             const source = String(row.source || "Fonte");
             const key = sourceKeyFromName(source);
@@ -14161,23 +14651,36 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
                 title="Ver detalhes da fonte"
               >
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-[13px] font-semibold" style="color:rgba(242,246,255,.94)">${idx + 1}. ${escapeHtml(displaySource)}</span>
-                  <span class="text-xs" style="color:rgba(226,233,255,.56)">Conv. ${fmtPct(Number(row.conversao || 0))}</span>
+                  <span class="text-[13px] font-semibold leading-snug sources-list-row-title tabular-nums" style="color:rgba(242,246,255,.94)">${idx + 1}. ${escapeHtml(displaySource)}</span>
+                  <span class="flex items-center gap-1 flex-none text-xs tabular-nums" style="color:rgba(226,233,255,.56)">
+                    Conv. ${fmtPct(Number(row.conversao || 0))}
+                    <i data-lucide="chevron-right" class="sources-list-row-arrow" aria-hidden="true"></i>
+                  </span>
                 </div>
-                ${contactLine ? `<div class="mt-0.5 text-[11px] truncate" style="color:rgba(226,233,255,.5)">${contactLine}</div>` : ""}
+                ${contactLine ? `<div class="mt-0.5 text-[11px] truncate" style="color:rgba(226,233,255,.62)">${contactLine}</div>` : ""}
                 <div class="mt-1.5 flex flex-wrap items-center gap-2.5 text-xs" style="color:rgba(226,233,255,.72)">
-                  <span>Atendimentos <strong>${fmtInt(Number(row.atendimentos || 0))}</strong></span>
-                  <span>Inscritos <strong>${fmtInt(Number(row.inscritos || 0))}</strong></span>
+                  <span>Atendimentos <strong class="tabular-nums">${fmtInt(Number(row.atendimentos || 0))}</strong></span>
+                  <span>Inscritos <strong class="tabular-nums">${fmtInt(Number(row.inscritos || 0))}</strong></span>
                 </div>
               </button>
             `;
           }).join("")
-        : `<div class="text-sm" style="color:rgba(226,233,255,.56)">${escapeHtml(
-            sourcesLoading
-              ? "Carregando fontes..."
-              : (sourcesError ? "Falha ao carregar fontes." : familyMeta.emptyMessage)
-          )}</div>`;
-      setHtml("sourcesTopList", listHtml);
+        : (sourcesLoading
+            ? renderSourcesListSkeletonHtml()
+            : `<div class="text-sm" style="color:rgba(226,233,255,.56)">${escapeHtml(
+                sourcesError ? "Falha ao carregar fontes." : familyMeta.emptyMessage
+              )}</div>`);
+      const moreBtnHtml = (listRows.length && hasMoreRows)
+        ? `<button type="button" id="btnSourcesListExpand" class="sources-list-more-btn">
+            Ver mais ${fmtInt(cappedRows.length - visibleCount)} fontes
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+          </button>`
+        : "";
+      setHtml("sourcesTopList", listRowsHtml + moreBtnHtml);
+      document.getElementById("btnSourcesListExpand")?.addEventListener("click", () => {
+        state.sourcesListExpanded = true;
+        renderActiveSourcesFamily();
+      });
 
       if (state.selectedSourceKey) {
         const selectedRow = byKey.get(state.selectedSourceKey);
