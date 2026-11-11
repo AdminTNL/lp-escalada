@@ -2024,6 +2024,198 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       gap: 8px;
     }
 
+    /* ================================================================
+       Pagina "Conteudos" (#content) -- Macrotemas e Competencias
+       BNCC/EntreComp. Tudo escopado por .content-page (classe exclusiva
+       da <section data-page="content">), nunca nas regras globais
+       .card/.section-title/.chip/.btn-sm (compartilhadas por outras
+       paginas). Ver renderContentDoughnut/renderContentLegend no script
+       pros ids que essas regras estilizam.
+       ================================================================ */
+
+    .content-page .card {
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .content-page .card:hover {
+      border-color: rgba(0, 249, 255, 0.22);
+    }
+
+    .content-page .section-title {
+      letter-spacing: -0.045em; /* leve reforco de tracking negativo pro titulo desta pagina */
+      text-wrap: balance; /* evita linha orfa ao estreitar ("Interesses por Competencias") */
+    }
+
+    .content-page .text-sm.text-slate-600 {
+      max-width: 62ch; /* medida de leitura confortavel pro texto de apoio */
+    }
+
+    .content-doughnut-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .content-doughnut-canvas-wrap {
+      position: relative;
+      flex: 1 1 260px;
+      min-width: 220px;
+      height: 18rem; /* mesma altura que a antiga .h-72 reservava -- sem layout shift ao entrar na pagina/trocar filtro */
+    }
+
+    .content-legend-col {
+      flex: 1 1 240px;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      justify-content: center;
+    }
+
+    .content-legend-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .content-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 10px;
+      cursor: default;
+      min-height: 34px;
+      transition: background 0.15s ease, transform 0.15s ease;
+      transform-origin: left center;
+    }
+
+    .content-legend-row[data-legend-index] {
+      cursor: pointer; /* affordance: so as linhas com dado real reagem a hover/foco */
+    }
+
+    .content-legend-row[data-legend-index]:hover,
+    .content-legend-row[data-legend-index]:focus-visible {
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateX(2px);
+      outline: none;
+    }
+
+    .content-legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex: none;
+      transform: translateY(0.5px); /* centragem optica do quadrado contra a x-height do rotulo ao lado */
+    }
+
+    .content-legend-label {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.82rem;
+      line-height: 1.3;
+      color: rgba(236, 241, 255, 0.88);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .content-legend-value {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-strong);
+      letter-spacing: 0.01em;
+      flex: none;
+      min-width: 3.6em;
+      text-align: right;
+    }
+
+    .content-legend-more {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      align-self: flex-start;
+      margin-top: 6px;
+      min-height: 44px; /* alvo de toque -- controle de verdade, diferente das linhas de legenda acima */
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(236, 241, 255, 0.82);
+      font-family: var(--mono-font);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    /* Mesmo problema de especificidade/ordem ja documentado em .btn.hidden
+       acima (classe de 1 nivel, declarada depois do <style> do Tailwind
+       CDN no <head> -- vence por ordem de declaracao e mostraria o botao
+       mesmo com .hidden aplicada). */
+    .content-legend-more.hidden {
+      display: none !important;
+    }
+
+    .content-legend-more:hover,
+    .content-legend-more:focus-visible {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.24);
+      outline: none;
+    }
+
+    .content-legend-more-icon {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.18s ease;
+    }
+
+    .content-legend-more.is-open .content-legend-more-icon {
+      transform: rotate(180deg);
+    }
+
+    .content-legend-row.reveal {
+      animation: rise 0.42s ease both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .content-legend-row.reveal {
+        animation: none;
+      }
+      .content-page .card,
+      .content-legend-row,
+      .content-legend-more,
+      .content-legend-more-icon {
+        transition: none;
+      }
+    }
+
+    /* Botoes BNCC/EntreComp desta pagina -- alvo de toque >=44px de
+       altura (herdavam ~32px de .btn-sm, compartilhada com o resto do
+       app) sem alterar .btn-sm em si. */
+    #btnCompModeBnccContent,
+    #btnCompModeEntrecompContent {
+      min-height: 44px;
+      padding: 0 16px;
+    }
+
+    @media (max-width: 640px) {
+      .content-doughnut-row {
+        flex-direction: column;
+      }
+      .content-doughnut-canvas-wrap {
+        height: 16rem;
+      }
+    }
+
     /* Aviso "novidades" dispensavel (persiste ate o usuario fechar, ao
        contrario do modal-convite do tour guiado, que so aparece 1x). */
     .whats-new-notice {
@@ -9149,11 +9341,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
 
       if (state.page === "content") {
-        renderDoughnut(
+        // Toggle BNCC/EntreComp chama renderCompetencyWrappers direto
+        // (nao passa por renderAggregated) -- usa o mesmo wrapper de
+        // legenda HTML/paleta OKLCH exclusivo desta pagina, senao a
+        // troca de modo reverte pro doughnut com legenda nativa do
+        // Chart.js por um instante.
+        renderContentDoughnut(
           "chartMatBar",
           competencyPairs,
           `Competências (${competencyModeLabel(state.competencyMode)})`,
-          { percentMode: true }
+          "chartMatBarLegend",
+          "chartMatBarLegendMore"
         );
       }
     }
@@ -9909,6 +10107,136 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           cutout: "65%"
         }
       });
+    }
+
+    // ------------------------------------------------------------------
+    // Pagina "Conteudos" (#content) -- legenda HTML propria pros 2
+    // doughnuts (Macrotemas, Competencias BNCC/EntreComp). A legenda
+    // nativa do Chart.js e desenhada DENTRO do proprio <canvas> (fora do
+    // alcance de CSS/tipografia real) -- aqui ela fica oculta so na
+    // instancia destes 2 charts (plugins.legend.display=false via chart
+    // instance, nunca mexendo em renderDoughnut, compartilhada por
+    // overview/engagement) e substituida por uma lista HTML de verdade:
+    // tabular-nums nos percentuais, hover com destaque cruzado na fatia
+    // (hoverOffset), entrada em stagger e "ver mais" quando passa de 6
+    // categorias. So escrevem nos ids chartMacroBar/chartMatBar e nas
+    // listas/botoes "mais" exclusivos desta pagina.
+    // ------------------------------------------------------------------
+    const CONTENT_LEGEND_VISIBLE_DEFAULT = 6;
+    const contentLegendExpanded = {};
+    const CONTENT_CHART_OKLCH_OK = (() => {
+      try {
+        const probe = document.createElement("canvas").getContext("2d");
+        probe.fillStyle = "#000";
+        probe.fillStyle = "oklch(72% 0.17 195)";
+        return probe.fillStyle !== "#000000";
+      } catch (e) {
+        return false;
+      }
+    })();
+    // Paleta perceptualmente uniforme (OKLCH, luminosidade/croma fixos, so
+    // o hue roda) com 10 tons -- a chartPalette global so tem 6 cores e
+    // cicla, confundindo fatia/legenda quando ha mais de 6 categorias
+    // (comum em Macrotemas/Competencias). Hues ancorados nas cores da
+    // marca (cyan/verde/magenta/azul) intercalados pra maximizar distancia
+    // entre indices vizinhos. Fallback pra chartPalette se o navegador nao
+    // souber interpretar oklch() no canvas.
+    const CONTENT_CHART_PALETTE = CONTENT_CHART_OKLCH_OK
+      ? [195, 330, 150, 255, 25, 285, 95, 215, 350, 65].map((h) => `oklch(72% 0.17 ${h})`)
+      : chartPalette;
+
+    function renderContentDoughnut(canvasId, pairs, title, legendListId, moreBtnId) {
+      const safePairs = Array.isArray(pairs) ? pairs : [];
+      const existing = charts[canvasId];
+      const prevLabels = (existing && Array.isArray(existing.data?.labels)) ? existing.data.labels : [];
+      const overlap = prevLabels.filter((label) => safePairs.some(([k]) => k === label)).length;
+      const sameFamily = prevLabels.length > 0
+        && (overlap / Math.max(prevLabels.length, safePairs.length, 1)) >= 0.5;
+
+      if (sameFamily) {
+        // Mesma familia de categorias (so os valores mudaram com o
+        // filtro) -- atualiza os arcos existentes em vez de destruir/
+        // recriar o chart, pra Chart.js interpolar os angulos (o
+        // doughnut "persiste" e se redesenha pra proporcao nova, em vez
+        // de sumir/reaparecer do zero a cada filtro -- shared element
+        // transition). Quando o conjunto de categorias muda inteiro
+        // (ex.: troca BNCC/EntreComp), cai no else abaixo normalmente.
+        const valueByLabel = new Map(safePairs.map(([k, v]) => [k, v]));
+        const nextLabels = prevLabels.filter((label) => valueByLabel.has(label));
+        safePairs.forEach(([k]) => { if (!nextLabels.includes(k)) nextLabels.push(k); });
+        existing.data.labels = nextLabels;
+        existing.data.datasets[0].label = title;
+        existing.data.datasets[0].data = nextLabels.map((label) => Number(valueByLabel.get(label) || 0));
+        existing.data.datasets[0].backgroundColor = nextLabels.map((_, i) => CONTENT_CHART_PALETTE[i % CONTENT_CHART_PALETTE.length]);
+        existing.update();
+        renderContentLegend(canvasId, legendListId, moreBtnId, nextLabels.map((label) => [label, valueByLabel.get(label) || 0]));
+        return;
+      }
+
+      renderDoughnut(canvasId, safePairs, title, { percentMode: true });
+      const created = charts[canvasId];
+      if (created) {
+        const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        created.options.plugins.legend.display = false; // legenda HTML propria abaixo (renderContentLegend)
+        created.options.animation = reduceMotion ? false : { duration: 700, easing: "easeOutQuart" };
+        created.data.datasets[0].backgroundColor = safePairs.map((_, i) => CONTENT_CHART_PALETTE[i % CONTENT_CHART_PALETTE.length]);
+        created.data.datasets[0].hoverOffset = 14; // fatia "salta" no hover -- destaque cruzado com a legenda
+        created.update();
+      }
+      renderContentLegend(canvasId, legendListId, moreBtnId, safePairs);
+    }
+
+    function renderContentLegend(canvasId, legendListId, moreBtnId, pairs) {
+      const listEl = document.getElementById(legendListId);
+      if (!listEl) return;
+      const safePairs = Array.isArray(pairs) ? pairs : [];
+      const expanded = Boolean(contentLegendExpanded[canvasId]);
+      const visibleCount = expanded ? safePairs.length : Math.min(CONTENT_LEGEND_VISIBLE_DEFAULT, safePairs.length);
+      const reduceMotion = Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+      listEl.innerHTML = safePairs.slice(0, visibleCount).map(([label, value], i) => {
+        const safeLabel = escapeHtml(String(label ?? ""));
+        const revealClass = reduceMotion ? "" : "reveal";
+        const delay = reduceMotion ? 0 : Math.min(i, 8) * 45;
+        return `
+          <li class="content-legend-row ${revealClass}" data-legend-index="${i}" style="animation-delay:${delay}ms" tabindex="0" aria-label="${safeLabel}: ${fmtTrunc1(value)} por cento">
+            <span class="content-legend-swatch" style="background:${CONTENT_CHART_PALETTE[i % CONTENT_CHART_PALETTE.length]}"></span>
+            <span class="content-legend-label" title="${safeLabel}">${safeLabel}</span>
+            <span class="content-legend-value">${fmtTrunc1(value)}%</span>
+          </li>
+        `;
+      }).join("") || `<li class="content-legend-row" style="cursor:default"><span class="content-legend-label" style="color:rgba(226,233,255,.56)">Sem dados no recorte atual.</span></li>`;
+
+      listEl.querySelectorAll(".content-legend-row[data-legend-index]").forEach((row) => {
+        const idx = Number(row.getAttribute("data-legend-index"));
+        const setActive = (active) => {
+          const chart = charts[canvasId];
+          if (!chart) return;
+          chart.setActiveElements(active ? [{ datasetIndex: 0, index: idx }] : []);
+          chart.update();
+        };
+        row.addEventListener("mouseenter", () => setActive(true));
+        row.addEventListener("mouseleave", () => setActive(false));
+        row.addEventListener("focus", () => setActive(true));
+        row.addEventListener("blur", () => setActive(false));
+      });
+
+      const moreBtn = document.getElementById(moreBtnId);
+      if (!moreBtn) return;
+      if (safePairs.length <= CONTENT_LEGEND_VISIBLE_DEFAULT) {
+        moreBtn.classList.add("hidden");
+        return;
+      }
+      moreBtn.classList.remove("hidden");
+      moreBtn.classList.toggle("is-open", expanded);
+      const labelEl = moreBtn.querySelector(".content-legend-more-label");
+      if (labelEl) {
+        labelEl.textContent = expanded ? "Ver menos" : `Ver mais (+${safePairs.length - CONTENT_LEGEND_VISIBLE_DEFAULT})`;
+      }
+      moreBtn.onclick = () => {
+        contentLegendExpanded[canvasId] = !expanded;
+        renderContentLegend(canvasId, legendListId, moreBtnId, pairs);
+      };
     }
 
     function renderSourcesBubbleChart(canvasId, rows, options = {}) {
@@ -14370,8 +14698,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
 
       if (state.page === "content") {
-        renderDoughnut("chartMacroBar", macroPairs, "Macrotemas", { percentMode: true });
-        renderDoughnut("chartMatBar", competencyPairs, `Competências (${competencyModeLabel(state.competencyMode)})`, { percentMode: true });
+        renderContentDoughnut("chartMacroBar", macroPairs, "Macrotemas", "chartMacroBarLegend", "chartMacroBarLegendMore");
+        renderContentDoughnut("chartMatBar", competencyPairs, `Competências (${competencyModeLabel(state.competencyMode)})`, "chartMatBarLegend", "chartMatBarLegendMore");
       }
 
       if (state.page === "sources") {
@@ -14620,8 +14948,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
       if (state.page === "content") {
         const topMacro = macroPairs;
-        renderDoughnut("chartMacroBar", topMacro, "Macrotemas", { percentMode: true });
-        renderDoughnut("chartMatBar", competencyPairs, `Competências (${competencyModeLabel(state.competencyMode)})`, { percentMode: true });
+        // Mesmo wrapper exclusivo desta pagina usado no caminho agregado
+        // (ver renderAggregated) -- esse bloco e o fallback pra payload
+        // nao agregado, mas escreve nos mesmos ids chartMacroBar/
+        // chartMatBar, entao precisa do mesmo tratamento pra nao divergir
+        // visualmente dependendo do formato de dados recebido.
+        renderContentDoughnut("chartMacroBar", topMacro, "Macrotemas", "chartMacroBarLegend", "chartMacroBarLegendMore");
+        renderContentDoughnut("chartMatBar", competencyPairs, `Competências (${competencyModeLabel(state.competencyMode)})`, "chartMatBarLegend", "chartMatBarLegendMore");
       }
 
       if (state.page === "sources") {
@@ -24817,11 +25150,20 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
         </section>
 
-        <section data-page="content" class="hidden grid grid-cols-12 gap-4 wrap-soft p-5">
+        <section data-page="content" class="content-page hidden grid grid-cols-12 gap-4 wrap-soft p-5">
           <div class="col-span-12 card p-5">
             <h2 class="section-title">Macrotemas</h2>
             <div class="text-sm text-slate-600">Base para planejamento de portf&oacute;lio.</div>
-            <div class="mt-4 h-72"><canvas id="chartMacroBar"></canvas></div>
+            <div class="content-doughnut-row">
+              <div class="content-doughnut-canvas-wrap"><canvas id="chartMacroBar"></canvas></div>
+              <div class="content-legend-col">
+                <ul id="chartMacroBarLegend" class="content-legend-list"></ul>
+                <button type="button" id="chartMacroBarLegendMore" class="content-legend-more hidden">
+                  <span class="content-legend-more-label">Ver mais</span>
+                  <i data-lucide="chevron-down" class="content-legend-more-icon"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="col-span-12 card p-5">
@@ -24833,7 +25175,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               </div>
             </div>
             <div class="text-sm text-slate-600">Distribui&ccedil;&atilde;o das compet&ecirc;ncias priorit&aacute;rias do recorte.</div>
-            <div class="mt-4 h-72"><canvas id="chartMatBar"></canvas></div>
+            <div class="content-doughnut-row">
+              <div class="content-doughnut-canvas-wrap"><canvas id="chartMatBar"></canvas></div>
+              <div class="content-legend-col">
+                <ul id="chartMatBarLegend" class="content-legend-list"></ul>
+                <button type="button" id="chartMatBarLegendMore" class="content-legend-more hidden">
+                  <span class="content-legend-more-label">Ver mais</span>
+                  <i data-lucide="chevron-down" class="content-legend-more-icon"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
         </section>
