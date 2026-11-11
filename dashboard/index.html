@@ -3083,6 +3083,205 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       flex-shrink: 0;
     }
 
+    /* ================================================================
+       Pagina Territorio (#territory) -- refino visual/UX.
+       Escopado so' a ids/classes EXCLUSIVOS desta pagina (terr*,
+       #topCitiesList, #mapTerritory, #chartUfAtend2, .city-focus-*,
+       .top-cities-pills -- nenhum usado por outra pagina, confirmado por
+       busca no arquivo inteiro) ou prefixado com
+       section[data-page="territory"]. Nunca redefine um token --brand-*/
+       --line/--surface global, nem as classes de base .metric/.card/
+       .section-title/.insight-list/.uf-pills (compartilhadas com
+       Overview/Engajamento/Conteudos/Fontes).
+       ================================================================ */
+
+    section[data-page="territory"] {
+      /* Tokens novos em OKLCH, usados so' pelos elementos abaixo -- hex/
+         rgba como fallback na linha anterior (navegador sem suporte a
+         oklch() ignora so' a 2a declaracao invalida e fica com a 1a).
+         Mesma matiz do verde de marca (--brand-green) ja usado no
+         wrap-accent-green desta secao. */
+      --terr-accent: #00d95d;
+      --terr-accent: oklch(0.82 0.19 152);
+      --terr-accent-soft: rgba(0, 217, 93, 0.14);
+      --terr-accent-soft: oklch(0.82 0.19 152 / 0.16);
+      --terr-accent-line: rgba(0, 217, 93, 0.4);
+      --terr-accent-line: oklch(0.82 0.19 152 / 0.42);
+    }
+
+    .terr-card-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .terr-card-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 9px;
+      background: var(--terr-accent-soft);
+      border: 1px solid var(--terr-accent-line);
+      color: var(--terr-accent);
+    }
+
+    .terr-card-icon svg {
+      width: 15px;
+      height: 15px;
+      /* Optical centre: icones de linha com peso visual assimetrico (pin,
+         barras ascendentes) ficam ~0.5-1px "baixos" dentro de um
+         quadrado matematicamente centralizado -- nudge fino, medido
+         visualmente, nao calculado. */
+      transform: translateY(-0.5px);
+    }
+
+    /* Widow/orphan -- titulo e subtitulo dos 4 cards desta pagina nunca
+       devem quebrar deixando 1 palavra sozinha na ultima linha (comum em
+       mobile estreito). text-wrap:balance e' progressive enhancement
+       (no-op onde o navegador nao suporta). */
+    section[data-page="territory"] .section-title,
+    section[data-page="territory"] .card > .text-sm.text-slate-600 {
+      text-wrap: balance;
+    }
+
+    /* Tabular numbers -- numeros que mudam de recorte pra recorte (UFs
+       ativas, cidades, usuarios, atend./dia, instituicoes, cobertura, e
+       as contagens dos pills de UF/cidade) nao podem mudar de largura a
+       cada atualizacao. */
+    #terrUfs,
+    #terrCities,
+    #terrUsers,
+    #terrAtendDay,
+    #terrInstituicoes,
+    #terrUfCoverage,
+    .city-focus-value {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      line-height: 1;
+    }
+
+    /* Layout shift -- reserva a altura de 1 fileira de pills antes do
+       primeiro render (os dados chegam de um fetch assincrono); sem
+       isso o card "Cidades/UFs em destaque" nasce com altura 0 e salta
+       quando os pills aparecem. */
+    #topCitiesList {
+      min-height: 64px;
+    }
+
+    /* Touch target -- .city-focus-btn e' exclusivo desta pagina;
+       engrossado pra >=44px de alvo de toque sem mudar a tipografia
+       interna. .city-focus-btn tambem ganha affordance de filtro
+       clicavel (seta que aparece no hover/focus, nunca junto do estado
+       .active -- ali o preenchimento solido ja comunica selecao, nao
+       depende so' da cor) e feedback de toque imediato (:active). */
+    .city-focus-btn {
+      min-height: 44px;
+      padding: 11px 14px;
+      position: relative;
+    }
+
+    .city-focus-btn:active {
+      transform: scale(0.97);
+    }
+
+    .city-focus-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 249, 255, 0.22), 0 0 0 1px rgba(0, 249, 255, 0.85);
+    }
+
+    .city-focus-affordance {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0;
+      transform: translateX(-2px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      color: rgba(226, 233, 255, 0.55);
+    }
+
+    .city-focus-btn:hover .city-focus-affordance,
+    .city-focus-btn:focus-visible .city-focus-affordance {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .city-focus-btn.active .city-focus-affordance {
+      display: none;
+    }
+
+    /* Tracking -- codigos curtos de UF (ex. "SP", "RJ") ganham leve
+       tracking positivo, convencao tipografica pra siglas/codigos.
+       .city-focus-label e' exclusivo desta pagina. */
+    .city-focus-label {
+      letter-spacing: 0.01em;
+    }
+
+    /* Stagger + origin-aware entrance -- cada chamada de
+       renderTerritoryUfButtons/renderTerritoryCityButtons cria botoes
+       NOVOS (innerHTML trocado por inteiro), entao a animacao sempre
+       comeca do zero e nunca fica "presa" num estado intermediario de
+       uma chamada anterior -- interrompivel por construcao. O pill ja
+       ATIVO (a selecao que originou a troca de lista) entra quase
+       instantaneo; os demais seguem em cascata, dando a sensacao de
+       "crescer a partir" da selecao -- aproximacao de shared-element
+       transition sem precisar expor a posicao exata do pill clicado
+       (o handler de clique vive fora do escopo desta rodada). So'
+       transform + opacity (GPU-friendly). */
+    .top-cities-pills .city-focus-btn {
+      animation: terrPillEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: calc(var(--i, 0) * 26ms);
+    }
+
+    .top-cities-pills .city-focus-btn.active {
+      animation-duration: 0.18s;
+      animation-delay: 0s;
+    }
+
+    @keyframes terrPillEnter {
+      from {
+        opacity: 0;
+        transform: translateY(5px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Header "morph" -- crossfade curto quando terrHighlightTitle/
+       terrCoverageLabel/terrRankTitle de fato mudam de texto (ver
+       setTextWithSwapAnimation). So' transform + opacity. */
+    @keyframes terrHeaderSwap {
+      from {
+        opacity: 0;
+        transform: translateY(-3px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .terr-header-swap {
+      animation: terrHeaderSwap 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .top-cities-pills .city-focus-btn,
+      .terr-header-swap {
+        animation: none;
+      }
+      .city-focus-btn:active {
+        transform: none;
+      }
+    }
+
     .uf-pill.uf-rank-gold {
       border-color: #d6a300;
       background: linear-gradient(180deg, #fff8dd 0%, #ffe8a3 100%);
@@ -12671,18 +12870,49 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return { dateFrom: from, dateTo: rangeTo };
     }
 
+    // Pequeno icone de seta usado so' pelos pills de UF/cidade da pagina
+    // Territorio (affordance: reforca que o pill e' um filtro clicavel,
+    // sem depender so' da cor do estado ativo -- aparece no hover/focus,
+    // nunca junto do estado .active, ver CSS .city-focus-affordance).
+    const TERR_PILL_AFFORDANCE_SVG = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    // Transicao curta de "morph" de texto (crossfade, so' transform/
+    // opacity), usada pelos 3 textos desta pagina que alternam entre 2
+    // valores fixos conforme uma UF esta selecionada ou nao (titulo do
+    // destaque, rotulo de cobertura, titulo do ranking). E' uma
+    // aproximacao leve de shared-element transition: nao e' um FLIP de
+    // verdade ligado a posicao exata do pill clicado, porque esse clique
+    // e' tratado por um handler fora do escopo desta rodada -- mas ainda
+    // da uma sensacao de continuidade entre os 2 estados, em vez do texto
+    // so' "pular" pro valor novo. So' anima quando o texto de fato muda
+    // (nunca em toda chamada de render do mesmo recorte) e sempre
+    // reinicia do zero via remove+reflow+add antes de aplicar o valor
+    // novo -- interrompivel por construcao, nunca fica "presa" numa
+    // transicao anterior incompleta. Respeita prefers-reduced-motion.
+    function setTextWithSwapAnimation(id, nextValue) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!reduceMotion && el.textContent && el.textContent !== nextValue) {
+        el.classList.remove("terr-header-swap");
+        void el.offsetWidth; // forca reflow pra permitir retrigger da animacao
+        el.classList.add("terr-header-swap");
+      }
+      el.textContent = nextValue;
+    }
+
     function renderTerritoryHighlightHeader(setText, selectedUfCode) {
       if (selectedUfCode) {
-        setText("terrHighlightTitle", "Cidades em destaque");
+        setTextWithSwapAnimation("terrHighlightTitle", "Cidades em destaque");
         setText("terrHighlightSubtitle", "Concentração urbana e oportunidades regionais.");
         return;
       }
-      setText("terrHighlightTitle", "UFs em destaque");
+      setTextWithSwapAnimation("terrHighlightTitle", "UFs em destaque");
       setText("terrHighlightSubtitle", "Distribuição entre unidades federativas no recorte atual.");
     }
 
     function renderTerritoryCoverageLabel(setText, selectedUfCode) {
-      setText(
+      setTextWithSwapAnimation(
         "terrCoverageLabel",
         selectedUfCode
           ? "Cobertura por cidade (atendimentos)"
@@ -12692,7 +12922,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
     function renderTerritoryUfButtons(setHtml, ufPairs = []) {
       const html = (ufPairs || []).length
-        ? ufPairs.map(([ufLabel, count]) => {
+        ? ufPairs.map(([ufLabel, count], idx) => {
             const ufCode = resolveUfCode(ufLabel);
             const ufFilterValue = String(ufLabel || "").trim();
             const label = ufCode || ufFilterValue || "UF";
@@ -12700,11 +12930,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               <button
                 type="button"
                 class="city-focus-btn"
+                style="--i:${idx}"
                 data-terr-uf-filter="${escapeHtml(ufFilterValue)}"
                 title="Clique para filtrar esta UF"
               >
                 <span class="city-focus-label">${escapeHtml(label)}</span>
                 <span class="city-focus-value">${fmtInt(count)}</span>
+                <span class="city-focus-affordance">${TERR_PILL_AFFORDANCE_SVG}</span>
               </button>
             `;
           }).join("")
@@ -12714,12 +12946,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
     function renderTerritoryCityButtons(setHtml, rows = []) {
       const html = (rows || []).length
-        ? rows.map((p) => {
+        ? rows.map((p, idx) => {
             const isActive = state.mapCityFocus?.key === mapCityFocusKeyFromRow(p);
             return `
           <button
             type="button"
             class="city-focus-btn ${isActive ? "active" : ""}"
+            style="--i:${idx}"
             aria-pressed="${isActive ? "true" : "false"}"
             data-map-city-focus-key="${escapeHtml(mapCityFocusKeyFromRow(p))}"
             data-map-city-focus-label="${escapeHtml(mapCityFocusLabelFromRow(p))}"
@@ -12728,6 +12961,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           >
             <span class="city-focus-label">${escapeHtml(mapCityFocusLabelFromRow(p))}</span>
             <span class="city-focus-value">${fmtInt(p.weight)}</span>
+            <span class="city-focus-affordance">${TERR_PILL_AFFORDANCE_SVG}</span>
           </button>
         `;
           }).join("")
@@ -14783,7 +15017,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         renderBarChart("chartUfAtend2", territoryPairs, territoryChartTitle, {
           topBarLabels: Boolean(selectedUfCode)
         });
-        setText("terrRankTitle", territoryChartTitle);
+        setTextWithSwapAnimation("terrRankTitle", territoryChartTitle);
         renderMapPoints("mapTerritory", geoPoints);
         setText("terrUfs", `${byUfRows.length} UFs`);
         setText("terrCities", selectedUfCode ? `${fmtInt(Number(state.territoryCitySummary?.cityCount || 0))} cidades` : "—");
@@ -25178,13 +25412,23 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
         <section data-page="territory" class="hidden grid grid-cols-12 gap-4 wrap-accent-green wrap-soft p-5">
           <div class="col-span-12 card p-5">
-            <h2 id="terrHighlightTitle" class="section-title">Cidades em destaque</h2>
+            <div class="terr-card-title">
+              <span class="terr-card-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.9l-5 2.6 1.2-5.5-4.2-3.8 5.6-.6L12 3.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+              </span>
+              <h2 id="terrHighlightTitle" class="section-title">Cidades em destaque</h2>
+            </div>
             <div id="terrHighlightSubtitle" class="text-sm text-slate-600">Concentra&ccedil;&atilde;o urbana e oportunidades regionais.</div>
             <div id="topCitiesList" class="mt-4 uf-pills top-cities-pills"></div>
           </div>
 
           <div class="col-span-12 lg:col-span-6 card p-5">
-            <h2 class="section-title">Cobertura territorial</h2>
+            <div class="terr-card-title">
+              <span class="terr-card-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="10" r="2.1" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5a7.5 7.5 0 0 1 7.5 7.5c0 5-7.5 11.5-7.5 11.5S4.5 15 4.5 10A7.5 7.5 0 0 1 12 2.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </span>
+              <h2 class="section-title">Cobertura territorial</h2>
+            </div>
             <div class="text-sm text-slate-600">Amplitude geogr&aacute;fica do per&iacute;odo.</div>
             <div class="grid grid-cols-2 gap-3 mt-4">
               <div class="metric">
@@ -25215,13 +25459,23 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           </div>
 
           <div class="col-span-12 lg:col-span-6 card p-5">
-            <h2 class="section-title">Mapa de densidade</h2>
+            <div class="terr-card-title">
+              <span class="terr-card-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M3 8.5L12 4l9 4.5-9 4.5-9-4.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 13l9 4.5 9-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17.3l9 4.5 9-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/></svg>
+              </span>
+              <h2 class="section-title">Mapa de densidade</h2>
+            </div>
             <div class="text-sm text-slate-600">Distribui&ccedil;&atilde;o territorial dos registros.</div>
             <div id="mapTerritory" style="height:320px;min-height:320px;" class="mt-4 h-[320px] rounded-2xl overflow-hidden"></div>
           </div>
 
           <div class="col-span-12 card p-5">
-            <h2 id="terrRankTitle" class="section-title">Atendimentos por UF (10 maiores)</h2>
+            <div class="terr-card-title">
+              <span class="terr-card-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 19V11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 19V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 19v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </span>
+              <h2 id="terrRankTitle" class="section-title">Atendimentos por UF (10 maiores)</h2>
+            </div>
             <div class="mt-4 h-64"><canvas id="chartUfAtend2"></canvas></div>
           </div>
         </section>
