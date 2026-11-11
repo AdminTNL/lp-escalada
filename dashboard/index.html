@@ -12380,7 +12380,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       ensureSourceDetailTimeline(row);
     }
 
-    function openSourceDetailModal(row) {
+    function openSourceDetailModal(row, overridePeriod) {
       if (!row) return;
       const modal = document.getElementById("sourceDetailModal");
       if (!modal) return;
@@ -12391,8 +12391,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // semana"), nao so as datas -- senao o rotulo do modal cai pra
       // "Periodo" generico mesmo quando a pagina tinha um atalho nomeado
       // ativo.
-      const sdDateFrom = state.filters?.dateFrom;
-      const sdDateTo = state.filters?.dateTo;
+      // overridePeriod (so' quando a origem do clique e' um card do radar
+      // com janela PROPRIA -- hoje/ultima semana/ultimos 30 dias, que nao
+      // necessariamente bate com o filtro geral da pagina) sobrescreve o
+      // filtro ativo -- ver bindSourceRadarInteractions.
+      const sdDateFrom = overridePeriod?.dateFrom ?? state.filters?.dateFrom;
+      const sdDateTo = overridePeriod?.dateTo ?? state.filters?.dateTo;
       const sdPresetKey = getActivePeriodPresetKey(sdDateFrom, sdDateTo) ?? (sdDateFrom && sdDateTo ? "custom" : null);
       state.sourceDetailPeriod = { dateFrom: sdDateFrom, dateTo: sdDateTo, presetKey: sdPresetKey };
       state.sourceDetailTimeline = { key: "", status: "idle", data: null };
@@ -12408,12 +12412,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       syncModalBackdropState();
     }
 
-    function openSourceDetailModalByKey(sourceKey) {
+    function openSourceDetailModalByKey(sourceKey, overridePeriod) {
       const key = String(sourceKey || "").trim();
       if (!key || !(state.sourceRowsByKey instanceof Map)) return;
       const row = state.sourceRowsByKey.get(key);
       if (!row) return;
-      openSourceDetailModal(row);
+      openSourceDetailModal(row, overridePeriod);
     }
 
     function closeSourceDetailModal() {
@@ -13466,15 +13470,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return `<span class="rwin-delta ${cls}"><i data-lucide="${icon}"></i>${fmtHighlightDelta(delta)}</span>`;
     }
 
-    function renderRadarRowHtml(row, idx, maxCurrent) {
+    function renderRadarRowHtml(row, idx, maxCurrent, windowKey) {
       const pct = maxCurrent > 0 ? Math.max(6, Math.round((row.current / maxCurrent) * 100)) : 0;
       const barColor = idx === 0 ? "var(--brand-cyan)" : "rgba(226,233,255,.35)";
       // row.label ja vem truncado desde computeSourceHighlightsFromAggregatedRows
       // (r.displayName) -- so a key/tooltip usam row.source (nome completo).
       const fullName = String(row.source || row.label || "");
       const key = sourceKeyFromName(fullName);
+      // windowKey (today/week/month) so existe nos 3 cards fixos -- o card
+      // "custom" (periodo filtrado da pagina) nao precisa, ja que o filtro
+      // ativo da pagina e' o default que openSourceDetailModal ja usa.
+      // Sem isso, clicar numa fonte de "Hoje"/"Ultima semana"/"Ultimos 30
+      // dias" abria o modal com o filtro GERAL da pagina, nao a janela do
+      // card clicado (bug relatado pelo Gabriel 2026-11-11).
+      const windowAttr = windowKey ? ` data-radar-window="${escapeHtml(windowKey)}"` : "";
       return `
-        <button type="button" class="rwin-row" data-source-key="${escapeHtml(key)}" title="Ver detalhes de ${escapeHtml(fullName)}">
+        <button type="button" class="rwin-row" data-source-key="${escapeHtml(key)}"${windowAttr} title="Ver detalhes de ${escapeHtml(fullName)}">
           <span class="rwin-rank">${idx + 1}</span>
           <span class="rwin-name" title="${escapeHtml(fullName)}">${escapeHtml(row.label)}</span>
           <div class="rwin-bar"><span style="width:${pct}%;background:${barColor}"></span></div>
@@ -13483,12 +13494,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         </button>`;
     }
 
-    function renderRadarWindowCardHtml({ label, icon, isCustom, loading, totalLabel, rows, emptyText }) {
+    function renderRadarWindowCardHtml({ label, icon, isCustom, loading, totalLabel, rows, emptyText, windowKey }) {
       const maxCurrent = rows.length ? Math.max(...rows.map((r) => r.current)) : 0;
       const body = loading
         ? `<div class="rwin-loading">Carregando...</div>`
         : (rows.length
-            ? rows.map((r, i) => renderRadarRowHtml(r, i, maxCurrent)).join("")
+            ? rows.map((r, i) => renderRadarRowHtml(r, i, maxCurrent, windowKey)).join("")
             : `<div class="rwin-empty">${escapeHtml(emptyText || "Sem dados.")}</div>`);
       return `
         <div class="rwin${isCustom ? " custom" : ""}">
@@ -13587,6 +13598,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           isCustom: false,
           loading: radarLoading,
           totalLabel: radarReady ? fmtInt(totalCurrent) : null,
+          windowKey: w.key,
           rows: top3,
           emptyText: "Sem atividade nessa janela.",
         });
@@ -13750,7 +13762,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         onFinish: () => {
           const el = document.querySelector("#sourceRadarGrid .rwin-row");
           const key = el?.getAttribute("data-source-key");
-          if (key) openSourceDetailModalByKey(key);
+          const windowKey = el?.getAttribute("data-radar-window");
+          const windowDays = windowKey ? RADAR_WINDOW_DAYS[windowKey] : null;
+          const range = windowDays != null ? getRadarWindowRange(windowDays) : null;
+          if (key) openSourceDetailModalByKey(key, range ? { dateFrom: range.from, dateTo: range.to } : null);
         },
       },
     ];
@@ -23218,7 +23233,15 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         ev.preventDefault();
         const sourceKey = String(btn.getAttribute("data-source-key") || "").trim();
         if (!sourceKey) return;
-        openSourceDetailModalByKey(sourceKey);
+        // data-radar-window (hoje/semana/30-dias) so existe nos 3 cards
+        // fixos -- essas janelas tem data PROPRIA, independente do filtro
+        // geral da pagina (ver renderRadarRowHtml/getRadarWindowRange).
+        // Sem isso, o modal sempre abria com o filtro geral ativo, nunca
+        // com a janela do card que foi de fato clicado.
+        const windowKey = btn.getAttribute("data-radar-window");
+        const windowDays = windowKey ? RADAR_WINDOW_DAYS[windowKey] : null;
+        const overridePeriod = windowDays != null ? getRadarWindowRange(windowDays) : null;
+        openSourceDetailModalByKey(sourceKey, overridePeriod ? { dateFrom: overridePeriod.from, dateTo: overridePeriod.to } : null);
       });
     }
 
