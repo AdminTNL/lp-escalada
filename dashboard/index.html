@@ -2835,26 +2835,44 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       scrollbar-width: thin;
     }
 
+    @keyframes uf-pill-rise {
+      from { opacity: 0; transform: translateY(6px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
     .uf-pill {
       border: 1px solid var(--line);
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.06);
       color: var(--ink);
-      padding: 9px 10px;
+      /* Touch target ~40px (perto do minimo 44px recomendado) sem deixar a
+         fileira horizontal pesada -- era 9px/10px (~34px de altura real). */
+      padding: 10px 14px;
+      min-height: 40px;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
       font-size: 0.82rem;
       font-weight: 600;
-      transition: border 0.15s ease, transform 0.15s ease, background 0.15s ease;
+      transition: border-color 0.18s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), background 0.18s ease, box-shadow 0.18s ease;
       flex: 0 0 auto;
       white-space: nowrap;
+      /* Stagger -- delay incremental vem do JS (renderUfPills), por pill;
+         aqui so' a curva/duracao da entrada em si (transform+opacity,
+         GPU-only). */
+      animation: uf-pill-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .uf-pill:hover {
       transform: translateY(-1px);
       border-color: rgba(0, 249, 255, 0.34);
+    }
+
+    .uf-pill:focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
     }
 
     .uf-pill.active {
@@ -3074,6 +3092,88 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .uf-pill.uf-rank-silver.active span,
     .uf-pill.uf-rank-bronze.active span {
       color: #fff !important;
+    }
+
+    /* ============================================================
+       Pagina "Visao Geral" (#overview) -- refino visual isolado.
+       Tudo escopado por section[data-page="overview"] ou por id
+       exclusivo da pagina (ufPills/summaryList/insightsList/
+       btnCompModeBncc/btnCompModeEntrecomp) -- nunca a classe base
+       compartilhada (.card/.badge/.metric/.insight-list/.chip),
+       pra nao vazar estilo pras outras paginas/paineis que reusam
+       essas mesmas classes (Territorio/Engajamento/Conteudos/modal
+       de fonte tambem usam .metric/.insight-list/.chip). */
+
+    /* Layout shift -- reserva altura antes do 1o fetch terminar. O
+       skeleton global (#skeleton) some ANTES do payload principal
+       chegar (ver boot()), entao estes 3 containers nascem vazios
+       (altura 0) e "pulam" pro tamanho real quando os dados vem --
+       classico CLS. */
+    #ufPills { min-height: 56px; }
+    #summaryList,
+    #insightsList { min-height: 128px; }
+
+    /* Tabular numbers -- numeros que mudam/comparam entre si (Pico/
+       Media, UF lider, concentracao 5 UFs, contagem de cada pill)
+       nao "dancam" de largura ao atualizar. */
+    section[data-page="overview"] .badge strong,
+    section[data-page="overview"] .metric .value,
+    .uf-pill span:last-child {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Widow -- evita linha orfa nas frases de apoio e nos itens de
+       lista desta pagina (fallback silencioso onde text-wrap:pretty
+       nao e suportado). */
+    section[data-page="overview"] .text-sm.text-slate-600,
+    section[data-page="overview"] .insight-list li {
+      text-wrap: pretty;
+    }
+
+    /* Affordance + touch target -- chips de navegacao (Linha do
+       tempo/Territorio/Conteudos) ganham area de toque ampliada via
+       pseudo-elemento (sem crescer visualmente) e feedback de hover/
+       foco consistente com o resto do app. */
+    section[data-page="overview"] .chip[data-nav] {
+      position: relative;
+      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
+    }
+    section[data-page="overview"] .chip[data-nav]::after {
+      content: "";
+      position: absolute;
+      inset: -7px;
+    }
+    section[data-page="overview"] .chip[data-nav]:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(8, 11, 46, 0.28);
+    }
+    section[data-page="overview"] .chip[data-nav]:focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
+    }
+
+    /* Mesma logica de area de toque pro toggle BNCC/EntreComp --
+       ids exclusivos desta pagina (a versao clonada em Conteudos usa
+       os ids com sufixo "Content" e nao e afetada). */
+    #btnCompModeBncc,
+    #btnCompModeEntrecomp {
+      position: relative;
+    }
+    #btnCompModeBncc::after,
+    #btnCompModeEntrecomp::after {
+      content: "";
+      position: absolute;
+      /* -3px (nao -6/-7px como os chips) -- os dois botoes ficam a so' 8px
+         um do outro (gap-2); um raio maior faria as duas areas de toque
+         se sobreporem no meio e gerar clique ambiguo exatamente na
+         fronteira entre eles. */
+      inset: -3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      section[data-page="overview"] .chip[data-nav] {
+        transition: none !important;
+      }
     }
 
     .map-empty-state {
@@ -3405,6 +3505,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
     .delay-3 {
       animation-delay: 0.24s;
+    }
+
+    .delay-4 {
+      animation-delay: 0.32s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal,
+      .uf-pill {
+        animation: none !important;
+      }
     }
 
     canvas {
@@ -10315,14 +10426,28 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         ].filter(Boolean).join(" ");
         btn.title = isActive ? `Clique para limpar o filtro de UF ${code}` : `Clique para filtrar pela UF ${code}`;
         btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        // Stagger -- cada pill "nasce" com um atraso incremental (ver
+        // @keyframes uf-pill-rise no CSS); capado em 12 pra os ultimos
+        // cartoes da lista (sempre os de menor contagem) nao demorarem
+        // perceptivelmente mais que os primeiros pra aparecer.
+        btn.style.animationDelay = `${Math.min(idx, 12) * 22}ms`;
         btn.innerHTML = `<span>${formatRankPosition(idx)} ${ufSigla(code)}</span><span class="text-slate-500">${fmtInt(count)}</span>`;
         btn.addEventListener("click", () => {
-          if (isActive) {
-            applyFilters({ uf: "Todos" }, { immediate: true, reason: "uf-pill-toggle-off" });
-            return;
+          const nextUf = isActive ? "Todos" : (valueByCode.get(code) || UF_CODE_TO_NAME[code] || code);
+          // Optimistic update -- reflete a troca de UF visualmente na hora,
+          // antes do round-trip de rede (applyFilters -> scheduleRefreshFromServer)
+          // terminar. O proximo render() real (depois do fetch) confirma/
+          // corrige o estado com os dados de verdade, sem rollback manual
+          // necessario -- por isso e seguro aqui (nunca a fonte de verdade).
+          box.querySelectorAll(".uf-pill.active").forEach((el) => {
+            el.classList.remove("active");
+            el.setAttribute("aria-pressed", "false");
+          });
+          if (!isActive) {
+            btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
           }
-          const filterUfValue = valueByCode.get(code) || UF_CODE_TO_NAME[code] || code;
-          applyFilters({ uf: filterUfValue }, { immediate: true, reason: "uf-pill" });
+          applyFilters({ uf: nextUf }, { immediate: true, reason: isActive ? "uf-pill-toggle-off" : "uf-pill" });
         });
         box.appendChild(btn);
       });
@@ -24628,7 +24753,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             </div>
           </div>
 
-          <div class="col-span-12 lg:col-span-6 card p-5 reveal">
+          <div class="col-span-12 lg:col-span-6 card p-5 reveal delay-1">
             <div class="flex items-center justify-between">
               <div>
                 <h2 class="section-title">Mapa de densidade</h2>
@@ -24665,7 +24790,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               </div>
           </div>
 
-          <div class="col-span-12 card p-5">
+          <div class="col-span-12 card p-5 reveal delay-4">
             <div class="grid grid-cols-12 gap-4">
               <div class="col-span-12 lg:col-span-4">
                 <h2 class="section-title">Sinais executivos</h2>
