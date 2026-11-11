@@ -3581,6 +3581,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
        momento." aparecia no canto esquerdo em vez de centralizado. */
     #meusConvitesList .meus-convites-empty-state {
       grid-column: 1 / -1;
+      text-wrap: balance;
     }
 
     .kit-jump-chip-icon {
@@ -3705,6 +3706,15 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color: var(--ink-soft);
       font-size: 0.82rem;
       line-height: 1.5;
+      /* ~45-75 caracteres por linha (conceito "line length") -- sem isso o
+         aviso estica pela largura toda do card em telas largas. */
+      max-width: 62ch;
+      text-wrap: pretty;
+    }
+
+    /* Subtitulo do cabecalho da pagina -- mesmo motivo do max-width acima. */
+    .meus-convites-subtitle {
+      max-width: 62ch;
     }
 
     .meus-convites-form .field {
@@ -3766,6 +3776,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-family: var(--display-font);
       font-size: 1.3rem;
       color: var(--ink-strong);
+      /* Numero que muda/compara entre cards (inscritos x atendimentos) --
+         tabular-nums trava a largura dos digitos, sem "dancar" quando o
+         valor atualiza. Kerning fino (letter-spacing) pro display font
+         nesse tamanho, mesma ideia do titulo abaixo. */
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
     }
 
     .convite-card-chart {
@@ -3818,12 +3834,30 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto;
       cursor: pointer;
-      transition: border-color 0.15s ease, transform 0.15s ease;
+      transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      /* Origin-aware press (conceito 10): --mc-press-x/y e' setado via JS no
+         pointerdown (ver renderMeusConvitesPage), com o ponto real do toque
+         -- o :active abaixo nasce dali, nao do centro geometrico do card. */
+      transform-origin: var(--mc-press-x, 50%) var(--mc-press-y, 50%);
+      /* Entrada escalonada (conceito 14) -- roda de novo em TODO render
+         (1a carga, troca de aba ativos/inativos, filtro de busca), ja que o
+         innerHTML recria os nodes do zero a cada vez. --i (indice do item)
+         e' setado inline por item; min() teta o atraso maximo pra listas
+         longas nao demorarem pra terminar de aparecer. */
+      animation: mc-card-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: min(calc(var(--i, 0) * 28ms), 280ms);
     }
 
     #meusConvitesList .convite-card:hover {
       border-color: rgba(0, 249, 255, 0.35);
       transform: translateY(-1px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    /* Mesmo ponto de origem do pointerdown (ver transform-origin acima) --
+       "aperta" na direcao de onde o dedo/cursor realmente tocou. */
+    #meusConvitesList .convite-card:active {
+      transform: scale(0.985);
     }
 
     #meusConvitesList .convite-card:focus-visible {
@@ -3845,11 +3879,22 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
        dos botoes de acao (fixos no canto, ver abaixo). */
     #meusConvitesList .convite-card-info {
       grid-row: 1;
-      padding-right: 118px;
+      /* 144px reserva espaco pros 3 botoes de 40px (touch target, ver
+         .btn-icon abaixo) + folga -- era 118px pros botoes de 34px. */
+      padding-right: 144px;
     }
 
     #meusConvitesList .convite-card.is-inativo {
       opacity: 0.6;
+    }
+
+    #meusConvitesList .convite-card-title {
+      /* Leading mais folgado pro titulo poder quebrar em 2 linhas sem
+         grudar; kerning fino (display font neste tamanho); balance evita
+         deixar 1 palavra sozinha na ultima linha (widow). */
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      text-wrap: balance;
     }
 
     #meusConvitesList .convite-card-stats {
@@ -3868,6 +3913,32 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       position: absolute;
       top: 14px;
       right: 14px;
+    }
+
+    /* Touch target (conceito 8) -- 40px, acima do .btn-icon generico de
+       34px (base, ~linha 3783). 44px exato nao coube sem apertar demais o
+       titulo neste tile compacto 3:2 (ver padding-right acima); 40px e' o
+       meio-termo que ainda melhora bastante a area de toque de
+       copiar/QR/lixeira-restaurar sem forcar o titulo pra 1 palavra por
+       linha. Escopado so pra esta pagina -- o .btn-icon generico (usado
+       tambem pelo modal de links de Regionais) fica como estava. */
+    #meusConvitesList .convite-card-actions .btn-icon {
+      width: 40px;
+      height: 40px;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    #meusConvitesList .convite-card-actions .btn-icon:active {
+      transform: scale(0.92);
+    }
+
+    /* Optical centre (conceito 2) -- o "trash-2"/"rotate-ccw" do Lucide tem
+       mais massa visual na metade inferior (tampa da lixeira / seta); um
+       nudge de meio pixel pra baixo centra melhor dentro do circulo do
+       botao do que o centro geometrico puro. */
+    #meusConvitesList .convite-card-actions svg.lucide-trash-2,
+    #meusConvitesList .convite-card-actions svg.lucide-rotate-ccw {
+      transform: translateY(0.5px);
     }
 
     #meusConvitesList .convite-card-metric {
@@ -3915,16 +3986,117 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       text-decoration: underline;
       text-underline-offset: 2px;
       cursor: pointer;
+      /* A contagem entre parenteses muda (filtro/recarga) -- tabular-nums
+         evita o texto ao redor "pular" de largura so por causa do digito. */
+      font-variant-numeric: tabular-nums;
     }
     .meus-convites-toggle-inativos:hover {
       color: rgba(242, 246, 255, 0.92);
     }
 
+    /* Mesmo motivo acima -- "X de Y link(s)" ao lado da busca. */
+    #meusConvitesHint {
+      font-variant-numeric: tabular-nums;
+    }
+
     #meusConvitesList .convite-card-metric-label {
       font-size: 0.68rem;
+      font-weight: 600;
+      line-height: 1.3;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--ink-soft);
+    }
+
+    /* Kerning (conceito 1) -- titulo grande desta pagina especificamente;
+       nao toca no .section-title generico (compartilhado com as outras
+       paginas/agentes rodando em paralelo nesta mesma passada). */
+    section[data-page="meusconvites"] .section-title {
+      letter-spacing: -0.045em;
+    }
+
+    /* OKLCH (conceito 11) -- so pra quem o navegador suporta de verdade;
+       @supports garante que navegador sem oklch() nunca nem chega a
+       tentar parsear este bloco, mantendo as cores rgba originais (acima)
+       intactas como fallback real, nao so "declarado". Mesma familia
+       perceptual do --brand-cyan global (hue ~195), usada aqui pra hover/
+       foco do card e do link de alternancia ficarem na mesma escala. */
+    @supports (color: oklch(0% 0 0)) {
+      #meusConvitesList .convite-card:hover {
+        border-color: oklch(78% 0.13 195 / 38%);
+      }
+      #meusConvitesList .convite-card:focus-visible {
+        outline-color: oklch(78% 0.13 195 / 62%);
+      }
+      .meus-convites-toggle-inativos:hover {
+        color: oklch(93% 0.09 195);
+      }
+    }
+
+    /* Entrada em lista (conceito 14, stagger) -- keyframe usado por
+       #meusConvitesList .convite-card (ver animation acima) e pelo
+       esqueleto de carregamento abaixo. */
+    @keyframes mc-card-enter {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* Esqueleto de carregamento (conceito 4, layout shift) -- mesmo
+       grid/forma aproximada dos cards reais, pra primeira carga nao
+       colapsar a lista numa unica linha de texto centralizado e so depois
+       "saltar" pra altura real quando os dados chegam (ver
+       renderMeusConvitesSkeletonCards). Puramente decorativo -- aria-hidden,
+       sem foco/clique. */
+    .convite-card-skeleton {
+      cursor: default;
+    }
+
+    .mc-skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      animation: mc-skeleton-pulse 1.4s ease-in-out infinite;
+    }
+
+    .mc-skeleton-title {
+      height: 15px;
+      width: 68%;
+    }
+
+    .mc-skeleton-number {
+      height: 22px;
+      width: 46%;
+      margin-bottom: 6px;
+    }
+
+    .mc-skeleton-label {
+      height: 9px;
+      width: 58%;
+    }
+
+    @keyframes mc-skeleton-pulse {
+      0%, 100% { opacity: 0.45; }
+      50% { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #meusConvitesList .convite-card {
+        animation: none !important;
+      }
+      #meusConvitesList .convite-card:active,
+      #meusConvitesList .convite-card-actions .btn-icon:active {
+        transform: none !important;
+      }
+      .mc-skeleton-line {
+        animation: none !important;
+        opacity: 0.7;
+      }
     }
 
     .regionais-bubble-wrap {
@@ -15651,6 +15823,32 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return `<div class="meus-convites-empty-state">${escapeHtml(message)}</div>`;
     }
 
+    // Esqueleto de carregamento (conceito "layout shift") -- mesmo grid/
+    // forma aproximada dos cards reais, pra primeira carga nao colapsar a
+    // lista numa unica linha de texto centralizado e so depois "saltar"
+    // pra altura real quando os dados chegam. --i alimenta o mesmo atraso
+    // escalonado (ver @keyframes mc-card-enter no CSS) que os cards reais
+    // usam. aria-hidden -- puramente decorativo, sem foco/clique.
+    function renderMeusConvitesSkeletonCards(count = 6) {
+      return Array.from({ length: count }, (_, i) => `
+        <div class="convite-card convite-card-skeleton" style="--i:${i}" aria-hidden="true">
+          <div class="convite-card-info">
+            <div class="mc-skeleton-line mc-skeleton-title"></div>
+          </div>
+          <div class="convite-card-stats">
+            <div class="convite-card-metric">
+              <div class="mc-skeleton-line mc-skeleton-number"></div>
+              <div class="mc-skeleton-line mc-skeleton-label"></div>
+            </div>
+            <div class="convite-card-metric">
+              <div class="mc-skeleton-line mc-skeleton-number"></div>
+              <div class="mc-skeleton-line mc-skeleton-label"></div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
     function renderMeusConvitesPage() {
       // Criar link continua exclusivo de gestor cadastrado de verdade
       // (publico='gestores', ver criar_convite_gestor) mesmo com a aba
@@ -15682,7 +15880,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
 
       if (state.meusConvitesStatus === "loading") {
-        listEl.innerHTML = renderMeusConvitesEmptyState("Carregando seus links...");
+        listEl.innerHTML = renderMeusConvitesSkeletonCards();
         if (hintEl) hintEl.textContent = "";
         return;
       }
@@ -15724,7 +15922,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // refletem o periodo ativo da pagina (inscritos_periodo/
       // atendimentos_periodo, ver 12_meus_convites_metricas_periodo.sql),
       // nao mais o total historico fixo.
-      listEl.innerHTML = visible.map((c) => {
+      listEl.innerHTML = visible.map((c, idx) => {
         const categoriaChip = `<span class="chip soft">${escapeHtml(categoriaLabel(c.categoria))}</span>`;
         // O gestor só vê/copia/compartilha o encurtado (escalada.me/<slug>),
         // igual à pagina de convites v4. url_bridge é só o destino interno.
@@ -15741,7 +15939,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
               <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
             </button>`;
         return `
-          <div class="convite-card${isAtivo ? "" : " is-inativo"}" data-convite-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="Ver detalhes de ${escapeHtml(c.rotulo)}">
+          <div class="convite-card${isAtivo ? "" : " is-inativo"}" data-convite-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="Ver detalhes de ${escapeHtml(c.rotulo)}" style="--i:${idx}">
             <div class="convite-card-info">
               <div class="convite-card-title">${escapeHtml(c.rotulo)} ${categoriaChip}</div>
             </div>
@@ -15802,6 +16000,18 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           if (e.target.closest("[data-copy-convite], [data-qr-convite], [data-toggle-ativo-convite]")) return;
           e.preventDefault();
           open();
+        });
+        // Origin-aware press (conceito 10): guarda o ponto real do
+        // toque/clique em --mc-press-x/y -- o :active do card (ver CSS)
+        // nasce dali, nao do centro geometrico, antes do modal de detalhe
+        // abrir.
+        card.addEventListener("pointerdown", (e) => {
+          const rect = card.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const x = ((e.clientX - rect.left) / rect.width) * 100;
+          const y = ((e.clientY - rect.top) / rect.height) * 100;
+          card.style.setProperty("--mc-press-x", `${x}%`);
+          card.style.setProperty("--mc-press-y", `${y}%`);
         });
       });
 
@@ -16300,35 +16510,51 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
     }
 
+    // Toggle em voo por id -- evita um 2o clique (ex.: reativar da aba
+    // "inativos" enquanto o desativar anterior ainda nao confirmou) disparar
+    // uma 2a RPC concorrente pro mesmo link antes da 1a responder.
+    const meusConvitesTogglingIds = new Set();
+
     // Ativa/desativa um link de "Meus Convites" sem apagar a linha (botao
     // de lixeira/restaurar no card) -- pedido do Gabriel 2026-11-05.
-    // Atualiza state.meusConvites local (sem recarregar do zero) e
-    // re-renderiza -- a RPC ja devolve o estado final confirmado.
+    // Otimista (conceito 6): a aba ativos/inativos E' a representacao
+    // visual desse estado -- flipar state.meusConvites[].ativo e
+    // re-renderizar ANTES da RPC responder ja move o card pra aba certa no
+    // mesmo clique, em vez de esperar o round-trip. Em erro, desfaz o flip
+    // e re-renderiza (rollback); o card reaparece na aba atual reusando a
+    // MESMA animacao de entrada escalonada de qualquer card novo (ver
+    // "mc-card-enter" no CSS) -- ja funciona como sinal visual de "isso
+    // voltou", sem precisar de logica extra.
     async function handleToggleConviteAtivo(btn) {
       const id = btn.getAttribute("data-toggle-ativo-convite");
       const nextAtivo = btn.getAttribute("data-next-ativo") === "true";
-      if (!id) return;
+      if (!id || meusConvitesTogglingIds.has(String(id))) return;
       const email = gestorEmail();
       if (!email) {
         showToast("Não foi possível identificar seu usuário. Recarregue a página.", "warning");
         return;
       }
-      btn.disabled = true;
+
+      const item = state.meusConvites.find((c) => String(c.id) === String(id));
+      const previousAtivo = item ? item.ativo !== false : null;
+      meusConvitesTogglingIds.add(String(id));
+      if (item) item.ativo = nextAtivo;
+      renderMeusConvitesPage();
+
       try {
         const raw = await callDashboardApi("gestor_convite_ativo", { email, id, ativo: nextAtivo });
         const payload = unwrapApiPayload(raw);
         if (!payload || payload.ok === false) {
           throw new Error(payload?.error || "recusado pelo servidor");
         }
-        const item = state.meusConvites.find((c) => String(c.id) === String(id));
-        if (item) item.ativo = nextAtivo;
         showToast(nextAtivo ? "Link reativado." : "Link desativado.", "success");
-        renderMeusConvitesPage();
       } catch (e) {
         console.error("[UI] [convites] toggle ativo failed", { err: String(e) });
+        if (item && previousAtivo !== null) item.ativo = previousAtivo;
         showToast("Não foi possível atualizar o link agora.", "warning");
+        renderMeusConvitesPage();
       } finally {
-        btn.disabled = false;
+        meusConvitesTogglingIds.delete(String(id));
       }
     }
 
@@ -24963,7 +25189,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           <div class="col-span-12 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="section-title">Meus convites</h2>
-              <div class="text-sm text-slate-600">Crie links pr&oacute;prios e acompanhe inscritos ao longo do tempo.</div>
+              <div class="text-sm text-slate-600 meus-convites-subtitle">Crie links pr&oacute;prios e acompanhe inscritos ao longo do tempo.</div>
             </div>
           </div>
 
