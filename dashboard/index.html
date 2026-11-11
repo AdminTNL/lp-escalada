@@ -758,7 +758,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       color-scheme: light;
       --sidenav-width: 272px;
       --sidenav-collapsed: 76px;
-      --sidebar-toggle-size: 38px;
+      /* 44px (era 38px) -- touch target minimo recomendado (~44x44) pro
+         botao flutuante de abrir/fechar a sidebar; toda a matematica de
+         posicionamento dele (ver .sidebar-toggle/.sidenav-closed abaixo)
+         ja deriva dessa variavel, nunca de um numero fixo, entao o bump
+         e auto-consistente. */
+      --sidebar-toggle-size: 44px;
       --sidebar-toggle-gap: 16px;
       --sidenav-offset: 0px;
       --body-font: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -771,13 +776,23 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       --surface: rgba(10, 15, 54, 0.52);
       --surface-soft: rgba(10, 15, 54, 0.42);
       --surface-muted: rgba(255, 255, 255, 0.08);
-      --brand-deep: #0a0f36;
-      --brand-primary: #2a4fda;
-      --brand-primary-2: #161b4a;
-      --brand-green: #00d95d;
-      --brand-green-2: #00ff85;
-      --brand-magenta: #ff00ff;
-      --brand-cyan: #00f9ff;
+      /* Tokens de marca redefinidos em OKLCH (conceito "OKLCH" do refino
+         visual) -- cada valor abaixo e o EQUIVALENTE EXATO do hex antigo
+         (roundtrip calculado via sRGB->linear->OKLab, sem mudar nenhuma
+         cor na tela), so trocando o MODELO de cor pra um perceptualmente
+         uniforme. Isso afeta TODAS as paginas do dashboard (variavel
+         global) -- qualquer agente que for criar uma cor NOVA a partir de
+         uma dessas (ex. clarear/escurecer um tom de marca) pode editar o
+         L (luminosidade) ou C (chroma) isoladamente em OKLCH com resultado
+         previsivel, o que hex/rgb nao permite. Hex original comentado ao
+         lado de cada uma pra referencia/rollback rapido. */
+      --brand-deep: oklch(19.42% 0.0758 271.71); /* era #0a0f36 */
+      --brand-primary: oklch(49.58% 0.2158 266.44); /* era #2a4fda */
+      --brand-primary-2: oklch(24.97% 0.0865 273.75); /* era #161b4a */
+      --brand-green: oklch(77.27% 0.2198 148.67); /* era #00d95d */
+      --brand-green-2: oklch(87.58% 0.2303 152.02); /* era #00ff85 */
+      --brand-magenta: oklch(70.17% 0.3225 328.36); /* era #ff00ff */
+      --brand-cyan: oklch(89.13% 0.1516 197.91); /* era #00f9ff */
       --shadow-soft: 0 18px 56px rgba(8, 11, 46, 0.18);
       --shadow: 0 28px 88px rgba(8, 11, 46, 0.3);
       --ring: 0 0 0 3px rgba(0, 217, 93, 0.25);
@@ -841,6 +856,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-family: var(--display-font);
       letter-spacing: -0.04em;
       color: var(--ink-strong);
+      /* Kerning explicito -- Space Grotesk em tamanho de titulo (ex.
+         #dashboardTitleText) pode deixar pares como "T"+vogal/"W"+"A"
+         meio soltos sem isso em alguns motores de render; optimizeLegibility
+         liga kerning+ligaduras no texto (OK em titulos curtos, custo de
+         layout irrelevante aqui). */
+      font-kerning: normal;
+      text-rendering: optimizeLegibility;
     }
 
     .app-shell {
@@ -1070,7 +1092,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         pointer-events: auto;
       }
       .dashboard-mobile-nav-label {
-        font-size: 0.68rem;
+        /* 0.7rem (era 0.68rem) -- mesmo ajuste de x-height do rotulo
+           equivalente na sidebar desktop (.sidebar-section-label). */
+        font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -1090,6 +1114,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         font-size: 0.82rem;
         font-weight: 600;
         text-decoration: none;
+        /* Touch target ~44px -- item de menu mobile, mesmo criterio do
+           resto da nav. */
+        min-height: 44px;
       }
       .dashboard-mobile-nav-panel a:hover,
       .dashboard-mobile-nav-panel a.nav-active {
@@ -1132,7 +1159,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     }
 
     .sidebar-section-label {
-      font-size: 0.67rem;
+      /* 0.7rem (era 0.67rem) -- legibilidade de x-height: mono bold
+         maiusculo nesse tamanho fica no limite do confortavel, um bump
+         pequeno (~0.5px) ja ajuda sem desequilibrar o resto da sidebar. */
+      font-size: 0.7rem;
       font-weight: 700;
       font-family: var(--mono-font);
       text-transform: uppercase;
@@ -1159,6 +1189,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       transition: transform 0.15s ease, background 0.15s ease, border 0.15s ease;
       font-size: 0.88rem;
       font-weight: 600;
+      /* Tracking minimo (+0.01em) -- peso 600 em corpo pequeno tende a
+         "colar" as letras; um tanto quase imperceptivel de respiro ajuda
+         sem parecer esticado. */
+      letter-spacing: 0.01em;
+      /* Touch target ~44px (era ~37px efetivo: padding 10px*2 + ~17px de
+         linha) -- item de nav e area clicavel grande o bastante em
+         qualquer dispositivo, sem mudar o padding/visual existente. */
+      min-height: 44px;
     }
 
     .sidebar-nav a:hover {
@@ -1204,7 +1242,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .sidebar-subnav a {
       display: flex;
       align-items: center;
-      min-height: 34px;
+      /* 44px (era 34px) -- mesmo criterio de touch target dos outros
+         itens de nav; o padding/fonte do subitem nao mudam. */
+      min-height: 44px;
       border-radius: 10px;
       padding: 7px 10px;
       color: rgba(255, 255, 255, 0.82);
@@ -3445,6 +3485,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         pointer-events: auto;
       }
 
+      /* Safe area -- nesse breakpoint .sidenav vira uma gaveta full-height
+         (top:0;bottom:0, ver acima), entao o conteudo interno (logo,
+         itens de nav, barra de sessao/"Sair" no rodape) precisa respeitar
+         notch/home-indicator do dispositivo em qualquer orientacao, nao
+         so o padding fixo de 14px que .sidebar ja tinha. */
+      .sidebar {
+        padding-top: calc(14px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        padding-left: calc(14px + env(safe-area-inset-left, 0px));
+      }
+
       .content-wrap,
       .sidenav-closed .content-wrap {
         padding-left: 0;
@@ -5554,6 +5605,255 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     .destaque-badge-inativo {
       color: #ffb4b4;
       border-color: rgba(255, 138, 138, 0.35);
+    }
+
+    /* =========================================================
+       Refino visual/UX geral (sidebar, header, filtros, modais
+       compartilhados, toast, boot) -- ver CLAUDE.md/histórico da sessão.
+       Escopo deliberadamente restrito a elementos GERAIS/compartilhados
+       entre as 9 páginas do dashboard (sidebar, header, #filterModal,
+       #sourceDetailModal, #postDetailModal, #ufWelcomeModal,
+       #gestorWelcomeModal, #toast, boot/skeleton) -- nada de página
+       específica (Visão geral/Território/Engajamento/Conteúdos/Fontes/
+       Kit/Meus convites/Regionais/Destaques) foi tocado aqui.
+       ========================================================= */
+
+    /* -- Layout shift / CLS -------------------------------------------
+       scrollbar-gutter reserva o espaço da barra de rolagem vertical ANTES
+       dela aparecer -- sem isso, a troca #skeleton -> #app (altura de
+       documento muda) pode fazer a barra aparecer/desaparecer e empurrar
+       todo o conteúdo horizontalmente por alguns pixels nesse instante. */
+    html {
+      scrollbar-gutter: stable;
+    }
+
+    /* Suaviza a troca abrupta #skeleton/#app (display:none<->block, via
+       boot()) com um fade curto -- não elimina o reflow (formas
+       diferentes: skeleton não tem sidebar), mas evita o "pop" seco.
+       opacity apenas (sem width/height/top/left). */
+    @keyframes dashboardAppFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    #app:not(.hidden) {
+      animation: dashboardAppFadeIn 0.28s ease both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #app:not(.hidden) {
+        animation: none;
+      }
+    }
+
+    /* -- Touch targets (~44x44px) --------------------------------------
+       Botões do header, botão de filtro e botões de fechar modal
+       compartilhado -- só min-height/min-width, sem mudar padding/fonte
+       visível (o botão continua com a MESMA aparência, só com uma área de
+       toque mínima garantida). */
+    #btnOpenFilters,
+    #btnApplyFilters,
+    #btnResetFilters,
+    #btnSkipUfWelcome,
+    #btnGestorWelcomeClose,
+    #btnCloseFilters,
+    #btnCloseSourceDetail,
+    #btnClosePostDetail,
+    #btnCloseUfWelcome,
+    #btnExportSourceDetailPdf,
+    #sourceDetailContatosDropdown .period-shortcuts-trigger,
+    #dashboardMobileNavBtn {
+      min-height: 44px;
+    }
+    /* Largura mínima só nos botões ICON-ONLY (fechar/exportar/baixar) --
+       os com rótulo de texto (Filtros/Aplicar/Resetar/...) já ficam largos
+       o bastante pelo próprio texto + padding. */
+    #btnCloseFilters,
+    #btnCloseSourceDetail,
+    #btnClosePostDetail,
+    #btnCloseUfWelcome,
+    #btnExportSourceDetailPdf,
+    #sourceDetailContatosDropdown .period-shortcuts-trigger {
+      min-width: 44px;
+    }
+
+    /* -- Tabular numbers (#topKpiWrap) ---------------------------------
+       Os 4 KPI cards do topo trocam de valor (ex. em refreshFromServer)
+       sem o layout tremer/deslocar por causa da largura variável de
+       dígitos proporcionais. */
+    #topKpiWrap .value,
+    #topKpiWrap .delta,
+    #topKpiWrap strong {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* -- Combobox nativo (UF/Público em #filterModal) ------------------
+       Decisão: NÃO foi construído um combobox pesquisável custom (27 UFs
+       é uma lista longa, mas gerenciável num <select> nativo; um widget
+       custom exigiria reescrever fillFilterOptions()/syncFilterForm() e
+       validar teclado/leitor de tela sem verificação visual ao vivo nesta
+       rodada -- risco alto, benefício incerto). Mitigação aplicada: fonte
+       >=16px (evita o auto-zoom do iOS Safari ao focar um <select> com
+       texto menor que 16px) + touch target. */
+    #fUf,
+    #fPublico {
+      font-size: 1rem;
+      min-height: 44px;
+    }
+
+    /* -- Safe area (#toast) ---------------------------------------------
+       #toast já é position:fixed (via classe Tailwind right-5 bottom-5);
+       a regra abaixo (seletor por id, mais específico) soma a safe area
+       do dispositivo à distância fixa das bordas. */
+    #toast {
+      right: calc(env(safe-area-inset-right, 0px) + 20px) !important;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 20px) !important;
+      transform-origin: bottom right;
+    }
+
+    /* -- Toast: entrada/saída consistentes (shared element leve) -------
+       Sempre no mesmo canto (bottom-right) -- entra deslizando/crescendo
+       dali, sai do mesmo jeito (nunca um "pop"/corte seco). Só
+       transform+opacity. */
+    @keyframes dashboardToastIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes dashboardToastOut {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(8px) scale(0.97); }
+    }
+    #toast:not(.hidden) {
+      animation: dashboardToastIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    #toast.toast-leaving {
+      animation: dashboardToastOut 0.18s ease both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #toast:not(.hidden),
+      #toast.toast-leaving {
+        animation: none;
+      }
+    }
+
+    /* -- Modais compartilhados: entrada origin-aware + interruptível ----
+       .modal-card nasce do PONTO que abriu o modal (var setada via JS em
+       setModalOriginFromTrigger, default 50%/50% = centro quando não há
+       trigger confiável -- onboarding/boas-vindas programáticos). Como é
+       uma @keyframes de duração curta (não uma transition orquestrada por
+       JS), fechar o modal no meio da entrada é seguro por construção: o
+       elemento some (display:none via .hidden) e a próxima abertura
+       reinicia a animação do zero, sem transform/estado preso. */
+    .modal-card {
+      transform-origin: var(--modal-origin-x, 50%) var(--modal-origin-y, 50%);
+    }
+    @keyframes dashboardModalBackdropIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes dashboardModalCardIn {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-backdrop:not(.hidden) {
+      animation: dashboardModalBackdropIn 0.16s ease both;
+    }
+    .modal-backdrop:not(.hidden) .modal-card {
+      animation: dashboardModalCardIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .boot-loading-gate:not(.hidden),
+    .auth-gate:not(.hidden) {
+      animation: dashboardModalBackdropIn 0.18s ease both;
+    }
+    .boot-loading-gate:not(.hidden) .boot-loading-card,
+    .auth-gate:not(.hidden) .auth-card {
+      animation: dashboardModalCardIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .modal-backdrop:not(.hidden),
+      .modal-backdrop:not(.hidden) .modal-card,
+      .boot-loading-gate:not(.hidden),
+      .boot-loading-gate:not(.hidden) .boot-loading-card,
+      .auth-gate:not(.hidden),
+      .auth-gate:not(.hidden) .auth-card {
+        animation: none;
+      }
+    }
+
+    /* -- Leading / widow / line length em texto de modal ----------------
+       Cobre os parágrafos reais que existem nesses modais (onboarding
+       "Qual é sua UF?", boas-vindas do gestor, corpo de post no modal de
+       detalhamento) -- text-wrap:pretty é ignorado graciosamente em
+       navegadores sem suporte (progressive enhancement, nunca regressão). */
+    .modal-card p {
+      line-height: 1.6;
+      max-width: 58ch;
+      text-wrap: pretty;
+    }
+
+    /* -- Stagger: itens de nav da sidebar (entrada no boot) ------------
+       Reaproveita o keyframe "rise" (já usado pelos cards .reveal) em vez
+       de duplicar uma animação equivalente. */
+    .sidebar-nav > * {
+      animation: rise 0.32s ease both;
+    }
+    .sidebar-nav > *:nth-child(1) { animation-delay: 0.02s; }
+    .sidebar-nav > *:nth-child(2) { animation-delay: 0.06s; }
+    .sidebar-nav > *:nth-child(3) { animation-delay: 0.1s; }
+    .sidebar-nav > *:nth-child(4) { animation-delay: 0.14s; }
+    .sidebar-nav > *:nth-child(5) { animation-delay: 0.18s; }
+    .sidebar-nav > *:nth-child(6) { animation-delay: 0.22s; }
+    .dashboard-mobile-nav-panel.is-open > * {
+      animation: rise 0.28s ease both;
+    }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(1) { animation-delay: 0.01s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(2) { animation-delay: 0.03s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(3) { animation-delay: 0.05s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(4) { animation-delay: 0.07s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(5) { animation-delay: 0.09s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(6) { animation-delay: 0.11s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(7) { animation-delay: 0.13s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(8) { animation-delay: 0.15s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(9) { animation-delay: 0.17s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(10) { animation-delay: 0.19s; }
+    .dashboard-mobile-nav-panel.is-open > *:nth-child(11) { animation-delay: 0.21s; }
+    @media (prefers-reduced-motion: reduce) {
+      .sidebar-nav > *,
+      .dashboard-mobile-nav-panel.is-open > * {
+        animation: none;
+      }
+    }
+
+    /* -- Stagger: itens do dropdown de período (header + modal de fonte) */
+    @keyframes dashboardMenuItemIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item,
+    .period-shortcuts-menu.is-open .period-shortcuts-custom-trigger,
+    .period-shortcuts-menu.is-open > .period-shortcuts-item {
+      animation: dashboardMenuItemIn 0.16s ease both;
+    }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item:nth-child(1),
+    .period-shortcuts-menu.is-open > .period-shortcuts-item:nth-child(1) { animation-delay: 0.01s; }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item:nth-child(2),
+    .period-shortcuts-menu.is-open > .period-shortcuts-item:nth-child(2) { animation-delay: 0.03s; }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item:nth-child(3),
+    .period-shortcuts-menu.is-open > .period-shortcuts-item:nth-child(3) { animation-delay: 0.05s; }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item:nth-child(4),
+    .period-shortcuts-menu.is-open > .period-shortcuts-item:nth-child(4) { animation-delay: 0.07s; }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item:nth-child(5),
+    .period-shortcuts-menu.is-open > .period-shortcuts-item:nth-child(5) { animation-delay: 0.09s; }
+    .period-shortcuts-menu.is-open .period-shortcuts-preset-list .period-shortcuts-item:nth-child(6),
+    .period-shortcuts-menu.is-open > .period-shortcuts-item:nth-child(6) { animation-delay: 0.11s; }
+    @media (prefers-reduced-motion: reduce) {
+      .period-shortcuts-menu.is-open .period-shortcuts-item,
+      .period-shortcuts-menu.is-open .period-shortcuts-custom-trigger {
+        animation: none;
+      }
+    }
+
+    /* -- Post detail: leading + widow no corpo do post ------------------ */
+    .post-detail-copy p {
+      text-wrap: pretty;
     }
   </style>
 
@@ -9162,7 +9462,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const toast = document.getElementById("toast");
       if (!toast) return;
       toast.textContent = message;
-      toast.classList.remove("hidden", "bg-emerald-100", "text-emerald-900", "border-emerald-300", "bg-fuchsia-100", "text-fuchsia-900", "border-fuchsia-300", "bg-blue-100", "text-blue-900", "border-blue-300");
+      // "toast-leaving" removida aqui tambem -- um showToast novo chegando
+      // durante a animacao de saida de um toast anterior (ver timers
+      // abaixo) precisa cancelar essa saida e voltar pro estado visivel
+      // normal, nao herdar a classe no meio do caminho.
+      toast.classList.remove("hidden", "toast-leaving", "bg-emerald-100", "text-emerald-900", "border-emerald-300", "bg-fuchsia-100", "text-fuchsia-900", "border-fuchsia-300", "bg-blue-100", "text-blue-900", "border-blue-300");
       if (tone === "success") {
         toast.classList.add("bg-emerald-100", "text-emerald-900", "border-emerald-300");
       } else if (tone === "warning") {
@@ -9179,7 +9483,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const TONE_TEXT_COLOR = { success: "#064e3b", warning: "#701a46", info: "#1e3a5f" };
       toast.style.color = TONE_TEXT_COLOR[tone] || TONE_TEXT_COLOR.info;
       clearTimeout(state.toastTimer);
-      state.toastTimer = setTimeout(() => toast.classList.add("hidden"), 2400);
+      clearTimeout(state.toastLeaveTimer);
+      // Sai com uma pequena animacao (classe "toast-leaving", ver <style>)
+      // em vez de só desaparecer (display:none) sem aviso -- a troca pra
+      // "hidden" de verdade só acontece depois da animação de saída
+      // (180ms) ter tido tempo de rodar.
+      state.toastLeaveTimer = setTimeout(() => toast.classList.add("toast-leaving"), 2200);
+      state.toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+        toast.classList.remove("toast-leaving");
+      }, 2400);
     }
 
     function setBootLoadingGate(visible, message = "Aguardando retorno do banco de dados...") {
@@ -12419,6 +12732,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       updateSourceDetailModal(row);
       syncSourceDetailPeriodLabel();
       syncSourceDetailExportVisibility();
+      setModalOriginFromTrigger(modal);
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       syncModalBackdropState();
@@ -13353,6 +13667,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         }
       }
 
+      setModalOriginFromTrigger(modal);
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
@@ -15009,6 +15324,37 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
       if (!pubs.includes(state.filters.publico)) state.filters.publico = "Todos";
       syncFilterForm();
+    }
+
+    // Origin-aware entrance (conceito "shared element" leve, ver <style> --
+    // .modal-card usa --modal-origin-x/-y como transform-origin da
+    // animação de abertura): guarda o ponto da tela onde o clique que
+    // abriu o modal aconteceu, pra o card "crescer" dali em vez de sempre
+    // do centro. triggerEl explícito (ex.: o próprio botão de abrir) é
+    // preferível; na ausência dele cai pra document.activeElement (o
+    // elemento clicado, quando é algo focável). Sem nenhum dos dois (ex.:
+    // abertura programática/onboarding, ou clique veio de algo não-focável
+    // como um ponto de canvas), remove a custom property e o CSS cai no
+    // default 50%/50% (centro) -- comportamento "quando fizer sentido",
+    // não forçado em todo lugar.
+    function setModalOriginFromTrigger(modal, triggerEl) {
+      const card = modal?.querySelector?.(".modal-card");
+      if (!card) return;
+      const trigger = triggerEl || document.activeElement;
+      try {
+        if (trigger && trigger !== document.body && typeof trigger.getBoundingClientRect === "function" && document.contains(trigger)) {
+          const rect = trigger.getBoundingClientRect();
+          if (rect.width > 0 || rect.height > 0) {
+            const originX = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
+            const originY = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+            card.style.setProperty("--modal-origin-x", `${originX.toFixed(2)}%`);
+            card.style.setProperty("--modal-origin-y", `${originY.toFixed(2)}%`);
+            return;
+          }
+        }
+      } catch (_) {}
+      card.style.removeProperty("--modal-origin-x");
+      card.style.removeProperty("--modal-origin-y");
     }
 
     function syncModalBackdropState() {
@@ -23811,6 +24157,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         if (!modal) return;
         state.modalDraftFilters = { ...state.filters };
         syncFilterForm(state.modalDraftFilters);
+        setModalOriginFromTrigger(modal, btnOpen);
         modal.classList.remove("hidden");
         modal.setAttribute("aria-hidden", "false");
         syncModalBackdropState();
@@ -23837,8 +24184,17 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       if (btnApply) btnApply.addEventListener("click", () => {
         const nextFilters = readFilterForm(state.modalDraftFilters || state.filters);
         state.modalDraftFilters = nextFilters;
-        applyFilters(nextFilters, { immediate: true, reason: "modal-apply" });
+        // Optimistic update: fecha o modal e avisa "Filtros aplicados" na
+        // hora, sem esperar o round-trip de applyFilters/scheduleRefreshFromServer
+        // -- seguro aqui porque applyFilters ja atualiza state.filters e
+        // sincroniza o form de forma sincrona, antes do fetch assincrono.
+        // showLoadingToast:false evita o toast "Carregando dados..." (ver
+        // refreshFromServer) pisar por cima deste quase na mesma hora; uma
+        // falha de rede continua visivel via o banner #bootError
+        // (updateBootError), nao fica silenciosa.
+        applyFilters(nextFilters, { immediate: true, reason: "modal-apply", showLoadingToast: false });
         closeModal();
+        showToast("Filtros aplicados.", "success");
       });
       if (btnReset) btnReset.addEventListener("click", () => {
         const defaultRange = getDefaultDashboardDateRange();
