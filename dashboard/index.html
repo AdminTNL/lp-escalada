@@ -6650,6 +6650,29 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
        supabase/functions/destaques_engajamento/ e o plano em
        paginas/dashboard-escalada/README.md). Reusa .card/.chip/.metric/
        .insight-list ja existentes; so o essencial de layout entra aqui. */
+
+    /* Tokens OKLCH locais (so' pros acentos desta pagina -- violeta de
+       hover/drag/foco e vermelho do badge "Inativo"). Mesma luminosidade/
+       croma entre as variantes (so muda o alpha), pra qualquer estado novo
+       que precise do mesmo acento ficar perceptualmente consistente sem
+       escolher um rgba() aleatorio de novo. Valores calibrados pra bater
+       perto dos rgba() antigos que substituem (violeta ~ rgb(124,92,255),
+       vermelho claro ~ #ffb4b4) -- ainda nao confirmados em pixel real
+       nesta rodada (sem navegador disponivel); reconferir com /pixel-verify
+       antes de outra mudanca visual por cima. */
+    :root {
+      --destaque-accent: oklch(66% 0.21 295);
+      --destaque-accent-soft: oklch(66% 0.21 295 / 0.35);
+      --destaque-accent-ring: oklch(66% 0.21 295 / 0.65);
+      --destaque-danger: oklch(81% 0.12 18);
+      --destaque-danger-line: oklch(81% 0.12 18 / 0.35);
+    }
+
+    @keyframes destaqueCardEnter {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .destaque-card {
       position: relative;
       display: flex;
@@ -6657,15 +6680,36 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       padding: 1rem;
       align-items: flex-start;
       cursor: pointer;
+      transition: transform 0.18s cubic-bezier(.22, 1, .36, 1), box-shadow 0.18s ease;
     }
     .destaque-card:hover {
       box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+    }
+    .destaque-card:active {
+      transform: translateY(-1px) scale(0.99);
+    }
+    /* Stagger de entrada (so' na 1a carga de cada aba, ver destaqueCardHtml)
+       -- so' transform/opacity, nunca width/height/top/left. */
+    .destaque-card.is-entering {
+      animation: destaqueCardEnter 0.42s cubic-bezier(.22, 1, .36, 1) backwards;
+      animation-delay: calc(var(--destaque-card-i, 0) * 45ms);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .destaque-card, .destaque-card:hover, .destaque-card:active {
+        transition: none;
+        transform: none;
+      }
+      .destaque-card.is-entering {
+        animation: none;
+      }
     }
     .destaque-card-foto {
       width: 76px;
       height: 76px;
       border-radius: 9999px;
       object-fit: cover;
+      aspect-ratio: 1 / 1;
       flex-shrink: 0;
     }
     .destaque-card-foto-placeholder {
@@ -6675,6 +6719,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       background: rgba(255, 255, 255, 0.08);
       color: rgba(226, 233, 255, 0.5);
     }
+    /* Icone "user" de placeholder tem mais massa visual na metade de cima
+       (cabeca+ombros) -- nudge optico de 1px pra baixo pra ficar centrado
+       de verdade dentro do circulo, nao so matematicamente. */
+    .destaque-card-foto-placeholder svg,
+    .destaque-detail-foto svg {
+      transform: translateY(1px);
+    }
     .destaque-card-body {
       min-width: 0;
     }
@@ -6682,16 +6733,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-size: 1.08rem;
       font-weight: 700;
       line-height: 1.25;
+      letter-spacing: -0.012em;
       color: rgba(242, 246, 255, 0.97);
+      text-wrap: balance;
     }
     .destaque-card-local {
       font-size: 0.75rem;
+      line-height: 1.4;
       margin-top: 0.1rem;
       color: rgba(226, 233, 255, 0.52);
     }
     .destaque-card-descricao {
       margin-top: 0.35rem;
+      line-height: 1.5;
       color: rgba(226, 233, 255, 0.72);
+      text-wrap: pretty;
     }
     .destaque-card-badges {
       display: flex;
@@ -6701,6 +6757,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     }
     .destaque-badge {
       font-size: 0.7rem;
+      letter-spacing: 0.01em;
       white-space: normal;
       max-width: 100%;
       text-align: center;
@@ -6732,8 +6789,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       align-items: center;
       gap: 0.35rem;
       font-size: 0.72rem;
+      line-height: 1.4;
       color: rgba(226, 233, 255, 0.62);
       text-decoration: none;
+      transition: color 0.15s ease;
     }
     .destaque-detail-contato-item:hover {
       color: rgba(226, 233, 255, 0.95);
@@ -6751,6 +6810,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       text-align: left;
       padding: 0.4rem 0.5rem;
       border-radius: 0.5rem;
+      transition: background 0.12s ease;
     }
     .destaques-admin-busca-item:hover {
       background: rgba(255, 255, 255, 0.08);
@@ -6772,23 +6832,208 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       z-index: 2;
       transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
     }
+    /* Touch target real de ~44x44 sem aumentar o circulo visual (28px) --
+       area de toque invisivel por cima via ::before, mesmo truque usado
+       pros botoes do modal mais abaixo. */
+    .destaque-card-edit-btn::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
+    }
     .destaque-card-edit-btn:hover {
-      background: rgba(124, 92, 255, 0.35);
+      background: var(--destaque-accent-soft);
       color: #fff;
       transform: scale(1.06);
     }
     .destaque-card[draggable="true"] {
       cursor: grab;
     }
+    .destaque-card[draggable="true"]:active {
+      cursor: grabbing;
+    }
+    /* Affordance de "isto arrasta" -- grip discreto que só aparece no
+       hover/focus de um card arrastável (admin). O card inteiro continua
+       sendo a origem do drag (draggable="true" nele, não só no grip) --
+       isto é só o sinal visual, não restringe de onde o arrasto começa. */
+    .destaque-card-drag-handle {
+      position: absolute;
+      top: 0.55rem;
+      right: 0.55rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      color: rgba(226, 233, 255, 0.38);
+      opacity: 0;
+      transform: translateY(-2px);
+      transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+      pointer-events: none;
+    }
+    .destaque-card[draggable="true"]:hover .destaque-card-drag-handle,
+    .destaque-card[draggable="true"]:focus-visible .destaque-card-drag-handle {
+      opacity: 1;
+      transform: translateY(0);
+      color: rgba(226, 233, 255, 0.7);
+    }
     .destaque-card.is-dragging {
       opacity: 0.45;
     }
     .destaque-card.is-drag-over {
-      box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.65);
+      box-shadow: 0 0 0 2px var(--destaque-accent-ring);
+    }
+    /* FLIP de reordenar (handleDestaqueDrop/destaquesPlayFlip) -- so'
+       transform, interrompivel por natureza (um novo drop recalcula a
+       posicao atual de verdade em vez de confiar num estado guardado). */
+    .destaque-card.is-flipping {
+      transition: transform 0.32s cubic-bezier(.22, 1, .36, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .destaque-card.is-flipping {
+        transition: none !important;
+        transform: none !important;
+      }
     }
     .destaque-badge-inativo {
-      color: #ffb4b4;
-      border-color: rgba(255, 138, 138, 0.35);
+      color: var(--destaque-danger);
+      border-color: var(--destaque-danger-line);
+    }
+
+    /* Skeleton de carregamento da grade -- mesma forma/altura do card real
+       (foto 76px + 3 linhas de texto) pra nao causar layout shift quando a
+       resposta chega e os cards reais substituem o placeholder. Reusa a
+       animacao .skeleton (shimmer) ja definida mais acima no arquivo. */
+    .destaque-card-skeleton {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      align-items: flex-start;
+    }
+    .destaque-card-skeleton .skeleton-foto {
+      width: 76px;
+      height: 76px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+    .destaque-card-skeleton .skeleton-line {
+      height: 0.8rem;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+    .destaque-card-skeleton .skeleton-line:first-child {
+      margin-top: 0;
+    }
+
+    /* Modal de detalhe/criacao de destaque -- regras aqui sao todas
+       escopadas por #destaqueDetailModal/IDs internos de proposito, pra
+       nunca mexer no visual de .modal-backdrop/.modal-card compartilhado
+       pelos outros modais do dashboard (filtro, fonte, onboarding etc). */
+
+    /* Safe area: o modal e' position:fixed + padding fixo de 20px (regra
+       generica .modal-backdrop) -- em iOS com notch/home indicator isso
+       pode empurrar o card de verdade embaixo da safe area. Soma (nunca
+       substitui) o inset de safe area quando ele existe. */
+    #destaqueDetailModal {
+      padding-top: max(20px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
+    }
+
+    /* Origin-aware entrance: o modal "nasce" do card/botao que foi clicado
+       em vez de so' aparecer no centro -- ver applyDestaqueModalOriginAnimation.
+       So' transform/opacity (nunca width/height/top/left); a transicao em
+       si fica na regra de repouso, pra interpolar suave quando .is-entering
+       e' removida (o "from" precisa pintar sem transicao antes disso, ver
+       o double-rAF no JS). */
+    #destaqueDetailModal .modal-card {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+      transition: transform 280ms cubic-bezier(.22, 1, .36, 1), opacity 220ms ease;
+    }
+    #destaqueDetailModal.is-entering .modal-card {
+      transform: translate(var(--destaque-modal-dx, 0px), var(--destaque-modal-dy, 0px)) scale(var(--destaque-modal-scale, 1));
+      opacity: 0;
+      transition: none;
+    }
+    #destaqueDetailModal.is-leaving .modal-card {
+      transition: transform 140ms ease, opacity 140ms ease;
+      transform: scale(0.97);
+      opacity: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #destaqueDetailModal .modal-card,
+      #destaqueDetailModal.is-leaving .modal-card {
+        transition: opacity 120ms linear;
+        transform: none;
+      }
+      #destaqueDetailModal.is-entering .modal-card {
+        transform: none;
+      }
+    }
+
+    /* Tracking/widow do nome e do titulo (kerning de titulo grande + evitar
+       linha orfa no nome, que pode ser bem curto e quebrar feio em 2
+       linhas desbalanceadas dentro dos 560px do modal). */
+    #destaqueDetailNome {
+      letter-spacing: -0.012em;
+      text-wrap: balance;
+    }
+    #destaqueDetailTitle {
+      letter-spacing: -0.01em;
+    }
+
+    /* Leading + comprimento de linha (~45-75 caracteres) do texto corrido
+       "Sobre", e text-wrap:pretty pra nao deixar palavra orfa sozinha na
+       ultima linha de um paragrafo mais longo. */
+    #destaqueDetailDescricao {
+      line-height: 1.7;
+      max-width: 62ch;
+      text-wrap: pretty;
+    }
+
+    /* Numeros que mudam/comparam entre si (KPIs do cabecalho do modal) --
+       tabular, pra "30" e "108" alinharem o algarismo em vez de dancarem de
+       largura conforme o digito. Escopado so' pro KPI row deste modal, sem
+       tocar .metric .value compartilhado pelo resto do dashboard. */
+    #destaqueDetailKpiRow .metric .value {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Touch target ~44px nos botoes do modal, sem reestilizar .btn/.btn-sm
+       (compartilhados) -- so' garante a area minima via min-height/width
+       nos IDs especificos. */
+    #btnCloseDestaqueDetail {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    #btnDestaqueDetailEditar,
+    #btnDestaqueDetailRemover,
+    #btnDestaqueDetailCancelar,
+    #btnDestaqueDetailSalvar {
+      min-height: 44px;
+    }
+
+    /* Progressive disclosure ("ver mais"/"ver todas") do modo "ver" --
+       texto pequeno, mono, no mesmo tom de acento do resto do modal. */
+    .destaque-detail-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.4rem;
+      padding: 0;
+      border: 0;
+      background: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--destaque-accent);
+      cursor: pointer;
+      min-height: 28px;
+    }
+    .destaque-detail-toggle-btn:hover {
+      text-decoration: underline;
     }
 
     /* =========================================================
@@ -10556,6 +10801,18 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       // selecionada, filtra client-side pro MESMO recorte que o gestor
       // daquele estado vê (ativos, só a UF) -- ver destaquesVisibleItems.
       destaquesAdminUfView: "",
+      // Refino visual (ver destaqueCardHtml/renderDestaquesPage): cards
+      // entram com stagger (fade+slide) só na 1ª vez que cada aba carrega
+      // com itens -- Set de públicos que já tiveram a entrada animada, pra
+      // re-renders seguintes (drag, salvar, trocar de aba de volta) não
+      // dispararem o fade de novo, o que colidiria com a animação FLIP de
+      // reordenar (handleDestaqueDrop).
+      destaquesEnteredTabs: new Set(),
+      // Progressive disclosure do modal de detalhe ("ver mais" de
+      // descrição/conquistas) -- resetado a cada abertura, ver
+      // openDestaqueDetailModal/openDestaqueCreateModal.
+      destaquesDetailDescExpanded: false,
+      destaquesDetailConquistasExpanded: false,
       meusConvitesStatus: "idle",
       meusConvites: [],
       meusConvitesError: "",
@@ -17226,7 +17483,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const regionaisLinksModal = document.getElementById("regionaisLinksModal");
       const tourInviteModal = document.getElementById("sourcesTourInviteModal");
       const gestorWelcomeModal = document.getElementById("gestorWelcomeModal");
-      const hasOpenModal = [filterModal, ufModal, sourceModal, postModal, regionaisLinksModal, tourInviteModal, gestorWelcomeModal].some((el) => el && !el.classList.contains("hidden"));
+      // destaqueDetailModal entrou aqui porque faltava (chamava
+      // syncModalBackdropState() nos 3 pontos de abrir/fechar, mas nao
+      // travava o scroll do fundo igual aos outros modais -- unica mudanca
+      // nesta funcao compartilhada, so' soma o id a lista, nao toca em
+      // nenhum outro modal).
+      const destaqueModal = document.getElementById("destaqueDetailModal");
+      const hasOpenModal = [filterModal, ufModal, sourceModal, postModal, regionaisLinksModal, tourInviteModal, gestorWelcomeModal, destaqueModal].some((el) => el && !el.classList.contains("hidden"));
       document.body.classList.toggle("modal-open", hasOpenModal);
     }
 
@@ -18687,10 +18950,32 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return `<div class="meus-convites-empty-state">${escapeHtml(message)}</div>`;
     }
 
-    function destaqueCardHtml(item) {
+    // Skeleton com a MESMA forma do card real (foto circular 76px + 3
+    // linhas) -- substitui o antigo texto solto de "Carregando..." pra o
+    // grid nao pular de altura quando os cards reais chegarem (CLS).
+    function destaquesSkeletonGridHtml(count = 6) {
+      const card = `
+        <div class="card destaque-card-skeleton" aria-hidden="true">
+          <div class="skeleton skeleton-foto"></div>
+          <div class="destaque-card-body" style="width:100%">
+            <div class="skeleton skeleton-line" style="width:55%"></div>
+            <div class="skeleton skeleton-line" style="width:35%"></div>
+            <div class="skeleton skeleton-line" style="width:90%"></div>
+          </div>
+        </div>
+      `;
+      return card.repeat(count);
+    }
+
+    // entering=true so' na 1a vez que a aba carrega com itens (ver
+    // renderDestaquesPage) -- dispara o stagger de entrada; em qualquer
+    // outro render (trocar de UF do admin, salvar, reordenar) os cards
+    // aparecem direto, sem fade, pra nao brigar com a animacao de FLIP do
+    // drag-and-drop (destaquesPlayFlip).
+    function destaqueCardHtml(item, index, entering) {
       const admin = isAdminDestaques();
       const foto = item.foto_url
-        ? `<img src="${escapeHtml(item.foto_url)}" alt="${escapeHtml(item.nome || "")}" loading="lazy" class="destaque-card-foto" />`
+        ? `<img src="${escapeHtml(item.foto_url)}" alt="${escapeHtml(item.nome || "")}" loading="lazy" decoding="async" class="destaque-card-foto" />`
         : `<div class="destaque-card-foto destaque-card-foto-placeholder"><i data-lucide="user" class="w-8 h-8"></i></div>`;
       const badges = [];
       if (admin && item.ativo === false) {
@@ -18704,8 +18989,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const editBtn = admin
         ? `<button type="button" class="destaque-card-edit-btn" data-destaque-edit="${circleId}" title="Editar destaque" aria-label="Editar destaque"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>`
         : "";
+      // So' affordance visual (grip) de que o card e' arrastavel -- o drag
+      // em si continua comecando em qualquer ponto do card (draggable="true"
+      // esta no .destaque-card, nao aqui), ver handleDestaqueDragStart.
+      const dragHandle = admin
+        ? `<span class="destaque-card-drag-handle" aria-hidden="true"><i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i></span>`
+        : "";
+      const enterClass = entering ? " is-entering" : "";
+      const enterStyle = entering ? ` style="--destaque-card-i:${Number(index) || 0}"` : "";
       return `
-        <div class="card destaque-card" data-destaque-circle-id="${circleId}" data-destaque-id="${escapeHtml(String(item.id))}" role="button" tabindex="0"${admin ? ' draggable="true"' : ""}>
+        <div class="card destaque-card${enterClass}" data-destaque-circle-id="${circleId}" data-destaque-id="${escapeHtml(String(item.id))}" role="button" tabindex="0"${admin ? ' draggable="true"' : ""}${enterStyle}>
           ${foto}
           <div class="destaque-card-body">
             <div class="destaque-card-nome">${escapeHtml(item.nome || "")}</div>
@@ -18713,6 +19006,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             <div class="destaque-card-descricao text-sm">${escapeHtml(item.descricao_curta || "")}</div>
             ${badges.length ? `<div class="destaque-card-badges">${badges.join("")}</div>` : ""}
           </div>
+          ${dragHandle}
           ${editBtn}
         </div>
       `;
@@ -18757,7 +19051,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const publico = state.destaquesTab;
       const status = state.destaquesStatus[publico];
       if (status === "loading" || status === "idle") {
-        grid.innerHTML = destaquesEmptyStateHtml("Carregando destaques...");
+        // Skeleton com a forma do card real, nao texto solto -- evita CLS
+        // quando os cards de verdade substituem o placeholder.
+        grid.innerHTML = destaquesSkeletonGridHtml();
       } else if (status === "error") {
         grid.innerHTML = destaquesEmptyStateHtml(state.destaquesError[publico] || "Não foi possível carregar os destaques agora.");
       } else {
@@ -18766,7 +19062,14 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         const emptyMsg = isAdminDestaques() && state.destaquesAdminUfView
           ? `Nenhum ${nomePublico} em destaque ativo em ${state.destaquesAdminUfView} ainda.`
           : `Nenhum ${nomePublico} em destaque ainda.`;
-        grid.innerHTML = items.length ? items.map(destaqueCardHtml).join("") : destaquesEmptyStateHtml(emptyMsg);
+        // Stagger de entrada so' na 1a vez que esta aba populou com itens
+        // (ver destaqueCardHtml) -- re-renders seguintes (reordenar, salvar,
+        // trocar UF do admin) nao re-disparam o fade.
+        const entering = items.length > 0 && !state.destaquesEnteredTabs.has(publico);
+        if (entering) state.destaquesEnteredTabs.add(publico);
+        grid.innerHTML = items.length
+          ? items.map((item, index) => destaqueCardHtml(item, index, entering)).join("")
+          : destaquesEmptyStateHtml(emptyMsg);
       }
       renderIconsNow();
     }
@@ -18806,6 +19109,59 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       card.classList.remove("is-drag-over");
     }
 
+    // FLIP (First/Last/Invert/Play) do reordenar: le a posicao ATUAL de
+    // cada card na tela (nunca um estado guardado de uma jogada anterior),
+    // deixa o render normal acontecer, e anima so' a diferenca via
+    // transform -- por isso e' naturalmente interrompivel/reversivel: um
+    // 2o drop no meio da animacao do 1o simplesmente le as posicoes de
+    // verdade de novo (ja em transicao) e recomeca o FLIP a partir dali,
+    // sem salto. Nunca anima width/height/top/left.
+    function destaquesSnapshotCardRects() {
+      const rects = new Map();
+      document.querySelectorAll("#destaquesGrid .destaque-card[data-destaque-id]").forEach((el) => {
+        rects.set(el.getAttribute("data-destaque-id"), el.getBoundingClientRect());
+      });
+      return rects;
+    }
+    function destaquesPlayFlip(prevRects) {
+      if (!prevRects || !prevRects.size) return;
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) return;
+      const cards = document.querySelectorAll("#destaquesGrid .destaque-card[data-destaque-id]");
+      cards.forEach((el) => {
+        const id = el.getAttribute("data-destaque-id");
+        const before = prevRects.get(id);
+        if (!before) return;
+        const after = el.getBoundingClientRect();
+        const dx = before.left - after.left;
+        const dy = before.top - after.top;
+        if (!dx && !dy) return;
+        // transition inline (nao so' via .is-flipping no CSS) de proposito:
+        // um estilo inline sempre vence a regra da classe por cascata, e
+        // precisamos garantir "none" no frame 0 (estado "from" sem animar)
+        // e so' depois trocar pra a transicao de verdade -- se deixassemos
+        // so' a classe cuidar disso, o "none" inline nunca seria substituido
+        // e o card saltaria direto pro destino sem animar.
+        el.classList.add("is-flipping");
+        el.style.transition = "none";
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        // Double rAF: garante que o "from" pinta pelo menos 1 frame antes
+        // de trocar a transition/transform de verdade (mesmo truque do
+        // applyDestaqueModalOriginAnimation).
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.style.transition = "transform 0.32s cubic-bezier(.22, 1, .36, 1)";
+            el.style.transform = "translate(0, 0)";
+          });
+        });
+        el.addEventListener("transitionend", () => {
+          el.classList.remove("is-flipping");
+          el.style.transition = "";
+          el.style.transform = "";
+        }, { once: true });
+      });
+    }
+
     function handleDestaqueDrop(e, card) {
       e.preventDefault();
       card.classList.remove("is-drag-over");
@@ -18825,7 +19181,9 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const [moved] = visible.splice(fromIdx, 1);
       visible.splice(toIdx, 0, moved);
       state.destaquesItems[publico] = destaquesMergeVisibleOrder(publico, visible);
+      const prevRects = destaquesSnapshotCardRects();
       renderDestaquesPage();
+      destaquesPlayFlip(prevRects);
       persistDestaquesReorder(publico);
     }
 
@@ -18853,7 +19211,44 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
     }
 
-    async function openDestaqueDetailModal(circleId, { mode = "view" } = {}) {
+    // Origin-aware: o modal "nasce" do card/botao que o usuario clicou em
+    // vez de so' aparecer no centro da tela. originRect e' a rect (DOMRect
+    // ou null) do elemento de origem, capturada no handler de clique ANTES
+    // de abrir (ver wiring de destaquesGrid/destaquesNovoBtn). So' mexe em
+    // transform/opacity via as custom properties que a regra CSS de
+    // #destaqueDetailModal.is-entering consome.
+    function applyDestaqueModalOriginAnimation(originRect) {
+      const modal = document.getElementById("destaqueDetailModal");
+      const cardEl = modal && modal.querySelector(".modal-card");
+      if (!modal || !cardEl) return;
+      modal.classList.remove("is-leaving");
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      cardEl.style.removeProperty("--destaque-modal-dx");
+      cardEl.style.removeProperty("--destaque-modal-dy");
+      cardEl.style.removeProperty("--destaque-modal-scale");
+      modal.classList.remove("is-entering");
+      if (reduceMotion || !originRect || !originRect.width || !originRect.height) return;
+      const targetRect = cardEl.getBoundingClientRect();
+      if (!targetRect.width || !targetRect.height) return;
+      const dx = (originRect.left + originRect.width / 2) - (targetRect.left + targetRect.width / 2);
+      const dy = (originRect.top + originRect.height / 2) - (targetRect.top + targetRect.height / 2);
+      const scale = Math.min(1, Math.max(0.35, originRect.width / targetRect.width));
+      cardEl.style.setProperty("--destaque-modal-dx", `${dx}px`);
+      cardEl.style.setProperty("--destaque-modal-dy", `${dy}px`);
+      cardEl.style.setProperty("--destaque-modal-scale", String(scale));
+      modal.classList.add("is-entering");
+      // Double rAF: garante que o estado "de onde vem" (is-entering, sem
+      // transicao) pinta pelo menos 1 frame antes de remover a classe --
+      // sem isso o navegador pode colapsar os dois estados no mesmo frame
+      // e a transicao nunca roda.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          modal.classList.remove("is-entering");
+        });
+      });
+    }
+
+    async function openDestaqueDetailModal(circleId, { mode = "view" } = {}, originRect = null) {
       const modal = document.getElementById("destaqueDetailModal");
       if (!modal) return;
       const editMode = mode === "edit" && isAdminDestaques();
@@ -18861,10 +19256,13 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       state.destaquesDetail = null;
       state.destaquesDetailMode = editMode ? "edit" : "view";
       state.destaquesDetailParticipante = null;
+      state.destaquesDetailDescExpanded = false;
+      state.destaquesDetailConquistasExpanded = false;
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       syncModalBackdropState();
       renderDestaqueDetailModal();
+      applyDestaqueModalOriginAnimation(originRect);
       try {
         const raw = await callDashboardApi("destaques_detalhe", { circle_id: circleId, email: gestorEmail() });
         const payload = unwrapApiPayload(raw);
@@ -18886,7 +19284,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     // circle_id ainda: comeca pela busca de participante
     // (destaqueDetailSelecionarParticipante preenche o resto quando um
     // resultado e' escolhido).
-    function openDestaqueCreateModal() {
+    function openDestaqueCreateModal(originRect = null) {
       if (!isAdminDestaques()) return;
       const modal = document.getElementById("destaqueDetailModal");
       if (!modal) return;
@@ -18895,29 +19293,47 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       state.destaquesDetailMode = "create";
       state.destaquesDetailParticipante = null;
       state.destaquesDetailUploadUrl = "";
+      state.destaquesDetailDescExpanded = false;
+      state.destaquesDetailConquistasExpanded = false;
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       syncModalBackdropState();
       renderDestaqueDetailModal();
+      applyDestaqueModalOriginAnimation(originRect);
       const buscaInput = document.getElementById("destaqueDetailBuscaInput");
       if (buscaInput) { buscaInput.value = ""; buscaInput.focus(); }
       const resultsEl = document.getElementById("destaqueDetailBuscaResultados");
       if (resultsEl) resultsEl.innerHTML = "";
     }
 
+    // Fecha com uma saida curta (fade+scale-down, so' transform/opacity) em
+    // vez de so' sumir -- ver regra #destaqueDetailModal.is-leaving. Com
+    // prefers-reduced-motion, pula direto pro estado final.
     function closeDestaqueDetailModal() {
       const modal = document.getElementById("destaqueDetailModal");
       if (!modal) return;
-      modal.classList.add("hidden");
-      modal.setAttribute("aria-hidden", "true");
-      state.destaquesDetailStatus = "idle";
-      state.destaquesDetail = null;
-      state.destaquesDetailMode = "view";
-      state.destaquesDetailParticipante = null;
-      state.destaquesDetailUploadUrl = "";
-      const form = document.getElementById("destaqueDetailForm");
-      if (form) form.reset();
-      syncModalBackdropState();
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const finishClose = () => {
+        // Guarda contra reabertura rapida: se o modal foi reaberto dentro
+        // da janela de 140ms (applyDestaqueModalOriginAnimation ja removeu
+        // "is-leaving" nesse caso), este finishClose atrasado nao deve
+        // fechar/zerar o modal que acabou de abrir com dados novos.
+        if (!reduceMotion && !modal.classList.contains("is-leaving")) return;
+        modal.classList.add("hidden");
+        modal.classList.remove("is-leaving");
+        modal.setAttribute("aria-hidden", "true");
+        state.destaquesDetailStatus = "idle";
+        state.destaquesDetail = null;
+        state.destaquesDetailMode = "view";
+        state.destaquesDetailParticipante = null;
+        state.destaquesDetailUploadUrl = "";
+        const form = document.getElementById("destaqueDetailForm");
+        if (form) form.reset();
+        syncModalBackdropState();
+      };
+      if (reduceMotion) { finishClose(); return; }
+      modal.classList.add("is-leaving");
+      setTimeout(finishClose, 140);
     }
 
     // Volta do modo "editar" pro modo "ver" sem fechar o modal nem recarregar
@@ -18984,6 +19400,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         linhas.push(`<a class="destaque-detail-contato-item" href="tel:+55${digits}"><i data-lucide="phone" class="w-3.5 h-3.5"></i>${escapeHtml(formatarTelefoneBR(d.telefone))}</a>`);
       }
       return linhas.join("");
+    }
+
+    // Progressive disclosure do modo "ver" (destaqueDetailDescricao/
+    // destaqueDetailConquistas) -- limiares escolhidos pra caber
+    // confortavelmente sem "ver mais" na maioria dos destaques curtos de
+    // hoje, so' aparecendo quando o conteudo e' de fato longo.
+    const DESTAQUE_DESC_TRUNCATE_LEN = 220;
+    const DESTAQUE_CONQUISTAS_TRUNCATE_COUNT = 4;
+    function destaqueDetailToggleDesc() {
+      state.destaquesDetailDescExpanded = !state.destaquesDetailDescExpanded;
+      renderDestaqueDetailModal();
+    }
+    function destaqueDetailToggleConquistas() {
+      state.destaquesDetailConquistasExpanded = !state.destaquesDetailConquistasExpanded;
+      renderDestaqueDetailModal();
     }
 
     function renderDestaqueDetailModal() {
@@ -19054,7 +19485,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const fotoEl = document.getElementById("destaqueDetailFoto");
       if (fotoEl) {
         fotoEl.innerHTML = d.foto_url
-          ? `<img src="${escapeHtml(d.foto_url)}" alt="${escapeHtml(d.nome || "")}" />`
+          ? `<img src="${escapeHtml(d.foto_url)}" alt="${escapeHtml(d.nome || "")}" decoding="async" />`
           : `<i data-lucide="user" class="w-8 h-8"></i>`;
       }
 
@@ -19067,11 +19498,29 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
       toggle("destaqueDetailForm", false);
       toggle("destaqueDetailViewExtra", true);
-      setText("destaqueDetailDescricao", d.descricao_completa || d.descricao_curta || "");
+
+      // Progressive disclosure: descricao longa e lista de conquistas
+      // grande comecam truncadas, com "ver mais"/"ver todas" pra revelar o
+      // resto -- ver destaqueDetailToggleDesc/destaqueDetailToggleConquistas
+      // e os 2 estados em state.destaquesDetail*Expanded (resetados a cada
+      // abertura do modal).
+      const descricaoFull = d.descricao_completa || d.descricao_curta || "";
+      const descExpanded = state.destaquesDetailDescExpanded || descricaoFull.length <= DESTAQUE_DESC_TRUNCATE_LEN;
+      setText("destaqueDetailDescricao", descExpanded ? descricaoFull : `${descricaoFull.slice(0, DESTAQUE_DESC_TRUNCATE_LEN).trim()}…`);
+      const descToggleBtn = document.getElementById("btnDestaqueDetailDescToggle");
+      toggle("btnDestaqueDetailDescToggle", descricaoFull.length > DESTAQUE_DESC_TRUNCATE_LEN);
+      if (descToggleBtn) descToggleBtn.textContent = descExpanded ? "Ver menos" : "Ver mais";
+
       const conquistas = Array.isArray(d.conquistas_manual) ? d.conquistas_manual : [];
-      setHtml("destaqueDetailConquistas", conquistas.length
-        ? conquistas.map((c) => `<li>${escapeHtml(c)}</li>`).join("")
+      const conquistasExpanded = state.destaquesDetailConquistasExpanded || conquistas.length <= DESTAQUE_CONQUISTAS_TRUNCATE_COUNT;
+      const conquistasShown = conquistasExpanded ? conquistas : conquistas.slice(0, DESTAQUE_CONQUISTAS_TRUNCATE_COUNT);
+      setHtml("destaqueDetailConquistas", conquistasShown.length
+        ? conquistasShown.map((c) => `<li>${escapeHtml(c)}</li>`).join("")
         : `<li class="text-sm text-slate-500">Sem conquistas adicionais registradas.</li>`);
+      const conquistasToggleBtn = document.getElementById("btnDestaqueDetailConquistasToggle");
+      toggle("btnDestaqueDetailConquistasToggle", conquistas.length > DESTAQUE_CONQUISTAS_TRUNCATE_COUNT);
+      if (conquistasToggleBtn) conquistasToggleBtn.textContent = conquistasExpanded ? "Ver menos" : `Ver todas (${conquistas.length})`;
+
       toggle("destaqueDetailViewActions", isAdminDestaques());
       renderIconsNow();
     }
@@ -26292,7 +26741,8 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       const destaquesNovoBtn = document.getElementById("destaquesNovoBtn");
       if (destaquesNovoBtn && !destaquesNovoBtn.dataset.bound) {
         destaquesNovoBtn.dataset.bound = "1";
-        destaquesNovoBtn.addEventListener("click", openDestaqueCreateModal);
+        // Origin-aware: o modal nasce do proprio botao "+ Novo destaque".
+        destaquesNovoBtn.addEventListener("click", () => openDestaqueCreateModal(destaquesNovoBtn.getBoundingClientRect()));
       }
 
       // ---- Destaques de Engajamento ----
@@ -26307,17 +26757,20 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         destaquesGrid.addEventListener("click", (e) => {
           const editBtn = e.target.closest("[data-destaque-edit]");
           if (editBtn) {
-            openDestaqueDetailModal(editBtn.getAttribute("data-destaque-edit"), { mode: "edit" });
+            // Origin-aware: usa a rect do CARD (maior/mais representativa),
+            // nao do botaozinho de lapis, pra entrada do modal.
+            const editCard = editBtn.closest(".destaque-card");
+            openDestaqueDetailModal(editBtn.getAttribute("data-destaque-edit"), { mode: "edit" }, editCard ? editCard.getBoundingClientRect() : null);
             return;
           }
           const card = e.target.closest("[data-destaque-circle-id]");
-          if (card) openDestaqueDetailModal(card.getAttribute("data-destaque-circle-id"));
+          if (card) openDestaqueDetailModal(card.getAttribute("data-destaque-circle-id"), {}, card.getBoundingClientRect());
         });
         destaquesGrid.addEventListener("keydown", (e) => {
           if (e.key !== "Enter" && e.key !== " ") return;
           if (e.target.closest("[data-destaque-edit]")) return;
           const card = e.target.closest("[data-destaque-circle-id]");
-          if (card) { e.preventDefault(); openDestaqueDetailModal(card.getAttribute("data-destaque-circle-id")); }
+          if (card) { e.preventDefault(); openDestaqueDetailModal(card.getAttribute("data-destaque-circle-id"), {}, card.getBoundingClientRect()); }
         });
         // Reordenar por arrastar-e-soltar (so dispara de verdade pra cards
         // draggable=true, ou seja, so quando quem esta logado e' admin --
@@ -26398,6 +26851,10 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       }
       const btnDestaqueDetailEditar = document.getElementById("btnDestaqueDetailEditar");
       if (btnDestaqueDetailEditar) btnDestaqueDetailEditar.addEventListener("click", startDestaqueDetailEdit);
+      const btnDestaqueDetailDescToggle = document.getElementById("btnDestaqueDetailDescToggle");
+      if (btnDestaqueDetailDescToggle) btnDestaqueDetailDescToggle.addEventListener("click", destaqueDetailToggleDesc);
+      const btnDestaqueDetailConquistasToggle = document.getElementById("btnDestaqueDetailConquistasToggle");
+      if (btnDestaqueDetailConquistasToggle) btnDestaqueDetailConquistasToggle.addEventListener("click", destaqueDetailToggleConquistas);
 
       if (btnBootLoadingRetry) {
         btnBootLoadingRetry.addEventListener("click", () => {
@@ -27630,15 +28087,20 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         </div>
       </div>
 
-      <!-- modo "ver": conteudo so leitura -->
+      <!-- modo "ver": conteudo so leitura. Progressive disclosure: "Sobre"/
+           "Conquistas" comecam truncados quando longos, com um botao "ver
+           mais"/"ver todas" pra revelar o resto (ver renderDestaqueDetailModal/
+           destaqueDetailToggleDesc/destaqueDetailToggleConquistas). -->
       <div id="destaqueDetailViewExtra" class="hidden">
         <div class="mt-4">
           <h3 class="text-sm font-semibold" style="color:rgba(242,246,255,.94)">Sobre</h3>
           <p id="destaqueDetailDescricao" class="text-sm mt-2"></p>
+          <button type="button" id="btnDestaqueDetailDescToggle" class="destaque-detail-toggle-btn hidden">Ver mais</button>
         </div>
         <div class="mt-4">
           <h3 class="text-sm font-semibold" style="color:rgba(242,246,255,.94)">Conquistas</h3>
           <ul id="destaqueDetailConquistas" class="insight-list mt-2"></ul>
+          <button type="button" id="btnDestaqueDetailConquistasToggle" class="destaque-detail-toggle-btn hidden">Ver mais</button>
         </div>
         <div id="destaqueDetailViewActions" class="mt-4 hidden">
           <button type="button" id="btnDestaqueDetailEditar" class="btn btn-outline btn-sm">
