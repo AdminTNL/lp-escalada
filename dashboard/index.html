@@ -3500,6 +3500,16 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-size: 0.68rem;
     }
 
+    /* Contagens mudam de categoria pra categoria -- algarismos de largura
+       fixa evitam o chip "respirar" de largura ao trocar (tabular nums). */
+    [data-page="kit"] .chip.soft {
+      font-variant-numeric: tabular-nums;
+    }
+
+    [data-page="kit"] .section-title {
+      text-wrap: balance;
+    }
+
     .kit-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -3534,6 +3544,15 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      /* Reserva o espaco inteiro via aspect-ratio do .kit-thumb (nao
+         muda) -- o fade so evita o "pop" abrupto da imagem chegando,
+         sem nenhum layout shift (opacity, nunca width/height). */
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .kit-thumb img.is-loaded {
+      opacity: 1;
     }
 
     .kit-thumb .kit-thumb-fallback {
@@ -3552,16 +3571,79 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       font-weight: 600;
       color: var(--ink-strong);
       font-size: 0.92rem;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+      text-wrap: balance;
     }
 
     .kit-card-desc {
       color: var(--ink-soft);
       font-size: 0.8rem;
+      line-height: 1.5;
       flex: 1;
+      text-wrap: pretty;
+    }
+
+    /* Progressive disclosure: descricao longa fica em 2 linhas por
+       padrao, "Ver mais" revela o resto -- o card nao precisa crescer
+       so pra caber um texto que a maioria nunca le inteiro. */
+    .kit-card-desc.is-clamped {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .kit-card-desc.is-clamped.is-expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+
+    .kit-desc-toggle {
+      align-self: flex-start;
+      position: relative;
+      background: none;
+      border: 0;
+      padding: 7px 2px;
+      margin: -5px -2px -5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--brand-green-2);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* Area de toque real de ~44px sem alargar o texto visualmente --
+       o ::after invisivel estende o alvo clicavel pra alem da borda. */
+    .kit-desc-toggle::after {
+      content: "";
+      position: absolute;
+      inset: -10px -6px;
     }
 
     .kit-card-actions {
       margin-top: 10px;
+    }
+
+    /* Botoes de acao do card (baixar/abrir) tem ~34px de altura visual
+       -- o ::after invisivel garante alvo de toque >=44px sem inflar o
+       botao no layout (so o hitbox cresce, nao o visual). */
+    .kit-card-actions .btn {
+      position: relative;
+    }
+
+    .kit-card-actions .btn::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+    }
+
+    .kit-card-actions .btn.is-success {
+      background: rgba(0, 217, 93, 0.16);
+      border-color: rgba(0, 217, 93, 0.42);
+      color: var(--brand-green-2);
     }
 
     .kit-empty-state,
@@ -3607,7 +3689,29 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       gap: 16px;
     }
 
+    /* Entrada em cascata (stagger) -- cada card "--i" recebe um atraso
+       incremental curto, so transform+opacity. Os nodes sao recriados a
+       cada renderKitPage(), entao a animacao roda de novo sozinha tanto
+       ao entrar na grade quanto ao voltar pra ela (sem JS extra). */
+    @keyframes kit-card-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .kit-category-card,
+    .kit-card {
+      animation: kit-card-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: calc(var(--i, 0) * 35ms);
+    }
+
     .kit-category-card {
+      position: relative;
       border: 1px solid var(--line);
       background: var(--surface-soft);
       border-radius: 18px;
@@ -3618,6 +3722,20 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       display: flex;
       flex-direction: column;
       transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.18s ease;
+    }
+
+    /* Faixa fina de cor (OKLCH, mesmo lightness/chroma pra qualquer hue)
+       pra diferenciar categorias num scaneio rapido -- so decorativa,
+       nunca usada em texto/numero (sem risco de parecer status/alerta).
+       Hue calculado em JS (kitAccentHue) e restrito a 120-280deg pra
+       ficar na mesma familia verde->azul->violeta da marca. */
+    .kit-category-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--kit-accent, var(--brand-green-2));
+      opacity: 0.85;
     }
 
     .kit-category-card:hover {
@@ -3642,6 +3760,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .kit-category-cover img.is-loaded {
+      opacity: 1;
     }
 
     .kit-category-cover .kit-thumb-fallback {
@@ -3653,21 +3777,61 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       align-items: center;
       gap: 10px;
       padding: 12px 14px;
+      min-height: 44px;
     }
 
+    /* Nome do formato em até 2 linhas (balanceadas) em vez de truncar
+       com "..." -- nomes mais longos ("Caderneta e ecobag") continuam
+       legíveis por completo em vez de cortados. */
     .kit-category-label {
       flex: 1;
       min-width: 0;
       font-weight: 600;
       font-size: 0.9rem;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
       color: var(--ink-strong);
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-wrap: balance;
+    }
+
+    /* Seta de affordance: sinaliza "isso abre um detalhe" sem depender
+       só do cursor. Nasce discreta e "aponta pro clique" no hover
+       (transform apenas, nunca left/margin). */
+    .kit-category-chevron {
+      flex-shrink: 0;
+      color: var(--ink-soft);
+      transition: transform 0.18s ease, color 0.18s ease;
     }
 
     .kit-back-btn {
+      position: relative;
       margin-bottom: 18px;
+    }
+
+    /* Mesma extensao invisivel de hitbox do botao de acao do card --
+       o botao "ghost" pequeno (~34px) passa a ter alvo real >=44px. */
+    .kit-back-btn::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+    }
+
+    /* Nudge óptico de 0.5px: glifos direcionais (seta/chevron) tendem a
+       carregar peso visual pro lado da ponta -- correção sutil, só nos
+       dois ícones direcionais do Kit, não nos simétricos (pasta, imagem,
+       download) que não precisam dela. */
+    .kit-back-btn svg,
+    .kit-category-chevron {
+      transform: translateY(-0.5px);
+    }
+
+    .kit-category-card:hover .kit-category-chevron {
+      transform: translateX(3px) translateY(-0.5px);
+      color: var(--kit-accent, var(--brand-green-2));
     }
 
     @keyframes kit-spin {
@@ -3681,7 +3845,12 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .kit-category-card {
+      .kit-category-card,
+      .kit-card {
+        transition: none !important;
+        animation: none !important;
+      }
+      .kit-category-chevron {
         transition: none !important;
       }
       .kit-spin {
@@ -15420,6 +15589,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return KIT_FORMAT_ICON_MAP[key] || "folder";
     }
 
+    // Hue determinístico por nome de formato, pra faixa de cor (OKLCH)
+    // no topo de cada card da grade -- so decorativo, ajuda a "escanear"
+    // a grade visualmente. Restrito a 120-280deg (verde->azul->violeta)
+    // pra ficar na mesma familia da marca (verde ~150, azul ~255 em
+    // OKLCH) e nunca cair em vermelho/amarelo, que no resto do
+    // dashboard tem significado de alerta/erro.
+    function kitAccentHue(str) {
+      let hash = 0;
+      const s = String(str || "");
+      for (let i = 0; i < s.length; i++) {
+        hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+      }
+      return 120 + (hash % 160);
+    }
+
     function kitSlugify(str) {
       return (
         String(str || "")
@@ -15483,21 +15667,42 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         a.click();
         a.remove();
         URL.revokeObjectURL(blobUrl);
+        // Confirmacao rapida (nao e' otimista -- o download ja terminou
+        // de verdade aqui) antes de voltar ao rotulo original, so pra
+        // dar um sinal positivo claro em vez de trocar o label de volta
+        // instantaneamente.
+        btn.classList.add("is-success");
+        btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Baixado`;
+        bootLucideIcons();
+        await new Promise((resolve) => setTimeout(resolve, 900));
       } catch (e) {
         console.warn("[UI] [kit] download via blob falhou, abrindo em nova aba", { url, err: String(e) });
         window.open(url, "_blank", "noopener");
       } finally {
         btn.disabled = false;
+        btn.classList.remove("is-success");
         btn.innerHTML = original;
         bootLucideIcons();
       }
     }
 
-    function kitCardHtml(item) {
+    function kitCardHtml(item, idx) {
       const titulo = escapeHtml(item.titulo || "Material");
-      const descricao = item.descricao ? `<div class="kit-card-desc">${escapeHtml(item.descricao)}</div>` : "";
+      const descText = item.descricao ? escapeHtml(item.descricao) : "";
+      // Progressive disclosure: descricao longa some atras de "Ver mais"
+      // em vez de inflar o card inteiro pra caber um texto que a maioria
+      // nunca precisa ler completo.
+      const isLongDesc = descText.length > 92;
+      const descId = `kitDesc${idx}`;
+      const descricao = descText
+        ? `<div class="kit-card-desc${isLongDesc ? " is-clamped" : ""}" id="${descId}">${descText}</div>${
+            isLongDesc
+              ? `<button type="button" class="kit-desc-toggle" data-kit-desc-toggle="${descId}">Ver mais</button>`
+              : ""
+          }`
+        : "";
       const thumb = item.thumb_url
-        ? `<img src="${escapeHtml(item.thumb_url)}" alt="${titulo}" loading="lazy" />`
+        ? `<img src="${escapeHtml(item.thumb_url)}" alt="${titulo}" loading="lazy" onload="this.classList.add('is-loaded')" onerror="this.classList.add('is-loaded')" />`
         : `<span class="kit-thumb-fallback"><i data-lucide="image" class="w-6 h-6"></i></span>`;
       const url = item.arquivo_url || "";
       const action = kitIsExternalLink(url)
@@ -15510,7 +15715,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
              Baixar material
            </button>`;
       return `
-        <div class="kit-card">
+        <div class="kit-card" style="--i:${Math.min(idx || 0, 12)}">
           <div class="kit-thumb">${thumb}</div>
           <div class="kit-card-body">
             <div class="kit-card-title">${titulo}</div>
@@ -15524,20 +15729,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     // categoria, nao os N materiais dela inteiros). Clicar entra na tela 2.
     function renderKitCategoryGrid(el, groups) {
       let html = `<div class="kit-category-grid">`;
+      let idx = 0;
       for (const [formato, items] of groups) {
         const cover = items.find((it) => it.thumb_url)?.thumb_url || "";
         const coverHtml = cover
-          ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy" />`
+          ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy" onload="this.classList.add('is-loaded')" onerror="this.classList.add('is-loaded')" />`
           : `<span class="kit-thumb-fallback"><i data-lucide="${kitFormatIcon(formato)}" class="w-8 h-8"></i></span>`;
+        const accentStyle = `--kit-accent:oklch(74% 0.13 ${kitAccentHue(formato)});--i:${Math.min(idx, 12)}`;
         html += `
-          <button type="button" class="kit-category-card" data-kit-category="${escapeHtml(formato)}">
+          <button type="button" class="kit-category-card" data-kit-category="${escapeHtml(formato)}" style="${accentStyle}">
             <div class="kit-category-cover">${coverHtml}</div>
             <div class="kit-category-body">
               <span class="kit-jump-chip-icon"><i data-lucide="${kitFormatIcon(formato)}"></i></span>
               <span class="kit-category-label">${escapeHtml(formato)}</span>
               <span class="chip soft">${fmtInt(items.length)}</span>
+              <i data-lucide="chevron-right" class="kit-category-chevron w-4 h-4" aria-hidden="true"></i>
             </div>
           </button>`;
+        idx++;
       }
       html += `</div>`;
       el.innerHTML = html;
@@ -15558,9 +15767,35 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
             <h3 class="section-title" style="margin:0;">${escapeHtml(formato)}</h3>
             <span class="chip soft">${fmtInt(items.length)}</span>
           </div>
-          <div class="kit-grid">${items.map(kitCardHtml).join("")}</div>
+          <div class="kit-grid">${items.map((it, i) => kitCardHtml(it, i)).join("")}</div>
         </div>`;
       el.innerHTML = html;
+    }
+
+    // FLIP leve (origin-aware + shared element transition): a tela de
+    // detalhe "nasce" visualmente do card que foi clicado, em vez de so
+    // trocar de lugar -- so transform/opacity (nunca width/height/top/
+    // left). Guarda a animacao em el._kitAnim pra poder cancelar se o
+    // usuario navegar de novo (voltar, outra categoria) antes dela
+    // terminar -- interrompivel, sem travar nem enfileirar.
+    function kitAnimateIn(el, originRect) {
+      if (!el || !originRect) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (typeof el.animate !== "function") return;
+      const target = el.getBoundingClientRect();
+      if (!target.width || !target.height) return;
+      const dx = originRect.left + originRect.width / 2 - (target.left + target.width / 2);
+      const dy = originRect.top + originRect.height / 2 - (target.top + target.height / 2);
+      const scaleX = Math.min(1, Math.max(0.55, originRect.width / target.width));
+      const scaleY = Math.min(1, Math.max(0.55, originRect.height / target.height));
+      if (el._kitAnim) el._kitAnim.cancel();
+      el._kitAnim = el.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`, opacity: 0.45 },
+          { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
+        ],
+        { duration: 380, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" }
+      );
     }
 
     function renderKitPage() {
@@ -15592,8 +15827,19 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           }
           const catBtn = ev.target.closest("[data-kit-category]");
           if (catBtn) {
+            const originRect = catBtn.getBoundingClientRect();
             state.kitCategory = catBtn.getAttribute("data-kit-category");
             renderKitPage();
+            kitAnimateIn(el, originRect);
+            return;
+          }
+          const descToggle = ev.target.closest("[data-kit-desc-toggle]");
+          if (descToggle) {
+            const descTarget = document.getElementById(descToggle.getAttribute("data-kit-desc-toggle"));
+            if (descTarget) {
+              const expanded = descTarget.classList.toggle("is-expanded");
+              descToggle.textContent = expanded ? "Ver menos" : "Ver mais";
+            }
             return;
           }
           const dlBtn = ev.target.closest("[data-kit-download]");
@@ -24949,7 +25195,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
           <div class="col-span-12 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="section-title">Kit Escalada</h2>
-              <div class="text-sm text-slate-600">Materiais de divulga&ccedil;&atilde;o oficiais, prontos pra usar.</div>
+              <div class="text-sm text-slate-600" style="text-wrap:pretty;max-width:52ch;">Materiais de divulga&ccedil;&atilde;o oficiais, prontos pra usar.</div>
             </div>
             <span class="chip soft">Cards &bull; Banners &bull; Stories</span>
           </div>
