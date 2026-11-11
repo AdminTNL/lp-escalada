@@ -8597,7 +8597,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
       console.debug("[UI] [data] api:request", { api: SUPABASE_RPC.apiBase, params });
       try {
-        const result = await callDashboardApiWithRetry("main", params);
+        const result = await callDashboardApiWithRetry(dashboardReportName("main"), params);
         const payload = Array.isArray(result) ? result[0] : result;
         validatePayloadShape(payload);
         const normalized = ensurePayloadMeta(payload, { limit: params.p_limit });
@@ -8693,7 +8693,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         params
       });
 
-      const result = await callDashboardApiWithRetry("sources", params);
+      const result = await callDashboardApiWithRetry(dashboardReportName("sources"), params);
       const payload = Array.isArray(result) ? result[0] : result;
       validateSourcesPayloadShape(payload);
       const normalized = normalizeSourcesPayload(payload);
@@ -11706,8 +11706,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         || page === "destaques";
     }
 
-    // So meusconvites/regionais exigem gestor reconhecido -- ver
-    // syncGestorSidebarVisibility() e state.gestorReconhecido.
+    // So meusconvites/regionais exigem UF propria de gestor -- "destaques"
+    // fica de fora de proposito (conteudo publico, sem PII/UF, ver
+    // syncGestorSidebarVisibility() mais abaixo). Usada pra esconder a nav
+    // "Area da sua UF" e redirecionar quem tenta entrar direto via hash
+    // (ver isPublicViewer(), boot() e o listener de hashchange).
     function isGestorGatedPage(page) {
       return page === "meusconvites" || page === "regionais";
     }
@@ -11731,13 +11734,21 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     // como antes. state.gestorReconhecido continua existindo, mas agora
     // so controla se a pessoa pode CRIAR link em "Meus convites"
     // (criar_convite_gestor continua exigindo publico='gestores' de
-    // verdade) -- ver handleCriarConviteGestor. A nav em si (label +
-    // links) fica sempre visivel; body.html ja nasce sem "hidden" nela.
+    // verdade) -- ver handleCriarConviteGestor.
+    // RESTRICAO NOVA (2026-11-11, "modo publico"): a area INTEIRA volta a
+    // ficar escondida, mas so pra quem e' PUBLICO de verdade (sem nenhum
+    // vinculo de gestor nem admin) -- um caso que nao existia antes do
+    // login publico ser aberto. Nao reverte a decisao de 14/08: qualquer
+    // pessoa com vinculo real (gestora OU admin) continua vendo tudo
+    // igual. Antes do primeiro loadGestorUf() resolver, o default
+    // (gestorUfResolved=false -> isPublicViewer()=false) deixa a nav
+    // visivel por 1 frame -- aceitavel, ver boot()/isPublicViewer().
     function syncGestorSidebarVisibility() {
       const label = document.getElementById("sidebarGestorLabel");
       const nav = document.getElementById("sidebarGestorNav");
-      if (label) label.classList.remove("hidden");
-      if (nav) nav.classList.remove("hidden");
+      const hide = isPublicViewer();
+      if (label) label.classList.toggle("hidden", hide);
+      if (nav) nav.classList.toggle("hidden", hide);
     }
 
     function parseHashRoute() {
@@ -12407,9 +12418,24 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       state.sourceDetailActiveRow = row;
       updateSourceDetailModal(row);
       syncSourceDetailPeriodLabel();
+      syncSourceDetailExportVisibility();
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       syncModalBackdropState();
+    }
+
+    // "Modo publico" (ver isPublicViewer): esconde Baixar contatos/Exportar
+    // PDF do modal de detalhe de fonte. A trava de verdade ja e' 100%
+    // backend (dashboard_fonte_contatos_v1.sql, trava por UF/p_email) --
+    // sem vinculo de gestor nenhum, "Baixar contatos" sempre falharia com
+    // "nao e' da sua UF" mesmo sem isto, mas deixar o botao visivel so pra
+    // falhar sempre e' UX ruim, nao uma protecao a mais.
+    function syncSourceDetailExportVisibility() {
+      const hide = isPublicViewer();
+      const contatos = document.getElementById("sourceDetailContatosDropdown");
+      const pdf = document.getElementById("btnExportSourceDetailPdf");
+      if (contatos) contatos.classList.toggle("hidden", hide);
+      if (pdf) pdf.classList.toggle("hidden", hide);
     }
 
     function openSourceDetailModalByKey(sourceKey, overridePeriod) {
@@ -12590,7 +12616,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
         p_uf: resolveUfFilterValue(uf),
         p_publico: sanitizeFilterValue(publico),
       };
-      const result = await callDashboardApiWithRetry("fonte_detalhe", params);
+      const result = await callDashboardApiWithRetry(dashboardReportName("fonte_detalhe"), params);
       const data = Array.isArray(result) ? result[0] : result;
       // Enquanto o branch "fonte_detalhe" nao existir no Switch (report) do
       // n8n (ver README -- "Pendente no n8n"), o webhook cai num branch
@@ -13519,7 +13545,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
     async function fetchRadarWindowRows(family, range, filters) {
       try {
         const params = getRpcParams({ dateFrom: range.from, dateTo: range.to, uf: filters?.uf, publico: filters?.publico });
-        const result = await callDashboardApiWithRetry("sources", params);
+        const result = await callDashboardApiWithRetry(dashboardReportName("sources"), params);
         const payload = Array.isArray(result) ? result[0] : result;
         validateSourcesPayloadShape(payload);
         const normalized = normalizeSourcesPayload(payload);
@@ -14375,6 +14401,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       });
       syncSidebarSourcesGroup();
       syncGestorSidebarVisibility();
+      syncSourceDetailExportVisibility();
       syncDestaquesNovoBtn();
       populateDestaquesAdminUfSelect();
 
@@ -15108,6 +15135,29 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return String(email || "").trim().toLowerCase() === "admin@tironalua.com";
     }
 
+    // "Modo publico" (2026-11-11, pedido do Gabriel): quem loga de verdade
+    // (Keycloak) mas nao e' reconhecido como gestor de UF nenhuma
+    // (uf_do_gestor() exige publico='gestores' em "Participantes
+    // Escalada") via ate' entao TUDO zerado -- a trava de UF (Fase A/B)
+    // bloqueia dados reais por design, mas o resultado pra quem nao e'
+    // gestor e' uma tela vazia, nao uma experiencia utilizavel. Em vez
+    // disso, esse perfil passa a ver a mesma versao nacional agregada/sem
+    // PII que ja roda hoje, sem login, em dashboard-escalada.netlify.app
+    // (RPCs _publico: dashboard_executivo_v2_publico/
+    // dashboard_fontes_v2_publico/dashboard_fonte_detalhe_v1_publico --
+    // ja existiam, ja tem grant, filtro de UF continua livre). admin@
+    // tironalua.com continua de fora (canExploreOtherUf), mesmo sem linha
+    // "gestores" -- ele ja tem bypass total nas RPCs _interno.
+    function isPublicViewer() {
+      return state.gestorUfResolved && !state.gestorReconhecido && !canExploreOtherUf();
+    }
+    // Troca o report pela variante _publico quando em modo publico -- usado
+    // nos 4 call-sites que hoje pedem "main"/"sources"/"fonte_detalhe"
+    // (loadData/loadSourcesData/fetchRadarWindowRows/fetchSourceDetalhe).
+    function dashboardReportName(base) {
+      return isPublicViewer() ? `${base}_publico` : base;
+    }
+
     // Admins da aba "Destaques" -- mirror client-side so pra UX (mostrar/
     // esconder o alternador de visao no header). A fonte da verdade e
     // sempre a funcao SQL public.get_admins_destaques_engajamento(),
@@ -15274,40 +15324,67 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       return node ?? null;
     }
 
-    async function loadGestorUf() {
-      const email = await waitForGestorEmail();
-      if (!email) {
-        console.warn("[UI] [gestor] email do usuario indisponivel; UF automatica ignorada");
-        return null;
+    // Compartilhado entre loadGestorUf() e o listener de hashchange --
+    // so mexe em state.page/URL (nunca render() aqui), entao e' seguro
+    // chamar mesmo antes de state.raw existir (boot(), chamada
+    // antecipada skipUi:true). Idempotente: se state.page ja for
+    // "overview", isGestorGatedPage() da false e nao faz nada.
+    function redirectAwayFromGestorGatedPageIfNeeded() {
+      if (isGestorGatedPage(state.page) && isPublicViewer()) {
+        state.page = "overview";
+        history.replaceState(null, "", "#overview");
       }
-      try {
-        const raw = await callDashboardApi("gestor_uf", { email });
-        const payload = unwrapApiPayload(raw);
-        const uf = payload && typeof payload === "object" ? payload.uf : payload;
-        const value = uf === null || uf === undefined ? "" : String(uf).trim();
-        state.gestorReconhecido = Boolean(payload && typeof payload === "object" && payload.reconhecido);
-        state.gestorUfResolved = true;
-        console.info("[UI] [gestor] uf lookup", { email, uf: value || null, reconhecido: state.gestorReconhecido });
-        state.gestorUf = value;
-        // A aba "Meus convites" pode já ter sido montada antes da UF/
-        // reconhecido chegarem -- reconfere o form de criar link (some
-        // pra quem nao e' gestor de verdade, ver renderMeusConvitesPage)
-        // e a lista, caso o palpite inicial (gestorReconhecido=false)
-        // tenha ficado visivel um instante.
-        syncMeusConvitesUfSelect();
-        syncGestorSidebarVisibility();
-        renderMeusConvitesPage();
-        // Atualiza a saudacao "Ola, {nome}" no header assim que souber que
-        // a pessoa e' gestor reconhecido -- sem isso, quem nao passa por
-        // applyFilters() logo em seguida (ex.: admin, que pula o
-        // auto-apply, ver canExploreOtherUf) ficava preso em "Dashboard
-        // Executivo" ate algum outro evento disparar um render().
-        render();
-        return value || null;
-      } catch (e) {
-        console.warn("[UI] [gestor] uf lookup failed", { err: String(e) });
-        return null;
+    }
+
+    // {skipUi:true} (ver boot()): so resolve o status de gestor (fetch +
+    // state.gestorReconhecido/gestorUf/gestorUfResolved), sem disparar os
+    // efeitos colaterais de UI abaixo -- usado ANTES do payload principal
+    // existir, pra decidir ja na 1a chamada (loadData/loadSourcesData/...)
+    // se pede a variante _publico (ver isPublicViewer/dashboardReportName).
+    // state.gestorUfResolved vira o cache-guard: uma 2a chamada (com ou
+    // sem skipUi) reusa o valor ja resolvido, sem bater a rede de novo --
+    // hoje ja eram 2 chamadas encadeadas (boot + gestor-uf-auto), isto so
+    // reordena qual vem primeiro, sem round-trip extra.
+    async function loadGestorUf({ skipUi = false } = {}) {
+      if (!state.gestorUfResolved) {
+        const email = await waitForGestorEmail();
+        if (!email) {
+          console.warn("[UI] [gestor] email do usuario indisponivel; UF automatica ignorada");
+          return null;
+        }
+        try {
+          const raw = await callDashboardApi("gestor_uf", { email });
+          const payload = unwrapApiPayload(raw);
+          const uf = payload && typeof payload === "object" ? payload.uf : payload;
+          const value = uf === null || uf === undefined ? "" : String(uf).trim();
+          state.gestorReconhecido = Boolean(payload && typeof payload === "object" && payload.reconhecido);
+          state.gestorUfResolved = true;
+          console.info("[UI] [gestor] uf lookup", { email, uf: value || null, reconhecido: state.gestorReconhecido });
+          state.gestorUf = value;
+        } catch (e) {
+          console.warn("[UI] [gestor] uf lookup failed", { err: String(e) });
+          return null;
+        }
       }
+
+      redirectAwayFromGestorGatedPageIfNeeded();
+      if (skipUi) return state.gestorUf || null;
+
+      // A aba "Meus convites" pode já ter sido montada antes da UF/
+      // reconhecido chegarem -- reconfere o form de criar link (some
+      // pra quem nao e' gestor de verdade, ver renderMeusConvitesPage)
+      // e a lista, caso o palpite inicial (gestorReconhecido=false)
+      // tenha ficado visivel um instante.
+      syncMeusConvitesUfSelect();
+      syncGestorSidebarVisibility();
+      renderMeusConvitesPage();
+      // Atualiza a saudacao "Ola, {nome}" no header assim que souber que
+      // a pessoa e' gestor reconhecido -- sem isso, quem nao passa por
+      // applyFilters() logo em seguida (ex.: admin, que pula o
+      // auto-apply, ver canExploreOtherUf) ficava preso em "Dashboard
+      // Executivo" ate algum outro evento disparar um render().
+      render();
+      return state.gestorUf || null;
     }
 
     // =========================================================
@@ -24030,6 +24107,11 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       window.addEventListener("hashchange", ()=>{
         const previousPage = state.page;
         state.page = currentHashPage();
+        // Edicao manual de hash com a SPA ja rodando (status de gestor ja
+        // resolvido no boot) -- cobre quem digita #meusconvites/#regionais
+        // direto na barra sem clicar na nav (ja escondida pra quem e'
+        // publico de verdade, ver syncGestorSidebarVisibility).
+        redirectAwayFromGestorGatedPageIfNeeded();
         state.sourceFamily = currentSourceFamilyFromUrl();
         handlePageTransitionUi(state.page, previousPage);
         syncSourceFamilyControls();
@@ -24050,6 +24132,7 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       window.addEventListener("popstate", ()=>{
         const previousPage = state.page;
         state.page = currentHashPage();
+        redirectAwayFromGestorGatedPageIfNeeded();
         state.sourceFamily = currentSourceFamilyFromUrl();
         handlePageTransitionUi(state.page, previousPage);
         render();
@@ -24124,6 +24207,19 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
 
         state.page = currentHashPage();
         state.sourceFamily = currentSourceFamilyFromUrl();
+        // Resolve ANTES de qualquer fetch pesado (main/sources/fonte_detalhe)
+        // se a pessoa e' gestor reconhecido, admin, ou "modo publico" --
+        // sem isso a 1a chamada (loadData(), logo abaixo) nao saberia se
+        // deve pedir a variante _publico (ver isPublicViewer/
+        // dashboardReportName). skipUi:true evita os efeitos colaterais de
+        // UI (render() etc.) antes de state.raw existir -- a chamada ja
+        // existente dentro de unlockUfOnboarding() mais abaixo reusa o
+        // valor cacheado (gestorUfResolved) e roda esses efeitos na hora
+        // certa, sem round-trip extra (ja eram 2 chamadas encadeadas, so
+        // reordenei qual vem primeiro). Tambem ja cobre redirect de quem
+        // tenta entrar direto em #meusconvites/#regionais sem ser gestor
+        // (ver redirectAwayFromGestorGatedPageIfNeeded, dentro dela).
+        await loadGestorUf({ skipUi: true });
         // fillFilterOptions() (nao so syncFilterForm()) -- o <select> de UF
         // (#fUf) comeca VAZIO no HTML (ver body.html) e so ganhava opcoes
         // dentro de refreshFromServer(), depois do payload principal
