@@ -14689,18 +14689,20 @@ window.__MODULOS_COMPLEMENTARES_LOOKUP__ = {
       syncModalBackdropState();
     }
 
-    // "Modo publico" (ver isPublicViewer): esconde Baixar contatos/Exportar
-    // PDF do modal de detalhe de fonte. A trava de verdade ja e' 100%
-    // backend (dashboard_fonte_contatos_v1.sql, trava por UF/p_email) --
-    // sem vinculo de gestor nenhum, "Baixar contatos" sempre falharia com
-    // "nao e' da sua UF" mesmo sem isto, mas deixar o botao visivel so pra
-    // falhar sempre e' UX ruim, nao uma protecao a mais.
+    // "Modo publico" (ver isPublicViewer): esconde so o "Baixar contatos"
+    // do modal de detalhe de fonte -- expõe nome/email/telefone reais
+    // (fetchFonteContatos/dashboard_fonte_contatos_v1.sql) sem vinculo de
+    // gestor verificado, e a trava de verdade ja e' 100% backend (por
+    // UF/p_email) -- sem isto o botao so ficaria visivel pra falhar
+    // sempre, UX ruim, nao protecao a mais. "Exportar PDF"
+    // (exportSourceDetailReport) so imprime o que ja esta renderizado no
+    // modal, alimentado pela RPC _publico (ver dashboardReportName) --
+    // sem PII, sem chamada de rede nova -- por isso continua liberado
+    // tambem em modo publico.
     function syncSourceDetailExportVisibility() {
       const hide = isPublicViewer();
       const contatos = document.getElementById("sourceDetailContatosDropdown");
-      const pdf = document.getElementById("btnExportSourceDetailPdf");
       if (contatos) contatos.classList.toggle("hidden", hide);
-      if (pdf) pdf.classList.toggle("hidden", hide);
     }
 
     function openSourceDetailModalByKey(sourceKey, overridePeriod) {
